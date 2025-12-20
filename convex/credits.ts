@@ -1,0 +1,425 @@
+import { v } from "convex/values";
+import { query, mutation, internalMutation } from "./_generated/server";
+
+// ============ QUERIES ============
+
+// Get user's credit balance
+export const getBalance = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+
+    const userId = identity.subject;
+    const credits = await ctx.db
+      .query("userCredits")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .first();
+
+    if (!credits) {
+      return {
+        balance: 0,
+        totalPurchased: 0,
+        totalUsed: 0,
+      };
+    }
+
+    return {
+      balance: credits.balance,
+      totalPurchased: credits.totalPurchased,
+      totalUsed: credits.totalUsed,
+    };
+  },
+});
+
+// Get user's transaction history
+export const getTransactions = query({
+  args: {
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
+
+    const userId = identity.subject;
+    const limit = args.limit || 50;
+
+    const transactions = await ctx.db
+      .query("creditTransactions")
+      .withIndex("by_userId_createdAt", (q) => q.eq("userId", userId))
+      .order("desc")
+      .take(limit);
+
+    return transactions;
+  },
+});
+
+// Get available credit packages
+export const getPackages = query({
+  args: {},
+  handler: async (ctx) => {
+    const packages = await ctx.db
+      .query("creditPackages")
+      .withIndex("by_isActive", (q) => q.eq("isActive", true))
+      .collect();
+
+    return packages.sort((a, b) => a.order - b.order);
+  },
+});
+
+// Check if user has enough credits
+export const hasCredits = query({
+  args: {
+    amount: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return false;
+
+    const userId = identity.subject;
+    const credits = await ctx.db
+      .query("userCredits")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .first();
+
+    if (!credits) return false;
+    return credits.balance >= args.amount;
+  },
+});
+
+// ============ MUTATIONS ============
+
+// Initialize credits for a new user (called on first use)
+export const initializeCredits = mutation({
+  args: {
+    bonusCredits: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const userId = identity.subject;
+
+    // Check if already initialized
+    const existing = await ctx.db
+      .query("userCredits")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .first();
+
+    if (existing) return existing._id;
+
+    const now = Date.now();
+    const bonusAmount = args.bonusCredits || 100; // Default 100 cents ($1) bonus for new users
+
+    // Create credit record
+    const creditId = await ctx.db.insert("userCredits", {
+      userId,
+      balance: bonusAmount,
+      totalPurchased: 0,
+      totalUsed: 0,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    // Record the bonus transaction
+    if (bonusAmount > 0) {
+      await ctx.db.insert("creditTransactions", {
+        userId,
+        type: "bonus",
+        amount: bonusAmount,
+        balanceAfter: bonusAmount,
+        description: "Welcome bonus credits",
+        createdAt: now,
+      });
+    }
+
+    return creditId;
+  },
+});
+
+// Deduct credits for usage (called from API routes)
+export const deductCredits = mutation({
+  args: {
+    amount: v.number(),
+    feature: v.string(),
+    model: v.string(),
+    promptTokens: v.number(),
+    completionTokens: v.number(),
+    actualCostUSD: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const userId = identity.subject;
+
+    // Get current balance
+    const credits = await ctx.db
+      .query("userCredits")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .first();
+
+    if (!credits) {
+      throw new Error("No credits found. Please purchase credits first.");
+    }
+
+    if (credits.balance < args.amount) {
+      throw new Error("Insufficient credits");
+    }
+
+    const now = Date.now();
+    const newBalance = credits.balance - args.amount;
+
+    // Update balance
+    await ctx.db.patch(credits._id, {
+      balance: newBalance,
+      totalUsed: credits.totalUsed + args.amount,
+      updatedAt: now,
+    });
+
+    // Record transaction
+    await ctx.db.insert("creditTransactions", {
+      userId,
+      type: "usage",
+      amount: -args.amount,
+      balanceAfter: newBalance,
+      usageDetails: {
+        feature: args.feature,
+        model: args.model,
+        promptTokens: args.promptTokens,
+        completionTokens: args.completionTokens,
+        actualCostUSD: args.actualCostUSD,
+      },
+      description: `${args.feature} - ${args.model}`,
+      createdAt: now,
+    });
+
+    return { success: true, newBalance };
+  },
+});
+
+// Add credits from purchase (called from webhook)
+export const addCreditsFromPurchase = internalMutation({
+  args: {
+    userId: v.string(),
+    amount: v.number(),
+    provider: v.string(),
+    orderId: v.string(),
+    productId: v.optional(v.string()),
+    amountPaidUSD: v.number(),
+    description: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+
+    // Get or create credit record
+    let credits = await ctx.db
+      .query("userCredits")
+      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .first();
+
+    if (!credits) {
+      // Initialize credits for this user
+      const creditId = await ctx.db.insert("userCredits", {
+        userId: args.userId,
+        balance: args.amount,
+        totalPurchased: args.amount,
+        totalUsed: 0,
+        createdAt: now,
+        updatedAt: now,
+      });
+      credits = await ctx.db.get(creditId);
+    } else {
+      // Update existing balance
+      await ctx.db.patch(credits._id, {
+        balance: credits.balance + args.amount,
+        totalPurchased: credits.totalPurchased + args.amount,
+        updatedAt: now,
+      });
+    }
+
+    const newBalance = (credits?.balance || 0) + args.amount;
+
+    // Record transaction
+    await ctx.db.insert("creditTransactions", {
+      userId: args.userId,
+      type: "purchase",
+      amount: args.amount,
+      balanceAfter: newBalance,
+      purchaseDetails: {
+        provider: args.provider,
+        orderId: args.orderId,
+        productId: args.productId,
+        amountPaidUSD: args.amountPaidUSD,
+      },
+      description: args.description,
+      createdAt: now,
+    });
+
+    return { success: true, newBalance };
+  },
+});
+
+// Add bonus credits (admin function)
+export const addBonusCredits = mutation({
+  args: {
+    targetUserId: v.string(),
+    amount: v.number(),
+    reason: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    // TODO: Add admin check here
+    // For now, allow any authenticated user (you should restrict this)
+
+    const now = Date.now();
+
+    let credits = await ctx.db
+      .query("userCredits")
+      .withIndex("by_userId", (q) => q.eq("userId", args.targetUserId))
+      .first();
+
+    let newBalance: number;
+
+    if (!credits) {
+      // Create new credit record with the bonus amount
+      await ctx.db.insert("userCredits", {
+        userId: args.targetUserId,
+        balance: args.amount,
+        totalPurchased: 0,
+        totalUsed: 0,
+        createdAt: now,
+        updatedAt: now,
+      });
+      newBalance = args.amount;
+    } else {
+      // Update existing balance
+      newBalance = credits.balance + args.amount;
+      await ctx.db.patch(credits._id, {
+        balance: newBalance,
+        updatedAt: now,
+      });
+    }
+
+    await ctx.db.insert("creditTransactions", {
+      userId: args.targetUserId,
+      type: "bonus",
+      amount: args.amount,
+      balanceAfter: newBalance,
+      description: args.reason,
+      createdAt: now,
+    });
+
+    return { success: true, newBalance };
+  },
+});
+
+// ============ ADMIN: PACKAGE MANAGEMENT ============
+
+// Create a credit package (admin)
+export const createPackage = mutation({
+  args: {
+    name: v.string(),
+    credits: v.number(),
+    priceUSD: v.number(),
+    bonusCredits: v.number(),
+    description: v.string(),
+    isPopular: v.boolean(),
+    lemonSqueezyProductId: v.optional(v.string()),
+    lemonSqueezyVariantId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    // Get highest order
+    const packages = await ctx.db.query("creditPackages").collect();
+    const maxOrder = packages.reduce((max, p) => Math.max(max, p.order), 0);
+
+    const now = Date.now();
+
+    return await ctx.db.insert("creditPackages", {
+      name: args.name,
+      credits: args.credits,
+      priceUSD: args.priceUSD,
+      bonusCredits: args.bonusCredits,
+      description: args.description,
+      isPopular: args.isPopular,
+      isActive: true,
+      lemonSqueezyProductId: args.lemonSqueezyProductId,
+      lemonSqueezyVariantId: args.lemonSqueezyVariantId,
+      order: maxOrder + 1,
+      createdAt: now,
+      updatedAt: now,
+    });
+  },
+});
+
+// Seed default packages
+export const seedDefaultPackages = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    // Check if packages already exist
+    const existing = await ctx.db.query("creditPackages").first();
+    if (existing) {
+      return { message: "Packages already exist" };
+    }
+
+    const now = Date.now();
+
+    const packages = [
+      {
+        name: "Starter",
+        credits: 500, // $5 worth
+        priceUSD: 499, // $4.99
+        bonusCredits: 0,
+        description: "Perfect for trying out AI features",
+        isPopular: false,
+        order: 1,
+      },
+      {
+        name: "Creator",
+        credits: 1500, // $15 worth
+        priceUSD: 999, // $9.99
+        bonusCredits: 200, // +$2 bonus
+        description: "Best value for regular creators",
+        isPopular: true,
+        order: 2,
+      },
+      {
+        name: "Pro",
+        credits: 5000, // $50 worth
+        priceUSD: 2999, // $29.99
+        bonusCredits: 1000, // +$10 bonus
+        description: "For power users and teams",
+        isPopular: false,
+        order: 3,
+      },
+      {
+        name: "Agency",
+        credits: 15000, // $150 worth
+        priceUSD: 7999, // $79.99
+        bonusCredits: 5000, // +$50 bonus
+        description: "Unlimited creativity for agencies",
+        isPopular: false,
+        order: 4,
+      },
+    ];
+
+    for (const pkg of packages) {
+      await ctx.db.insert("creditPackages", {
+        ...pkg,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+
+    return { message: "Default packages created", count: packages.length };
+  },
+});
