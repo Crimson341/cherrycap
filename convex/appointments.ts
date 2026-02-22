@@ -53,6 +53,20 @@ export const upsertSettings = mutation({
     notifyEmail: v.boolean(),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity?.email) {
+      throw new Error("Not authenticated");
+    }
+
+    // Verify caller is admin
+    const allowlistEntry = await ctx.db
+      .query("adminAllowlist")
+      .withIndex("by_email", (q) => q.eq("email", identity.email!))
+      .first();
+    if (!allowlistEntry || (allowlistEntry.role !== "superadmin" && allowlistEntry.role !== "admin")) {
+      throw new Error("Not authorized");
+    }
+
     const existing = await ctx.db
       .query("appointmentSettings")
       .withIndex("by_adminEmail", (q) => q.eq("adminEmail", args.adminEmail))
@@ -318,6 +332,11 @@ export const cancelAppointment = mutation({
     reason: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
     const appointment = await ctx.db.get(args.appointmentId);
     if (!appointment) {
       throw new Error("Appointment not found");
@@ -345,6 +364,17 @@ export const getAppointments = query({
     status: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity?.email) return [];
+
+    const allowlistEntry = await ctx.db
+      .query("adminAllowlist")
+      .withIndex("by_email", (q) => q.eq("email", identity.email!))
+      .first();
+    if (!allowlistEntry || (allowlistEntry.role !== "superadmin" && allowlistEntry.role !== "admin")) {
+      return [];
+    }
+
     const email = args.adminEmail || DEFAULT_ADMIN_EMAIL;
 
     let query = ctx.db
@@ -353,7 +383,6 @@ export const getAppointments = query({
 
     const appointments = await query.collect();
 
-    // Filter by date range if provided
     let filtered = appointments;
     if (args.startDate) {
       filtered = filtered.filter((a) => a.date >= args.startDate!);
@@ -365,7 +394,6 @@ export const getAppointments = query({
       filtered = filtered.filter((a) => a.status === args.status);
     }
 
-    // Sort by date and time
     filtered.sort((a, b) => {
       if (a.date !== b.date) return a.date.localeCompare(b.date);
       return a.startTime.localeCompare(b.startTime);
@@ -379,6 +407,17 @@ export const getAppointments = query({
 export const getTodaysAppointments = query({
   args: { adminEmail: v.optional(v.string()) },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity?.email) return [];
+
+    const allowlistEntry = await ctx.db
+      .query("adminAllowlist")
+      .withIndex("by_email", (q) => q.eq("email", identity.email!))
+      .first();
+    if (!allowlistEntry || (allowlistEntry.role !== "superadmin" && allowlistEntry.role !== "admin")) {
+      return [];
+    }
+
     const email = args.adminEmail || DEFAULT_ADMIN_EMAIL;
     const today = new Date().toISOString().split("T")[0];
 
@@ -400,6 +439,17 @@ export const getTodaysAppointments = query({
 export const getUpcomingAppointments = query({
   args: { adminEmail: v.optional(v.string()) },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity?.email) return [];
+
+    const allowlistEntry = await ctx.db
+      .query("adminAllowlist")
+      .withIndex("by_email", (q) => q.eq("email", identity.email!))
+      .first();
+    if (!allowlistEntry || (allowlistEntry.role !== "superadmin" && allowlistEntry.role !== "admin")) {
+      return [];
+    }
+
     const email = args.adminEmail || DEFAULT_ADMIN_EMAIL;
     const today = new Date();
     const weekFromNow = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
@@ -442,6 +492,19 @@ export const addBlockedSlot = mutation({
     recurringDays: v.optional(v.array(v.number())),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity?.email) {
+      throw new Error("Not authenticated");
+    }
+
+    const allowlistEntry = await ctx.db
+      .query("adminAllowlist")
+      .withIndex("by_email", (q) => q.eq("email", identity.email!))
+      .first();
+    if (!allowlistEntry || (allowlistEntry.role !== "superadmin" && allowlistEntry.role !== "admin")) {
+      throw new Error("Not authorized");
+    }
+
     const email = args.adminEmail || DEFAULT_ADMIN_EMAIL;
 
     return await ctx.db.insert("blockedSlots", {
@@ -461,6 +524,19 @@ export const addBlockedSlot = mutation({
 export const removeBlockedSlot = mutation({
   args: { slotId: v.id("blockedSlots") },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity?.email) {
+      throw new Error("Not authenticated");
+    }
+
+    const allowlistEntry = await ctx.db
+      .query("adminAllowlist")
+      .withIndex("by_email", (q) => q.eq("email", identity.email!))
+      .first();
+    if (!allowlistEntry || (allowlistEntry.role !== "superadmin" && allowlistEntry.role !== "admin")) {
+      throw new Error("Not authorized");
+    }
+
     await ctx.db.delete(args.slotId);
     return { success: true };
   },
@@ -470,6 +546,17 @@ export const removeBlockedSlot = mutation({
 export const getBlockedSlots = query({
   args: { adminEmail: v.optional(v.string()) },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity?.email) return [];
+
+    const allowlistEntry = await ctx.db
+      .query("adminAllowlist")
+      .withIndex("by_email", (q) => q.eq("email", identity.email!))
+      .first();
+    if (!allowlistEntry || (allowlistEntry.role !== "superadmin" && allowlistEntry.role !== "admin")) {
+      return [];
+    }
+
     const email = args.adminEmail || DEFAULT_ADMIN_EMAIL;
 
     return await ctx.db

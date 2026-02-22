@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
     const result = await convex.mutation(api.verification.rejectByToken, { 
       token,
       reason,
+      serverSecret: process.env.CONVEX_SERVER_SECRET!,
     });
 
     return new NextResponse(

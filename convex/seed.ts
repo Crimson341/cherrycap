@@ -128,6 +128,15 @@ export const makeMeSuperadmin = mutation({
       throw new Error("Not authenticated or no email");
     }
 
+    // Security: Only allow if adminAllowlist is empty (bootstrap) or caller is already admin
+    const allAdmins = await ctx.db.query("adminAllowlist").collect();
+    if (allAdmins.length > 0) {
+      const callerEntry = allAdmins.find((a) => a.email === identity.email);
+      if (!callerEntry || (callerEntry.role !== "superadmin" && callerEntry.role !== "admin")) {
+        throw new Error("Not authorized. Admin bootstrap is only available when no admins exist.");
+      }
+    }
+
     const now = Date.now();
 
     // Check if already in allowlist

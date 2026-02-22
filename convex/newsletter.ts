@@ -105,6 +105,17 @@ export const getSubscribersByTag = query({
     tag: v.string(),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity?.email) return [];
+
+    const allowlistEntry = await ctx.db
+      .query("adminAllowlist")
+      .withIndex("by_email", (q) => q.eq("email", identity.email!))
+      .first();
+    if (!allowlistEntry || (allowlistEntry.role !== "superadmin" && allowlistEntry.role !== "admin")) {
+      return [];
+    }
+
     const allSubscribers = await ctx.db
       .query("newsletterSubscribers")
       .withIndex("by_isActive", (q) => q.eq("isActive", true))
@@ -123,6 +134,19 @@ export const updatePreferences = mutation({
     tags: v.array(v.string()),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity?.email) {
+      throw new Error("Not authenticated");
+    }
+
+    const allowlistEntry = await ctx.db
+      .query("adminAllowlist")
+      .withIndex("by_email", (q) => q.eq("email", identity.email!))
+      .first();
+    if (!allowlistEntry || (allowlistEntry.role !== "superadmin" && allowlistEntry.role !== "admin")) {
+      throw new Error("Not authorized");
+    }
+
     const subscriber = await ctx.db
       .query("newsletterSubscribers")
       .withIndex("by_email", (q) => q.eq("email", args.email.toLowerCase()))
@@ -144,19 +168,28 @@ export const updatePreferences = mutation({
 export const getStats = query({
   args: {},
   handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity?.email) return null;
+
+    const allowlistEntry = await ctx.db
+      .query("adminAllowlist")
+      .withIndex("by_email", (q) => q.eq("email", identity.email!))
+      .first();
+    if (!allowlistEntry || (allowlistEntry.role !== "superadmin" && allowlistEntry.role !== "admin")) {
+      return null;
+    }
+
     const allSubscribers = await ctx.db
       .query("newsletterSubscribers")
       .collect();
 
     const activeSubscribers = allSubscribers.filter((s) => s.isActive);
     
-    // Count by source
     const bySource: Record<string, number> = {};
     activeSubscribers.forEach((s) => {
       bySource[s.source] = (bySource[s.source] || 0) + 1;
     });
 
-    // Count by tag
     const byTag: Record<string, number> = {};
     activeSubscribers.forEach((s) => {
       s.tags?.forEach((tag) => {
@@ -164,7 +197,6 @@ export const getStats = query({
       });
     });
 
-    // Recent subscribers (last 30 days)
     const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
     const recentSubscribers = activeSubscribers.filter(
       (s) => s.subscribedAt > thirtyDaysAgo

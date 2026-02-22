@@ -110,8 +110,11 @@ export const getMyRequest = query({
 
 // Get request by approval token (for API route)
 export const getByToken = query({
-  args: { token: v.string() },
+  args: { token: v.string(), serverSecret: v.string() },
   handler: async (ctx, args) => {
+    if (!process.env.CONVEX_SERVER_SECRET || args.serverSecret !== process.env.CONVEX_SERVER_SECRET) {
+      throw new Error("Unauthorized");
+    }
     return await ctx.db
       .query("verificationRequests")
       .withIndex("by_approvalToken", (q) => q.eq("approvalToken", args.token))
@@ -123,8 +126,13 @@ export const getByToken = query({
 export const approveByToken = mutation({
   args: { 
     token: v.string(),
+    serverSecret: v.string(),
   },
   handler: async (ctx, args) => {
+    if (!process.env.CONVEX_SERVER_SECRET || args.serverSecret !== process.env.CONVEX_SERVER_SECRET) {
+      throw new Error("Unauthorized");
+    }
+
     const request = await ctx.db
       .query("verificationRequests")
       .withIndex("by_approvalToken", (q) => q.eq("approvalToken", args.token))
@@ -211,8 +219,13 @@ export const rejectByToken = mutation({
   args: { 
     token: v.string(),
     reason: v.optional(v.string()),
+    serverSecret: v.string(),
   },
   handler: async (ctx, args) => {
+    if (!process.env.CONVEX_SERVER_SECRET || args.serverSecret !== process.env.CONVEX_SERVER_SECRET) {
+      throw new Error("Unauthorized");
+    }
+
     const request = await ctx.db
       .query("verificationRequests")
       .withIndex("by_approvalToken", (q) => q.eq("approvalToken", args.token))

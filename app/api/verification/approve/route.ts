@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Approve the request
-    const result = await convex.mutation(api.verification.approveByToken, { token });
+    const result = await convex.mutation(api.verification.approveByToken, { token, serverSecret: process.env.CONVEX_SERVER_SECRET! });
 
     return new NextResponse(
       generateHtml(
