@@ -89,7 +89,7 @@ const industries = [
 
 export default function VerifyPage() {
   const { user, isLoaded } = useUser();
-  const profile = useQuery(api.userProfiles.get, { userId: user?.id || "" });
+  const profile = useQuery(api.userProfiles.get, user?.id ? {} : "skip");
   const existingRequest = useQuery(api.verification.getMyRequest);
   const submitRequest = useMutation(api.verification.submitRequest);
 

@@ -425,7 +425,6 @@ function CreateBoardDialog({
     setIsCreating(true);
     try {
       const boardId = await createBoard({
-        userId: user.id,
         name: name.trim(),
         description: description.trim() || undefined,
         color,
@@ -2476,7 +2475,7 @@ function BoardsListView() {
 
   const boards = useQuery(
     api.kanban.getBoards,
-    user?.id ? { userId: user.id } : "skip"
+    user?.id ? {} : "skip"
   );
 
   const deleteBoard = useMutation(api.kanban.deleteBoard);

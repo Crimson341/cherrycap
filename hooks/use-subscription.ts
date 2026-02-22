@@ -9,7 +9,7 @@ export function useSubscription() {
 
   const subscriptions = useQuery(
     api.subscriptions.getByUserId,
-    user?.id ? { userId: user.id } : "skip"
+    user?.id ? {} : "skip"
   );
 
   const activeSubscription = subscriptions?.find(
@@ -43,7 +43,7 @@ export function useAIAccess() {
 
   const hasAccess = useQuery(
     api.subscriptions.hasActiveAISubscription,
-    user?.id ? { userId: user.id } : "skip"
+    user?.id ? {} : "skip"
   );
 
   return {

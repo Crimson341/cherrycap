@@ -77,7 +77,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<KanbanRespons
 
     switch (action) {
       case "getBoards": {
-        result = await convex.query(api.kanban.getBoards, { userId });
+        result = await convex.query(api.kanban.getBoards, {});
         return NextResponse.json({
           success: true,
           data: result,
@@ -116,7 +116,6 @@ export async function POST(req: NextRequest): Promise<NextResponse<KanbanRespons
           );
         }
         result = await convex.mutation(api.kanban.createBoard, {
-          userId,
           name: body.boardName,
           description: body.boardDescription,
           color: body.boardColor,
@@ -315,7 +314,7 @@ export async function GET(_req: NextRequest): Promise<NextResponse<KanbanRespons
     }
 
     // Get user's boards with basic info
-    const boards = await convex.query(api.kanban.getBoards, { userId });
+    const boards = await convex.query(api.kanban.getBoards, {});
     
     // Get summary for each board
     const boardSummaries = await Promise.all(

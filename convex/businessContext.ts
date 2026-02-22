@@ -17,13 +17,16 @@ export const get = query({
   },
 });
 
-// Get business context by user ID (for API usage)
+// Get business context by user ID (for current user)
 export const getByUserId = query({
-  args: { userId: v.string() },
-  handler: async (ctx, args) => {
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+
     return await ctx.db
       .query("businessContext")
-      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .withIndex("by_userId", (q) => q.eq("userId", identity.subject))
       .first();
   },
 });
@@ -273,15 +276,23 @@ export const getForAI = query({
     // Scope determines which sections to include
     // "full" = everything, "voice" = just voice/tone, "products" = products focus,
     // "content" = content guidelines, "minimal" = company basics only
-    scope: v.optional(v.union(
+     scope: v.optional(v.union(
       v.literal("full"),
       v.literal("voice"),
       v.literal("products"),
       v.literal("content"),
       v.literal("minimal")
     )),
+    serverSecret: v.string(),
   },
   handler: async (ctx, args) => {
+    if (!process.env.CONVEX_SERVER_SECRET) {
+      throw new Error("Missing CONVEX_SERVER_SECRET environment variable");
+    }
+    if (args.serverSecret !== process.env.CONVEX_SERVER_SECRET) {
+      throw new Error("Unauthorized server call");
+    }
+
     const context = await ctx.db
       .query("businessContext")
       .withIndex("by_userId", (q) => q.eq("userId", args.userId))

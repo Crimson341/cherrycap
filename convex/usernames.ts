@@ -93,13 +93,14 @@ export const getSuggestions = query({
 
 // Get current user's username
 export const getUsername = query({
-  args: {
-    userId: v.string(),
-  },
-  handler: async (ctx, args) => {
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+
     const username = await ctx.db
       .query("usernames")
-      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .withIndex("by_userId", (q) => q.eq("userId", identity.subject))
       .first();
 
     return username;

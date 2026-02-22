@@ -3,22 +3,28 @@ import { mutation, query } from "./_generated/server";
 
 // Get all subscriptions for a user
 export const getByUserId = query({
-  args: { userId: v.string() },
-  handler: async (ctx, args) => {
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
+
     return await ctx.db
       .query("subscriptions")
-      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .withIndex("by_userId", (q) => q.eq("userId", identity.subject))
       .collect();
   },
 });
 
 // Get active subscription for a user
 export const getActiveByUserId = query({
-  args: { userId: v.string() },
-  handler: async (ctx, args) => {
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+
     const subscriptions = await ctx.db
       .query("subscriptions")
-      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .withIndex("by_userId", (q) => q.eq("userId", identity.subject))
       .collect();
 
     // Find the first active subscription
@@ -56,11 +62,14 @@ export const getByOrganizationId = query({
 
 // Check if user has an active AI subscription
 export const hasActiveAISubscription = query({
-  args: { userId: v.string() },
-  handler: async (ctx, args) => {
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return false;
+
     const subscriptions = await ctx.db
       .query("subscriptions")
-      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .withIndex("by_userId", (q) => q.eq("userId", identity.subject))
       .collect();
 
     // Check if any subscription is active and is an AI product

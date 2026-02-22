@@ -152,7 +152,7 @@ export default function BlogEditorPage() {
   );
   const userProfile = useQuery(
     api.userProfiles.get,
-    user?.id ? { userId: user.id } : "skip"
+    user?.id ? {} : "skip"
   );
   const categories = useQuery(api.blogPosts.getCategories);
   const versionHistory = useQuery(

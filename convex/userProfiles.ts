@@ -3,13 +3,14 @@ import { mutation, query } from "./_generated/server";
 
 // Get user profile
 export const get = query({
-  args: { userId: v.string() },
-  handler: async (ctx, args) => {
-    if (!args.userId) return null;
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
     
     const profile = await ctx.db
       .query("userProfiles")
-      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .withIndex("by_userId", (q) => q.eq("userId", identity.subject))
       .first();
     
     return profile;

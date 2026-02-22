@@ -17,7 +17,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const { user } = useUser();
-  const profile = useQuery(api.userProfiles.getCurrent);
+  const profile = useQuery(api.userProfiles.getCurrent, user?.id ? {} : "skip");
   const updateProfile = useMutation(api.userProfiles.upsert);
   
   const [theme, setThemeState] = useState<Theme>("dark");

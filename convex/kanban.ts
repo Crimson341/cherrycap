@@ -5,12 +5,16 @@ import { mutation, query } from "./_generated/server";
 
 // Get all boards for a user (owned + member of + organization boards)
 export const getBoards = query({
-  args: { userId: v.string() },
-  handler: async (ctx, args) => {
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
+    const userId = identity.subject;
+
     // Get boards owned by user
     const ownedBoards = await ctx.db
       .query("kanbanBoards")
-      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
       .filter((q) => q.eq(q.field("isArchived"), false))
       .collect();
 
@@ -22,23 +26,23 @@ export const getBoards = query({
 
     // Filter boards where user is a member (but not owner)
     const memberBoards = allBoards.filter(board => {
-      if (board.userId === args.userId) return false; // Already in ownedBoards
+      if (board.userId === userId) return false; // Already in ownedBoards
       if (!board.members) return false;
-      return board.members.some(m => m.userId === args.userId);
+      return board.members.some(m => m.userId === userId);
     });
 
     // Get organization memberships for the user
     const orgMemberships = await ctx.db
       .query("organizationMembers")
-      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
       .filter((q) => q.eq(q.field("status"), "active"))
       .collect();
 
     // Get organization boards (where visibility is "organization" or "team")
     const orgIds = orgMemberships.map(m => m.organizationId);
     const orgBoards = allBoards.filter(board => {
-      if (board.userId === args.userId) return false;
-      if (board.members?.some(m => m.userId === args.userId)) return false;
+      if (board.userId === userId) return false;
+      if (board.members?.some(m => m.userId === userId)) return false;
       if (!board.organizationId) return false;
       if (!orgIds.some(id => id === board.organizationId)) return false;
       return board.visibility === "organization" || board.visibility === "team";
@@ -90,22 +94,25 @@ export const getBoard = query({
 // Create a new board with default columns
 export const createBoard = mutation({
   args: {
-    userId: v.string(),
+    name: v.string(),
     userEmail: v.optional(v.string()),
     userName: v.optional(v.string()),
     userAvatar: v.optional(v.string()),
-    name: v.string(),
     description: v.optional(v.string()),
     color: v.optional(v.string()),
     organizationId: v.optional(v.id("organizations")),
     visibility: v.optional(v.union(v.literal("private"), v.literal("team"), v.literal("organization"))),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const userId = identity.subject;
+
     const now = Date.now();
     
     // Create the board
     const boardId = await ctx.db.insert("kanbanBoards", {
-      userId: args.userId,
+      userId: userId,
       name: args.name,
       description: args.description,
       color: args.color || "#f43f5e", // Rose-500 default
@@ -115,8 +122,8 @@ export const createBoard = mutation({
       organizationId: args.organizationId,
       visibility: args.visibility || "private",
       members: [{ 
-        userId: args.userId, 
-        email: args.userEmail || "",
+        userId: userId, 
+        email: identity.email || args.userEmail || "",
         name: args.userName,
         avatar: args.userAvatar,
         role: "owner", 

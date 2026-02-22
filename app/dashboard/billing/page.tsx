@@ -239,7 +239,7 @@ function BillingPageContent() {
   // Fetch user's subscriptions
   const subscriptions = useQuery(
     api.subscriptions.getByUserId,
-    user?.id ? { userId: user.id } : "skip"
+    user ? {} : "skip"
   );
 
   // Check for success param

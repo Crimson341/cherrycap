@@ -49,9 +49,10 @@ export default function DashboardPage() {
   const [nameValue, setNameValue] = useState({ first: "", last: "" });
   const [isSaving, setIsSaving] = useState(false);
 
-  const profile = useQuery(api.userProfiles.get, { userId: user?.id || "" });
+  const profile = useQuery(api.userProfiles.get, user?.id ? {} : "skip");
   const updateProfile = useMutation(api.userProfiles.upsert);
-  const currentUsername = useQuery(api.usernames.getUsername, { userId: user?.id || "" });
+  const stats = useQuery(api.userStats.get, user?.id ? {} : "skip");
+  const currentUsername = useQuery(api.usernames.getUsername, user?.id ? {} : "skip");
 
   const isVerified = profile?.isVerified ?? false;
   const [notifications, setNotifications] = useState({ email: true, push: true });

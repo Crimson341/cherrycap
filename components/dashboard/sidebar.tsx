@@ -144,7 +144,7 @@ export function DashboardSidebar() {
   );
 
   // Fetch pinned items
-  const pinnedItems = useQuery(api.userProfiles.getPinnedItems) ?? [];
+  const pinnedItems = useQuery(api.userProfiles.getPinnedItems, user?.id ? {} : "skip") ?? [];
   const pinItem = useMutation(api.userProfiles.pinItem);
   const unpinItem = useMutation(api.userProfiles.unpinItem);
 

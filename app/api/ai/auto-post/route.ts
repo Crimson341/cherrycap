@@ -109,7 +109,8 @@ export async function POST(req: NextRequest) {
         // Use "content" scope to get relevant context without overwhelming token usage
         businessContext = await convex.query(api.businessContext.getForAI, { 
           userId,
-          scope: "content" 
+          scope: "content",
+          serverSecret: process.env.CONVEX_SERVER_SECRET || ""
         });
         if (businessContext?.formatted) {
           const toneDescription = businessContext.toneAttributes?.length 

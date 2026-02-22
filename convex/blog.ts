@@ -111,13 +111,14 @@ export const hasBookmarked = query({
 });
 
 export const getUserBookmarks = query({
-  args: {
-    userId: v.string(),
-  },
-  handler: async (ctx, args) => {
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
+
     const bookmarks = await ctx.db
       .query("blogBookmarks")
-      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .withIndex("by_userId", (q) => q.eq("userId", identity.subject))
       .order("desc")
       .collect();
 

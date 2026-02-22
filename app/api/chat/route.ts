@@ -160,7 +160,7 @@ async function executeKanbanTool(
 
     switch (action) {
       case "getBoards": {
-        result = await convex.query(api.kanban.getBoards, { userId });
+        result = await convex.query(api.kanban.getBoards, {});
         return {
           success: true,
           data: result,
@@ -190,7 +190,6 @@ async function executeKanbanTool(
           return { success: false, error: "boardName is required" };
         }
         result = await convex.mutation(api.kanban.createBoard, {
-          userId,
           name: args.boardName as string,
           description: args.boardDescription as string | undefined,
           color: args.boardColor as string | undefined,
