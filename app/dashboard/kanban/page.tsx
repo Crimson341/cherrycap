@@ -875,6 +875,11 @@ interface TaskData {
   labels?: string[];
   dueDate?: number;
   assignedTo?: string[];
+  subtasks?: { id: string; title: string; isCompleted: boolean }[];
+  estimatedMinutes?: number;
+  spentMinutes?: number;
+  pomodoroCount?: number;
+  isTodayFocus?: boolean;
   createdAt: number;
   updatedAt: number;
   columnName: string;
@@ -891,7 +896,18 @@ function TaskDetailModal({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   task: TaskData | null;
-  onUpdate: (taskId: Id<"kanbanTasks">, updates: { title?: string; description?: string; priority?: "low" | "medium" | "high" | "urgent"; labels?: string[]; dueDate?: number }) => Promise<void>;
+  onUpdate: (taskId: Id<"kanbanTasks">, updates: { 
+    title?: string; 
+    description?: string; 
+    priority?: "low" | "medium" | "high" | "urgent"; 
+    labels?: string[]; 
+    dueDate?: number;
+    subtasks?: { id: string; title: string; isCompleted: boolean }[];
+    estimatedMinutes?: number;
+    spentMinutes?: number;
+    pomodoroCount?: number;
+    isTodayFocus?: boolean;
+  }) => Promise<void>;
   onDelete: (taskId: Id<"kanbanTasks">) => Promise<void>;
 }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -900,6 +916,12 @@ function TaskDetailModal({
   const [editPriority, setEditPriority] = useState<string>("");
   const [editLabels, setEditLabels] = useState<string[]>([]);
   const [editDueDate, setEditDueDate] = useState<string>("");
+  const [editSubtasks, setEditSubtasks] = useState<{ id: string; title: string; isCompleted: boolean }[]>([]);
+  const [editEstimatedMinutes, setEditEstimatedMinutes] = useState<number | "">("");
+  const [editSpentMinutes, setEditSpentMinutes] = useState<number>(0);
+  const [editPomodoroCount, setEditPomodoroCount] = useState<number>(0);
+  const [editIsTodayFocus, setEditIsTodayFocus] = useState<boolean>(false);
+  const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -910,6 +932,11 @@ function TaskDetailModal({
       setEditPriority(task.priority || "");
       setEditLabels(task.labels || []);
       setEditDueDate(task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : "");
+      setEditSubtasks(task.subtasks || []);
+      setEditEstimatedMinutes(task.estimatedMinutes || "");
+      setEditSpentMinutes(task.spentMinutes || 0);
+      setEditPomodoroCount(task.pomodoroCount || 0);
+      setEditIsTodayFocus(task.isTodayFocus || false);
     }
   }, [task]);
 
@@ -927,6 +954,11 @@ function TaskDetailModal({
         priority: editPriority as "low" | "medium" | "high" | "urgent" | undefined,
         labels: editLabels.length > 0 ? editLabels : undefined,
         dueDate: editDueDate ? new Date(editDueDate).getTime() : undefined,
+        subtasks: editSubtasks.length > 0 ? editSubtasks : undefined,
+        estimatedMinutes: typeof editEstimatedMinutes === "number" ? editEstimatedMinutes : undefined,
+        spentMinutes: editSpentMinutes,
+        pomodoroCount: editPomodoroCount,
+        isTodayFocus: editIsTodayFocus,
       });
       setIsEditing(false);
     } finally {
@@ -1210,6 +1242,140 @@ function TaskDetailModal({
             </div>
           )}
 
+          {/* Subtasks */}
+          <div className="space-y-3">
+            <label className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider flex items-center gap-2">
+              <CheckCircle2 className="h-3 w-3" />
+              Subtasks
+            </label>
+            <div className="space-y-2">
+              {editSubtasks.map((subtask) => (
+                <div key={subtask.id} className="flex items-center gap-2 group">
+                  <button
+                    onClick={() => {
+                      const newSubtasks = editSubtasks.map(s => s.id === subtask.id ? { ...s, isCompleted: !s.isCompleted } : s);
+                      setEditSubtasks(newSubtasks);
+                      if (!isEditing) {
+                        onUpdate(task._id, { subtasks: newSubtasks });
+                      }
+                    }}
+                    className={`flex items-center justify-center w-4 h-4 rounded border transition-colors ${subtask.isCompleted ? 'bg-indigo-600 border-indigo-600' : 'border-neutral-700 hover:border-neutral-500'}`}
+                  >
+                    {subtask.isCompleted && <Check className="w-3 h-3 text-white stroke-[3]" />}
+                  </button>
+                  <span className={`text-sm flex-1 ${subtask.isCompleted ? 'text-neutral-600 line-through' : 'text-neutral-300'}`}>
+                    {subtask.title}
+                  </span>
+                  {isEditing && (
+                    <button
+                      onClick={() => setEditSubtasks(prev => prev.filter(s => s.id !== subtask.id))}
+                      className="text-neutral-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
+              ))}
+              {isEditing && (
+                <div className="flex items-center gap-2 mt-2">
+                  <Input
+                    value={newSubtaskTitle}
+                    onChange={(e) => setNewSubtaskTitle(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && newSubtaskTitle.trim()) {
+                        e.preventDefault();
+                        setEditSubtasks(prev => [...prev, { id: Date.now().toString(), title: newSubtaskTitle.trim(), isCompleted: false }]);
+                        setNewSubtaskTitle("");
+                      }
+                    }}
+                    placeholder="Add a subtask..."
+                    className="bg-neutral-900/50 border-neutral-800 text-neutral-300 h-8 px-3 rounded-lg text-sm w-full"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Time Tracking & Focus (Solo Features) */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider flex items-center gap-2">
+                <Clock className="h-3 w-3" />
+                Time Tracking (Minutes)
+              </label>
+              {isEditing ? (
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-neutral-400">Est:</span>
+                    <Input
+                      type="number"
+                      value={editEstimatedMinutes}
+                      onChange={(e) => setEditEstimatedMinutes(e.target.value ? parseInt(e.target.value) : "")}
+                      className="w-16 bg-neutral-900/50 border-neutral-800 text-neutral-300 h-8 px-2 rounded-lg text-sm"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-neutral-400">Spent:</span>
+                    <Input
+                      type="number"
+                      value={editSpentMinutes}
+                      onChange={(e) => setEditSpentMinutes(parseInt(e.target.value) || 0)}
+                      className="w-16 bg-neutral-900/50 border-neutral-800 text-neutral-300 h-8 px-2 rounded-lg text-sm"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="text-sm text-neutral-400">
+                  {task.spentMinutes || 0} / {task.estimatedMinutes || '?'} min logged
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider flex items-center gap-2">
+                <AlertCircle className="h-3 w-3" />
+                Pomodoros & Focus
+              </label>
+              <div className="flex items-center gap-4">
+                {isEditing ? (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-neutral-400">🍅</span>
+                      <Input
+                        type="number"
+                        value={editPomodoroCount}
+                        onChange={(e) => setEditPomodoroCount(parseInt(e.target.value) || 0)}
+                        className="w-16 bg-neutral-900/50 border-neutral-800 text-neutral-300 h-8 px-2 rounded-lg text-sm"
+                      />
+                    </div>
+                    <label className="flex items-center gap-2 text-xs text-neutral-300 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={editIsTodayFocus}
+                        onChange={(e) => setEditIsTodayFocus(e.target.checked)}
+                        className="rounded border-neutral-700 bg-neutral-900/50 text-indigo-500 focus:ring-0 w-4 h-4 cursor-pointer"
+                      />
+                      Today's Focus
+                    </label>
+                  </>
+                ) : (
+                  <div className="flex flex-wrap items-center gap-3">
+                    {task.pomodoroCount !== undefined && task.pomodoroCount > 0 && (
+                      <div className="flex items-center gap-1 text-sm text-neutral-400">
+                        🍅 {task.pomodoroCount}
+                      </div>
+                    )}
+                    {task.isTodayFocus && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-500 uppercase tracking-wider border border-amber-500/30">
+                        Focus Target
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
           {/* Metadata */}
           <div className="pt-4 border-t border-neutral-800/50 space-y-2">
             <div className="flex items-center gap-2 text-xs text-neutral-500">
@@ -1365,7 +1531,18 @@ function JKanbanBoardView({
     columnName: string;
   }>({ open: false, columnId: null, columnName: "" });
 
+  const [showScratchpad, setShowScratchpad] = useState(false);
+  const [scratchpadContent, setScratchpadContent] = useState("");
+  const updateBoard = useMutation(api.kanban.updateBoard);
+
   const board = useQuery(api.kanban.getBoard, { boardId });
+
+  // Effect to sync scratchpad content
+  useEffect(() => {
+    if (board && board.scratchpad !== undefined) {
+      setScratchpadContent(board.scratchpad);
+    }
+  }, [board?.scratchpad]);
   const moveTask = useMutation(api.kanban.moveTask);
   const updateTask = useMutation(api.kanban.updateTask);
   const deleteTask = useMutation(api.kanban.deleteTask);
@@ -1676,6 +1853,9 @@ function JKanbanBoardView({
                       ${labelInfo.label}
                     </span>`;
                   }).join('') : ''}
+                  ${task.subtasks && task.subtasks.length > 0 ? `<span class="linear-task-label" style="background: rgba(99, 102, 241, 0.1); color: #818cf8;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> ${task.subtasks.filter(s => s.isCompleted).length}/${task.subtasks.length}</span>` : ''}
+                  ${task.pomodoroCount ? `<span class="linear-task-label" style="background: rgba(239, 68, 68, 0.1); color: #f87171;">🍅 ${task.pomodoroCount}</span>` : ''}
+                  ${task.isTodayFocus ? `<span class="linear-task-label" style="background: rgba(245, 158, 11, 0.1); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2);">🎯 Focus</span>` : ''}
                   ${hasDueDate ? `<span class="linear-task-due"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${formatDueDate(task.dueDate!)}</span>` : ''}
                 </div>
                 ${assigneeAvatarsHtml}
@@ -1987,6 +2167,17 @@ function JKanbanBoardView({
           </Button>
         )}
 
+        {/* Scratchpad Toggle */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowScratchpad(!showScratchpad)}
+          className={`h-8 px-3 text-xs ${showScratchpad ? 'text-indigo-400 bg-indigo-500/10' : 'text-neutral-400 hover:text-white'}`}
+        >
+          <Edit3 className="h-3.5 w-3.5 mr-1.5" />
+          Scratchpad
+        </Button>
+
         <div className="h-4 w-px bg-neutral-800" />
         
         <div className="flex items-center gap-2 text-xs text-neutral-500">
@@ -2089,6 +2280,47 @@ function JKanbanBoardView({
                     </Button>
                   </div>
                 )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Scratchpad Panel */}
+        <AnimatePresence>
+          {showScratchpad && (
+            <motion.div
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: 320, opacity: 1 }}
+              exit={{ width: 0, opacity: 0 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+              className="border-l border-neutral-800/50 bg-[#0c0c0c] overflow-hidden flex-shrink-0"
+            >
+              <div className="w-[320px] h-full flex flex-col">
+                <div className="px-4 py-3 border-b border-neutral-800/50 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Edit3 className="h-4 w-4 text-neutral-500" />
+                    <span className="text-sm font-medium text-white">Board Scratchpad</span>
+                  </div>
+                  <button
+                    onClick={() => setShowScratchpad(false)}
+                    className="p-1 hover:bg-neutral-800 rounded transition-colors"
+                  >
+                    <X className="h-4 w-4 text-neutral-500" />
+                  </button>
+                </div>
+                <div className="flex-1 p-4">
+                  <textarea
+                    value={scratchpadContent}
+                    onChange={(e) => setScratchpadContent(e.target.value)}
+                    onBlur={() => {
+                      if (board?.scratchpad !== scratchpadContent) {
+                        updateBoard({ boardId, scratchpad: scratchpadContent });
+                      }
+                    }}
+                    placeholder="Jot down quick notes, ideas, or temporary tasks here... (Auto-saves on blur)"
+                    className="w-full h-full bg-transparent text-neutral-300 text-sm placeholder:text-neutral-600 resize-none outline-none leading-relaxed"
+                  />
+                </div>
               </div>
             </motion.div>
           )}

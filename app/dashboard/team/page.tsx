@@ -666,7 +666,7 @@ export default function TeamPage() {
 
   const organizations = useQuery(
     api.organizations.listForUser,
-    user?.id ? { userId: user.id } : "skip"
+    user?.id ? {} : "skip"
   );
 
   const selectedOrg = organizations?.find((o) => o && o._id === selectedOrgId) || organizations?.[0] || null;

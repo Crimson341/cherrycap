@@ -517,10 +517,11 @@ export default defineSchema({
 
   // Page view events
   pageViews: defineTable({
-    siteId: v.string(),
+    siteId: v.optional(v.string()),
     sessionId: v.string(),
     path: v.string(),
     referrer: v.optional(v.string()),
+    userAgent: v.optional(v.string()),
     timestamp: v.number(),
     // UTM parameters
     utmSource: v.optional(v.string()),
@@ -533,15 +534,16 @@ export default defineSchema({
 
   // Visitor sessions
   sessions: defineTable({
-    siteId: v.string(),
+    siteId: v.optional(v.string()),
     sessionId: v.string(), // Unique session identifier
-    visitorId: v.string(), // Persistent visitor ID (fingerprint-based, no cookies)
+    visitorId: v.optional(v.string()), // Persistent visitor ID (fingerprint-based, no cookies)
     startTime: v.number(),
     lastActivity: v.number(),
     // Device info
-    device: v.string(), // "desktop" | "mobile" | "tablet"
-    browser: v.string(),
-    os: v.string(),
+    device: v.optional(v.string()), // "desktop" | "mobile" | "tablet"
+    browser: v.optional(v.string()),
+    os: v.optional(v.string()),
+    userAgent: v.optional(v.string()), // Legacy field
     // Location (from IP, privacy-friendly - country only)
     country: v.optional(v.string()),
     // Traffic source
@@ -549,8 +551,9 @@ export default defineSchema({
     referrerType: v.optional(v.string()), // "direct" | "organic" | "social" | "referral" | "email"
     // Session metrics
     pageCount: v.number(),
-    duration: v.number(), // in seconds
-    isBounce: v.boolean(),
+    eventCount: v.optional(v.number()), // Legacy field
+    duration: v.optional(v.number()), // in seconds
+    isBounce: v.optional(v.boolean()),
   })
     .index("by_siteId", ["siteId"])
     .index("by_siteId_startTime", ["siteId", "startTime"])
@@ -883,6 +886,8 @@ export default defineSchema({
     }))),
     // Board visibility
     visibility: v.optional(v.union(v.literal("private"), v.literal("team"), v.literal("organization"))),
+    // Solo features
+    scratchpad: v.optional(v.string()),
   })
     .index("by_userId", ["userId"])
     .index("by_userId_updatedAt", ["userId", "updatedAt"])
@@ -913,6 +918,16 @@ export default defineSchema({
     priority: v.optional(v.union(v.literal("low"), v.literal("medium"), v.literal("high"), v.literal("urgent"))),
     dueDate: v.optional(v.number()),
     labels: v.optional(v.array(v.string())), // Tag/label names
+    // Solo Features
+    subtasks: v.optional(v.array(v.object({
+      id: v.string(),
+      title: v.string(),
+      isCompleted: v.boolean(),
+    }))),
+    estimatedMinutes: v.optional(v.number()),
+    spentMinutes: v.optional(v.number()),
+    pomodoroCount: v.optional(v.number()),
+    isTodayFocus: v.optional(v.boolean()),
     // Timestamps
     createdAt: v.number(),
     updatedAt: v.number(),
@@ -1094,12 +1109,7 @@ export default defineSchema({
     isPopular: v.boolean(), // Highlight this package
     isActive: v.boolean(), // Available for purchase
 
-    // Lemon Squeezy integration
-    lemonSqueezyProductId: v.optional(v.string()),
-    lemonSqueezyVariantId: v.optional(v.string()),
-
-    // Stripe integration (future)
-    stripeProductId: v.optional(v.string()),
+    // Stripe integration
     stripePriceId: v.optional(v.string()),
 
     // Order

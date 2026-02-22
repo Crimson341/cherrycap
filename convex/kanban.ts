@@ -159,6 +159,7 @@ export const updateBoard = mutation({
     name: v.optional(v.string()),
     description: v.optional(v.string()),
     color: v.optional(v.string()),
+    scratchpad: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -463,6 +464,15 @@ export const updateTask = mutation({
     dueDate: v.optional(v.number()),
     labels: v.optional(v.array(v.string())),
     assignedTo: v.optional(v.array(v.string())),
+    subtasks: v.optional(v.array(v.object({
+      id: v.string(),
+      title: v.string(),
+      isCompleted: v.boolean(),
+    }))),
+    estimatedMinutes: v.optional(v.number()),
+    spentMinutes: v.optional(v.number()),
+    pomodoroCount: v.optional(v.number()),
+    isTodayFocus: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();

@@ -356,8 +356,7 @@ export const createPackage = mutation({
     bonusCredits: v.number(),
     description: v.string(),
     isPopular: v.boolean(),
-    lemonSqueezyProductId: v.optional(v.string()),
-    lemonSqueezyVariantId: v.optional(v.string()),
+    stripePriceId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -387,8 +386,7 @@ export const createPackage = mutation({
       description: args.description,
       isPopular: args.isPopular,
       isActive: true,
-      lemonSqueezyProductId: args.lemonSqueezyProductId,
-      lemonSqueezyVariantId: args.lemonSqueezyVariantId,
+      stripePriceId: args.stripePriceId,
       order: maxOrder + 1,
       createdAt: now,
       updatedAt: now,
@@ -423,40 +421,34 @@ export const seedDefaultPackages = mutation({
 
     const packages = [
       {
-        name: "Starter",
-        credits: 500, // $5 worth
-        priceUSD: 499, // $4.99
+        name: "Starter Pack",
+        credits: 500, // 500
+        priceUSD: 1000, // $10.00
         bonusCredits: 0,
         description: "Perfect for trying out AI features",
         isPopular: false,
+        stripePriceId: "price_1T3kQSGlD0hw5URUrzSsTem2",
         order: 1,
       },
       {
-        name: "Creator",
-        credits: 1500, // $15 worth
-        priceUSD: 999, // $9.99
-        bonusCredits: 200, // +$2 bonus
+        name: "Pro Pack",
+        credits: 1200, // 1200
+        priceUSD: 3000, // $30.00
+        bonusCredits: 200, // Show off bonus 
         description: "Best value for regular creators",
         isPopular: true,
+        stripePriceId: "price_1T3kSCGlD0hw5URUt81VFiSj",
         order: 2,
       },
       {
-        name: "Pro",
-        credits: 5000, // $50 worth
-        priceUSD: 2999, // $29.99
-        bonusCredits: 1000, // +$10 bonus
+        name: "Studio Pack",
+        credits: 3000, // 3000
+        priceUSD: 8000, // $80.00
+        bonusCredits: 600, // Show off bonus
         description: "For power users and teams",
         isPopular: false,
+        stripePriceId: "price_1T3kU8GlD0hw5URUaPaVm5SG",
         order: 3,
-      },
-      {
-        name: "Agency",
-        credits: 15000, // $150 worth
-        priceUSD: 7999, // $79.99
-        bonusCredits: 5000, // +$50 bonus
-        description: "Unlimited creativity for agencies",
-        isPopular: false,
-        order: 4,
       },
     ];
 

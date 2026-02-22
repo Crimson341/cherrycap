@@ -531,7 +531,7 @@ export function OrganizationSwitcher({
   currentOrgId,
   onSelect,
 }: OrganizationSwitcherProps) {
-  const organizations = useQuery(api.organizations.listForUser, { userId: currentUserId });
+  const organizations = useQuery(api.organizations.listForUser, {});
 
   if (!organizations || organizations.length === 0) {
     return null;

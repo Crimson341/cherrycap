@@ -52,7 +52,7 @@ export const getOverviewStats = query({
       : 0;
 
     // Calculate average session duration
-    const totalDuration = sessions.reduce((sum, s) => sum + s.duration, 0);
+    const totalDuration = sessions.reduce((sum, s) => sum + (s.duration ?? 0), 0);
     const avgDuration = sessions.length > 0 
       ? Math.round(totalDuration / sessions.length) 
       : 0;
@@ -126,7 +126,7 @@ export const getTrafficOverTime = query({
     for (const session of sessions) {
       const date = new Date(session.startTime).toISOString().split('T')[0];
       if (data[date]) {
-        data[date].visitors.add(session.visitorId);
+        if (session.visitorId) data[date].visitors.add(session.visitorId);
       }
     }
 
@@ -254,7 +254,7 @@ export const getDeviceBreakdown = query({
     };
 
     for (const session of sessions) {
-      const device = session.device.charAt(0).toUpperCase() + session.device.slice(1);
+      const device = session.device ? session.device.charAt(0).toUpperCase() + session.device.slice(1) : "Unknown";
       if (devices[device] !== undefined) {
         devices[device]++;
       }
@@ -518,7 +518,7 @@ export const getAnalyticsForAI = query({
         ? Math.round((bounceSessions7d / sessions7d.length) * 100 * 10) / 10 
         : 0;
 
-      const totalDuration7d = sessions7d.reduce((sum, s) => sum + s.duration, 0);
+      const totalDuration7d = sessions7d.reduce((sum, s) => sum + (s.duration ?? 0), 0);
       const avgSessionDuration7d = sessions7d.length > 0 
         ? Math.round(totalDuration7d / sessions7d.length / 1000) // Convert to seconds
         : 0;
@@ -582,7 +582,7 @@ export const getAnalyticsForAI = query({
       for (const session of sessions7d) {
         const date = new Date(session.startTime).toISOString().split('T')[0];
         if (dailyTraffic[date]) {
-          dailyTraffic[date].visitors.add(session.visitorId);
+          if (session.visitorId) dailyTraffic[date].visitors.add(session.visitorId);
         }
       }
       for (const pv of pageViews7d) {

@@ -73,18 +73,24 @@ export const getBySlug = query({
 
 // Get all organizations for a user (as owner or member)
 export const listForUser = query({
-  args: { userId: v.string() },
-  handler: async (ctx, args) => {
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      return [];
+    }
+    const userId = identity.subject;
+
     // Get orgs where user is owner
     const ownedOrgs = await ctx.db
       .query("organizations")
-      .withIndex("by_ownerId", (q) => q.eq("ownerId", args.userId))
+      .withIndex("by_ownerId", (q) => q.eq("ownerId", userId))
       .collect();
 
     // Get orgs where user is a member
     const memberships = await ctx.db
       .query("organizationMembers")
-      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
       .filter((q) => q.eq(q.field("status"), "active"))
       .collect();
 

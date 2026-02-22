@@ -12,33 +12,51 @@ import {
   Check,
   Loader2,
   ExternalLink,
-  AlertCircle,
   Zap,
   Crown,
+  Coins,
+  ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
 
-// AI Pro subscription variant ID - you'll need to replace this with your actual variant ID
-const AI_PRO_VARIANT_ID = process.env.NEXT_PUBLIC_AI_PRO_VARIANT_ID || "";
-
-// Pricing plans configuration
-const PLANS = [
+// Stripe credit packages — must match /api/stripe/checkout/route.ts
+const CREDIT_PLANS = [
   {
-    id: "ai-pro",
-    name: "AI Pro",
-    description: "Full access to all AI features",
-    price: "$300",
-    period: "/month",
-    features: [
-      "Unlimited AI queries",
-      "AI-powered content generation",
-      "Smart analytics insights",
-      "Priority support",
-      "Early access to new features",
-    ],
-    variantId: AI_PRO_VARIANT_ID,
+    id: "starter",
+    name: "Starter Pack",
+    description: "Perfect for trying out AI features",
+    credits: 500,
+    bonus: 0,
+    price: "$10",
+    stripePriceId: "price_1T3kQSGlD0hw5URUrzSsTem2",
+    popular: false,
+    gradient: "from-blue-500 to-cyan-500",
+    icon: Zap,
+  },
+  {
+    id: "pro",
+    name: "Pro Pack",
+    description: "Best value for regular creators",
+    credits: 1200,
+    bonus: 200,
+    price: "$30",
+    stripePriceId: "price_1T3kSCGlD0hw5URUt81VFiSj",
     popular: true,
+    gradient: "from-rose-500 to-pink-500",
+    icon: Crown,
+  },
+  {
+    id: "studio",
+    name: "Studio Pack",
+    description: "For power users and teams",
+    credits: 3000,
+    bonus: 600,
+    price: "$80",
+    stripePriceId: "price_1T3kU8GlD0hw5URUaPaVm5SG",
+    popular: false,
+    gradient: "from-purple-500 to-indigo-500",
+    icon: Sparkles,
   },
 ];
 
@@ -147,93 +165,10 @@ function SubscriptionCard({
   );
 }
 
-function PricingCard({
-  plan,
-  isCurrentPlan,
-  onSubscribe,
-  isLoading,
-}: {
-  plan: (typeof PLANS)[0];
-  isCurrentPlan: boolean;
-  onSubscribe: () => void;
-  isLoading: boolean;
-}) {
-  return (
-    <div
-      className={cn(
-        "relative rounded-2xl border p-6 transition-all",
-        plan.popular
-          ? "border-rose-500/50 bg-gradient-to-b from-rose-500/5 to-transparent"
-          : "border-neutral-800 bg-neutral-900"
-      )}
-    >
-      {plan.popular && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-          <Badge className="bg-rose-500 text-white border-none px-3">
-            Most Popular
-          </Badge>
-        </div>
-      )}
-
-      <div className="mb-6">
-        <div className="flex items-center gap-2 mb-2">
-          <Sparkles className="h-5 w-5 text-rose-400" />
-          <h3 className="text-lg font-semibold text-white">{plan.name}</h3>
-        </div>
-        <p className="text-sm text-neutral-400">{plan.description}</p>
-      </div>
-
-      <div className="mb-6">
-        <span className="text-4xl font-bold text-white">{plan.price}</span>
-        <span className="text-neutral-400">{plan.period}</span>
-      </div>
-
-      <ul className="space-y-3 mb-6">
-        {plan.features.map((feature) => (
-          <li key={feature} className="flex items-center gap-2 text-sm">
-            <Check className="h-4 w-4 text-rose-400 shrink-0" />
-            <span className="text-neutral-300">{feature}</span>
-          </li>
-        ))}
-      </ul>
-
-      <Button
-        onClick={onSubscribe}
-        disabled={isLoading || isCurrentPlan || !plan.variantId}
-        className={cn(
-          "w-full",
-          plan.popular
-            ? "bg-rose-500 hover:bg-rose-600"
-            : "bg-neutral-800 hover:bg-neutral-700"
-        )}
-      >
-        {isLoading ? (
-          <>
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            Processing...
-          </>
-        ) : isCurrentPlan ? (
-          <>
-            <Check className="h-4 w-4 mr-2" />
-            Current Plan
-          </>
-        ) : !plan.variantId ? (
-          "Coming Soon"
-        ) : (
-          <>
-            <Zap className="h-4 w-4 mr-2" />
-            Subscribe Now
-          </>
-        )}
-      </Button>
-    </div>
-  );
-}
-
 function BillingPageContent() {
   const { user } = useUser();
   const searchParams = useSearchParams();
-  const [isLoading, setIsLoading] = useState<string | null>(null);
+  const [purchasingPlan, setPurchasingPlan] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
 
   // Fetch user's subscriptions
@@ -242,55 +177,72 @@ function BillingPageContent() {
     user ? {} : "skip"
   );
 
-  // Check for success param
+  // Fetch credit balance
+  const balance = useQuery(api.credits.getBalance);
+
+  // Check for success/cancelled params from Stripe redirect
   useEffect(() => {
-    if (searchParams.get("success") === "true") {
+    const payment = searchParams.get("payment");
+    if (payment === "success") {
       setShowSuccess(true);
-      // Remove query param from URL
       window.history.replaceState({}, "", "/dashboard/billing");
     }
   }, [searchParams]);
 
   const activeSubscription = subscriptions?.find(
-    (sub: { status: string; productName?: string }) => sub.status === "active" || sub.status === "on_trial"
-  ) as { productName: string; status: string; variantName: string; renewsAt?: number; endsAt?: number; customerPortalUrl?: string; updatePaymentMethodUrl?: string; cardBrand?: string; cardLastFour?: string } | undefined;
+    (sub: { status: string }) => sub.status === "active" || sub.status === "on_trial"
+  ) as {
+    productName: string;
+    status: string;
+    variantName: string;
+    renewsAt?: number;
+    endsAt?: number;
+    customerPortalUrl?: string;
+    updatePaymentMethodUrl?: string;
+    cardBrand?: string;
+    cardLastFour?: string;
+  } | undefined;
 
-  const handleSubscribe = async (variantId: string) => {
-    if (!variantId) return;
-
-    setIsLoading(variantId);
+  const handlePurchaseCredits = async (stripePriceId: string) => {
+    setPurchasingPlan(stripePriceId);
     try {
-      const response = await fetch("/api/checkout", {
+      const response = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          variantId,
-          redirectUrl: `${window.location.origin}/dashboard/billing?success=true`,
-        }),
+        body: JSON.stringify({ priceId: stripePriceId }),
       });
 
       const data = await response.json();
 
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
+      if (data.url) {
+        window.location.href = data.url;
       } else {
         console.error("Failed to create checkout:", data.error);
+        alert("Checkout failed. Please try again.");
       }
     } catch (error) {
       console.error("Checkout error:", error);
+      alert("An error occurred. Please try again.");
     } finally {
-      setIsLoading(null);
+      setPurchasingPlan(null);
     }
   };
 
+  const formatCredits = (cents: number) => `$${(cents / 100).toFixed(2)}`;
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] p-6 md:p-8">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-white mb-2">Billing</h1>
+          <h1 className="text-2xl font-bold text-white mb-2 flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-br from-rose-500 to-pink-600 rounded-xl">
+              <CreditCard className="h-5 w-5 text-white" />
+            </div>
+            Billing & Credits
+          </h1>
           <p className="text-neutral-400">
-            Manage your subscription and billing information
+            Purchase credits for AI features and manage your subscription
           </p>
         </div>
 
@@ -299,11 +251,9 @@ function BillingPageContent() {
           <div className="mb-6 p-4 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center gap-3">
             <Check className="h-5 w-5 text-green-400" />
             <div>
-              <p className="text-green-400 font-medium">
-                Subscription successful!
-              </p>
+              <p className="text-green-400 font-medium">Payment successful!</p>
               <p className="text-sm text-green-400/80">
-                Your subscription is now active. Thank you for subscribing!
+                Your credits have been added to your account.
               </p>
             </div>
             <Button
@@ -317,6 +267,110 @@ function BillingPageContent() {
           </div>
         )}
 
+        {/* Credit Balance Summary */}
+        <div className="mb-8 rounded-2xl border border-white/10 bg-gradient-to-br from-rose-500/10 via-purple-500/10 to-indigo-500/10 p-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <p className="text-neutral-400 text-sm mb-1">Current Credit Balance</p>
+              <div className="flex items-baseline gap-2">
+                {balance === undefined ? (
+                  <Loader2 className="h-6 w-6 animate-spin text-rose-500" />
+                ) : (
+                  <>
+                    <span className="text-3xl font-bold text-white">
+                      {formatCredits(balance?.balance || 0)}
+                    </span>
+                    <span className="text-neutral-400">credits</span>
+                  </>
+                )}
+              </div>
+            </div>
+            <a
+              href="/dashboard/credits"
+              className="text-sm text-rose-400 hover:text-rose-300 flex items-center gap-1 transition-colors"
+            >
+              View transaction history
+              <ChevronRight className="h-4 w-4" />
+            </a>
+          </div>
+        </div>
+
+        {/* Credit Packages */}
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <Coins className="h-5 w-5 text-rose-400" />
+            Buy Credits
+          </h2>
+
+          <div className="grid gap-5 md:grid-cols-3">
+            {CREDIT_PLANS.map((plan) => {
+              const Icon = plan.icon;
+              return (
+                <div
+                  key={plan.id}
+                  className={cn(
+                    "relative rounded-2xl border p-6 transition-all hover:scale-[1.02]",
+                    plan.popular
+                      ? "bg-gradient-to-b from-rose-500/10 to-neutral-900 border-rose-500/50"
+                      : "bg-neutral-900/50 border-neutral-800 hover:border-neutral-700"
+                  )}
+                >
+                  {plan.popular && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-rose-500 text-white text-xs font-bold rounded-full">
+                      BEST VALUE
+                    </div>
+                  )}
+
+                  <div className={cn(
+                    "w-12 h-12 rounded-xl flex items-center justify-center mb-4 bg-gradient-to-br",
+                    plan.gradient
+                  )}>
+                    <Icon className="h-6 w-6 text-white" />
+                  </div>
+
+                  <h3 className="text-lg font-semibold text-white mb-1">{plan.name}</h3>
+                  <p className="text-sm text-neutral-400 mb-4">{plan.description}</p>
+
+                  <div className="mb-5">
+                    <span className="text-4xl font-black tracking-tight text-white">
+                      {plan.price}
+                    </span>
+                    <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-sm">
+                      <Coins className="h-4 w-4 text-rose-400" />
+                      <span className="text-white font-medium">{plan.credits} credits</span>
+                      {plan.bonus > 0 && (
+                        <span className="text-emerald-400 font-bold ml-1">
+                          +{plan.bonus} bonus
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={() => handlePurchaseCredits(plan.stripePriceId)}
+                    disabled={purchasingPlan === plan.stripePriceId}
+                    className={cn(
+                      "w-full py-3 rounded-xl font-bold transition-all group",
+                      plan.popular
+                        ? "bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-400 hover:to-pink-500 text-white shadow-[0_0_20px_rgba(244,63,94,0.3)] hover:shadow-[0_0_25px_rgba(244,63,94,0.5)]"
+                        : "bg-white/5 hover:bg-white/10 text-white border border-white/10"
+                    )}
+                  >
+                    {purchasingPlan === plan.stripePriceId ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <>
+                        <span className="group-hover:translate-x-[-4px] transition-transform">Buy Now</span>
+                        <ChevronRight className="h-5 w-5 opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all" />
+                      </>
+                    )}
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Current Subscription */}
         {activeSubscription && (
           <div className="mb-8">
@@ -325,44 +379,6 @@ function BillingPageContent() {
               Current Subscription
             </h2>
             <SubscriptionCard subscription={activeSubscription} />
-          </div>
-        )}
-
-        {/* Available Plans */}
-        {!activeSubscription && (
-          <div className="mb-8">
-            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-rose-400" />
-              Available Plans
-            </h2>
-
-            {!AI_PRO_VARIANT_ID && (
-              <div className="mb-4 p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20 flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 text-yellow-400 shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-yellow-400 font-medium">Setup Required</p>
-                  <p className="text-sm text-yellow-400/80">
-                    Add your Lemon Squeezy variant ID to{" "}
-                    <code className="bg-yellow-500/20 px-1 rounded">
-                      NEXT_PUBLIC_AI_PRO_VARIANT_ID
-                    </code>{" "}
-                    in your environment variables to enable subscriptions.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            <div className="grid gap-6 md:grid-cols-1">
-              {PLANS.map((plan) => (
-                <PricingCard
-                  key={plan.id}
-                  plan={plan}
-                  isCurrentPlan={false}
-                  onSubscribe={() => handleSubscribe(plan.variantId)}
-                  isLoading={isLoading === plan.variantId}
-                />
-              ))}
-            </div>
           </div>
         )}
 
@@ -379,20 +395,6 @@ function BillingPageContent() {
                   <SubscriptionCard key={sub._id} subscription={sub} />
                 ))}
             </div>
-          </div>
-        )}
-
-        {/* No Subscriptions */}
-        {subscriptions?.length === 0 && (
-          <div className="text-center py-12 rounded-2xl border border-neutral-800 bg-neutral-900/50">
-            <CreditCard className="h-12 w-12 text-neutral-600 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-white mb-2">
-              No active subscription
-            </h3>
-            <p className="text-neutral-400 max-w-sm mx-auto">
-              Subscribe to AI Pro to unlock unlimited AI features and take your
-              business to the next level.
-            </p>
           </div>
         )}
       </div>

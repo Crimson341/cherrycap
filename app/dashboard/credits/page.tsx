@@ -50,26 +50,33 @@ export default function CreditsPage() {
     return `$${(cents / 100).toFixed(2)}`;
   };
 
-  // Handle package purchase
-  const handlePurchase = async (packageId: string, lemonSqueezyVariantId?: string) => {
-    if (!user) return;
+  // Handle package purchase via Stripe
+  const handlePurchase = async (packageId: string, stripePriceId?: string) => {
+    if (!user || !stripePriceId) {
+      alert("Invalid package configuration. Please contact support.");
+      return;
+    }
 
     setPurchasingPackage(packageId);
 
     try {
-      // Create Lemon Squeezy checkout URL
-      // For now, redirect to a placeholder - you'll replace with actual LS checkout
-      const checkoutUrl = lemonSqueezyVariantId
-        ? `https://cherrycap.lemonsqueezy.com/checkout/buy/${lemonSqueezyVariantId}?checkout[custom][user_id]=${user.id}`
-        : null;
+      const response = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ priceId: stripePriceId }),
+      });
 
-      if (checkoutUrl) {
-        window.open(checkoutUrl, "_blank");
+      const data = await response.json();
+
+      if (data.url) {
+        window.location.href = data.url; // Redirect to Stripe Checkout
       } else {
-        // No Lemon Squeezy configured yet
-        alert("Payment integration coming soon! Add your Lemon Squeezy product IDs.");
+        throw new Error(data.error || "Failed to initiate checkout");
       }
-    } finally {
+    } catch (error) {
+      // Revert loading state if redirect fails
+      console.error(error);
+      alert("Checkout failed: " + (error as Error).message);
       setPurchasingPackage(null);
     }
   };
@@ -211,16 +218,17 @@ export default function CreditsPage() {
                     <h3 className="text-lg font-semibold text-white mb-1">{pkg.name}</h3>
                     <p className="text-sm text-neutral-400 mb-4">{pkg.description}</p>
 
-                    <div className="mb-4">
+                    <div className="mb-6">
                       <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-bold text-white">
-                          ${(pkg.priceUSD / 100).toFixed(2)}
+                        <span className="text-4xl font-black tracking-tight text-white">
+                          ${(pkg.priceUSD / 100).toFixed(0)}
                         </span>
                       </div>
-                      <div className="text-sm text-neutral-400 mt-1">
-                        {formatCredits(pkg.credits)} credits
+                      <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-sm">
+                        <Coins className="h-4 w-4 text-rose-400" />
+                        <span className="text-white font-medium">{formatCredits(pkg.credits)} credits</span>
                         {pkg.bonusCredits > 0 && (
-                          <span className="text-green-400 ml-1">
+                          <span className="text-emerald-400 font-bold ml-1">
                             +{formatCredits(pkg.bonusCredits)} bonus
                           </span>
                         )}
@@ -228,21 +236,21 @@ export default function CreditsPage() {
                     </div>
 
                     <button
-                      onClick={() => handlePurchase(pkg._id, pkg.lemonSqueezyVariantId)}
+                      onClick={() => handlePurchase(pkg._id, pkg.stripePriceId)}
                       disabled={purchasingPackage === pkg._id}
                       className={cn(
-                        "w-full py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2",
+                        "w-full py-3.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 group",
                         pkg.isPopular
-                          ? "bg-rose-500 hover:bg-rose-600 text-white"
-                          : "bg-neutral-800 hover:bg-neutral-700 text-white"
+                          ? "bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-400 hover:to-pink-500 text-white shadow-[0_0_20px_rgba(244,63,94,0.3)] hover:shadow-[0_0_25px_rgba(244,63,94,0.5)]"
+                          : "bg-white/5 hover:bg-white/10 text-white border border-white/10"
                       )}
                     >
                       {purchasingPackage === pkg._id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <Loader2 className="h-5 w-5 animate-spin" />
                       ) : (
                         <>
-                          Buy Now
-                          <ChevronRight className="h-4 w-4" />
+                          <span className="group-hover:translate-x-[-4px] transition-transform">Buy Now</span>
+                          <ChevronRight className="h-5 w-5 opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all" />
                         </>
                       )}
                     </button>

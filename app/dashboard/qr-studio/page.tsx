@@ -80,7 +80,7 @@ const COLOR_PRESETS = [
 export default function QRStudioPage() {
   const { isLoaded, isSignedIn } = useAuth();
   const { user } = useUser();
-  const organizations = useQuery(api.organizations.listForUser, user?.id ? { userId: user.id } : "skip");
+  const organizations = useQuery(api.organizations.listForUser, user?.id ? {} : "skip");
   const currentOrg = organizations?.[0];
 
   // Core state

@@ -140,7 +140,7 @@ export function DashboardSidebar() {
   // Fetch user's organizations
   const organizations = useQuery(
     api.organizations.listForUser,
-    user?.id ? { userId: user.id } : "skip"
+    user?.id ? {} : "skip"
   );
 
   // Fetch pinned items
