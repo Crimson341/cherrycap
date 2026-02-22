@@ -770,14 +770,14 @@ export default function TeamPage() {
                   </div>
                 ) : (
                   <div className="space-y-1">
-                    {organizations?.filter(Boolean).map((org) => org && (
+                    {organizations?.flatMap((org) => org ? [
                       <OrgSelectorItem
                         key={org._id}
                         org={org}
                         isSelected={selectedOrg?._id === org._id}
                         onSelect={() => setSelectedOrgId(org._id)}
                       />
-                    ))}
+                    ] : [])}
                   </div>
                 )}
               </div>

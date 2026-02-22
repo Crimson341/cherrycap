@@ -365,7 +365,7 @@ export async function GET() {
     window.addEventListener('scroll', () => {
       clearTimeout(scrollTimeout);
       scrollTimeout = setTimeout(checkScrollDepth, 100);
-    });
+    }, { passive: true });
   }
 
   // Performance tracking

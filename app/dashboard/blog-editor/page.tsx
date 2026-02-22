@@ -1772,12 +1772,13 @@ Only return the outline, no other text.`,
                   <p className="text-sm mt-1">Add feedback or suggestions for this post</p>
                 </div>
               ) : (
-                collabComments?.filter(c => !c.parentId).map((comment) => {
+                collabComments?.flatMap((comment) => {
+                  if (comment.parentId) return [];
                   const replies = collabComments?.filter(c => c.parentId === comment._id) || [];
                   const isOwner = comment.authorId === user?.id;
                   const isPostOwner = selectedPost?.authorId === user?.id;
                   
-                  return (
+                  return [
                     <div key={comment._id} className={cn(
                       "rounded-lg border transition-colors",
                       comment.isResolved
@@ -1968,7 +1969,7 @@ Only return the outline, no other text.`,
                         </div>
                       )}
                     </div>
-                  );
+                  ];
                 })
               )}
             </div>

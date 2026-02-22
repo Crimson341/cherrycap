@@ -3,8 +3,10 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Header } from "@/components/ui/vercel-navbar";
-import { Footer } from "@/components/blocks/footer-section";
-import { CanvasRevealEffect } from "@/components/blocks/sign-in-flow-1";
+import dynamic from "next/dynamic";
+
+const Footer = dynamic(() => import("@/components/blocks/footer-section").then(m => m.Footer));
+const CanvasRevealEffect = dynamic(() => import("@/components/blocks/sign-in-flow-1").then(m => m.CanvasRevealEffect), { ssr: false });
 import {
   ChevronRight,
   BarChart3,
@@ -188,7 +190,7 @@ export default function CustomSolutionsPage() {
       setActiveSection(current);
     };
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
