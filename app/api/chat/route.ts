@@ -211,7 +211,6 @@ async function executeKanbanTool(
           columnId: args.columnId as Id<"kanbanColumns">,
           title: args.title as string,
           description: args.description as string | undefined,
-          createdBy: userId,
           priority: args.priority as "low" | "medium" | "high" | "urgent" | undefined,
           dueDate: args.dueDate ? new Date(args.dueDate as string).getTime() : undefined,
           labels: args.labels as string[] | undefined,
@@ -317,7 +316,6 @@ async function executeKanbanTool(
         result = await convex.mutation(api.kanban.addSubtask, {
           taskId: args.taskId as Id<"kanbanTasks">,
           title: args.subtaskTitle as string,
-          createdBy: userId,
         });
         return {
           success: true,

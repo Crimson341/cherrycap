@@ -2354,7 +2354,7 @@ Make it actionable and comprehensive.`,
             <button
               className="hidden xs:flex items-center gap-1 rounded px-2 py-1.5 text-xs sm:text-sm font-medium transition-colors text-neutral-400 hover:bg-neutral-800 hover:text-white shrink-0"
             >
-              <span className="max-w-[50px] sm:max-w-none truncate">{AI_MODELS[selectedModel]}</span>
+              <span className="max-w-[50px] sm:max-w-none truncate">{AI_MODELS[selectedModel].name}</span>
               <ChevronDown className="h-3 w-3" />
             </button>
           </DropdownMenuTrigger>
@@ -2362,7 +2362,7 @@ Make it actionable and comprehensive.`,
             align="end"
             className="w-48 bg-neutral-900 border-neutral-700"
           >
-            {Object.entries(AI_MODELS).map(([modelId, modelName]) => (
+            {Object.entries(AI_MODELS).map(([modelId, model]) => (
               <DropdownMenuItem
                 key={modelId}
                 onClick={() => setSelectedModel(modelId as keyof typeof AI_MODELS)}
@@ -2374,7 +2374,7 @@ Make it actionable and comprehensive.`,
                 )}
               >
                 {selectedModel === modelId && <CheckCircle className="h-3 w-3" />}
-                <span className={selectedModel === modelId ? "" : "ml-5"}>{modelName}</span>
+                <span className={selectedModel === modelId ? "" : "ml-5"}>{model.name}</span>
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>

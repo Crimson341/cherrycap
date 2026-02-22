@@ -140,7 +140,6 @@ export async function POST(req: NextRequest): Promise<NextResponse<KanbanRespons
           columnId: body.columnId as Id<"kanbanColumns">,
           title: body.title,
           description: body.description,
-          createdBy: userId,
           priority: body.priority,
           dueDate: body.dueDate ? new Date(body.dueDate).getTime() : undefined,
           labels: body.labels,
@@ -262,7 +261,6 @@ export async function POST(req: NextRequest): Promise<NextResponse<KanbanRespons
         result = await convex.mutation(api.kanban.addSubtask, {
           taskId: body.taskId as Id<"kanbanTasks">,
           title: body.subtaskTitle,
-          createdBy: userId,
         });
         return NextResponse.json({
           success: true,

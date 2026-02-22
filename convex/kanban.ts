@@ -154,6 +154,13 @@ export const updateBoard = mutation({
     color: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const board = await ctx.db.get(args.boardId);
+    if (!board) throw new Error("Board not found");
+    if (board.userId !== identity.subject) throw new Error("Only the owner can update the board");
+
     const { boardId, ...updates } = args;
     const filteredUpdates = Object.fromEntries(
       Object.entries(updates).filter(([, v]) => v !== undefined)
@@ -170,6 +177,18 @@ export const updateBoard = mutation({
 export const archiveBoard = mutation({
   args: { boardId: v.id("kanbanBoards") },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const board = await ctx.db.get(args.boardId);
+    if (!board) throw new Error("Board not found");
+    // Only owner or admin can archive
+    const isOwner = board.userId === identity.subject;
+    const member = board.members?.find(m => m.userId === identity.subject);
+    if (!isOwner && member?.role !== "admin") {
+      throw new Error("You don't have permission to archive this board");
+    }
+
     await ctx.db.patch(args.boardId, {
       isArchived: true,
       updatedAt: Date.now(),
@@ -181,23 +200,26 @@ export const archiveBoard = mutation({
 export const deleteBoard = mutation({
   args: { boardId: v.id("kanbanBoards") },
   handler: async (ctx, args) => {
-    // Delete all tasks
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const board = await ctx.db.get(args.boardId);
+    if (!board) throw new Error("Board not found");
+    if (board.userId !== identity.subject) throw new Error("Only the owner can delete the board");
+
+    // Delete all tasks securely using Promise.all
     const tasks = await ctx.db
       .query("kanbanTasks")
       .withIndex("by_boardId", (q) => q.eq("boardId", args.boardId))
       .collect();
-    for (const task of tasks) {
-      await ctx.db.delete(task._id);
-    }
+    await Promise.all(tasks.map((task) => ctx.db.delete(task._id)));
 
-    // Delete all columns
+    // Delete all columns securely using Promise.all
     const columns = await ctx.db
       .query("kanbanColumns")
       .withIndex("by_boardId", (q) => q.eq("boardId", args.boardId))
       .collect();
-    for (const column of columns) {
-      await ctx.db.delete(column._id);
-    }
+    await Promise.all(columns.map((column) => ctx.db.delete(column._id)));
 
     // Delete the board
     await ctx.db.delete(args.boardId);
@@ -214,6 +236,19 @@ export const createColumn = mutation({
     color: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const board = await ctx.db.get(args.boardId);
+    if (!board) throw new Error("Board not found");
+    
+    // Only owner or admin can create columns
+    const isOwner = board.userId === identity.subject;
+    const member = board.members?.find(m => m.userId === identity.subject);
+    if (!isOwner && member?.role !== "admin") {
+      throw new Error("You don't have permission to create columns");
+    }
+
     // Get the highest order
     const columns = await ctx.db
       .query("kanbanColumns")
@@ -247,12 +282,27 @@ export const updateColumn = mutation({
     color: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const column = await ctx.db.get(args.columnId);
+    if (!column) throw new Error("Column not found");
+
+    const board = await ctx.db.get(column.boardId);
+    if (!board) throw new Error("Board not found");
+
+    // Only owner or admin can update columns
+    const isOwner = board.userId === identity.subject;
+    const member = board.members?.find(m => m.userId === identity.subject);
+    if (!isOwner && member?.role !== "admin") {
+      throw new Error("You don't have permission to update columns");
+    }
+
     const { columnId, ...updates } = args;
     const filteredUpdates = Object.fromEntries(
       Object.entries(updates).filter(([, v]) => v !== undefined)
     );
     
-    const column = await ctx.db.get(columnId);
     if (column) {
       await ctx.db.patch(columnId, filteredUpdates);
       await ctx.db.patch(column.boardId, { updatedAt: Date.now() });
@@ -343,13 +393,25 @@ export const createTask = mutation({
     columnId: v.id("kanbanColumns"),
     title: v.string(),
     description: v.optional(v.string()),
-    createdBy: v.string(),
     priority: v.optional(v.union(v.literal("low"), v.literal("medium"), v.literal("high"), v.literal("urgent"))),
     dueDate: v.optional(v.number()),
     labels: v.optional(v.array(v.string())),
     assignedTo: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const board = await ctx.db.get(args.boardId);
+    if (!board) throw new Error("Board not found");
+
+    // Only members can create tasks
+    const isOwner = board.userId === identity.subject;
+    const member = board.members?.find(m => m.userId === identity.subject);
+    if (!isOwner && (!member || member.role === "viewer")) {
+      throw new Error("You don't have permission to create tasks on this board");
+    }
+
     const now = Date.now();
 
     // Get the highest order in the column
@@ -368,7 +430,7 @@ export const createTask = mutation({
       title: args.title,
       description: args.description,
       order: maxOrder + 1,
-      createdBy: args.createdBy,
+      createdBy: identity.subject,
       assignedTo: args.assignedTo,
       priority: args.priority,
       dueDate: args.dueDate,
@@ -396,19 +458,32 @@ export const updateTask = mutation({
     assignedTo: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const task = await ctx.db.get(args.taskId);
+    if (!task) return;
+
+    const board = await ctx.db.get(task.boardId);
+    if (!board) throw new Error("Board not found");
+
+    // Only members can update tasks
+    const isOwner = board.userId === identity.subject;
+    const member = board.members?.find(m => m.userId === identity.subject);
+    if (!isOwner && (!member || member.role === "viewer")) {
+      throw new Error("You don't have permission to update tasks on this board");
+    }
+
     const { taskId, ...updates } = args;
     const filteredUpdates = Object.fromEntries(
       Object.entries(updates).filter(([, v]) => v !== undefined)
     );
     
-    const task = await ctx.db.get(taskId);
-    if (task) {
-      await ctx.db.patch(taskId, {
+    await ctx.db.patch(taskId, {
         ...filteredUpdates,
         updatedAt: Date.now(),
       });
       await ctx.db.patch(task.boardId, { updatedAt: Date.now() });
-    }
   },
 });
 
@@ -416,8 +491,21 @@ export const updateTask = mutation({
 export const deleteTask = mutation({
   args: { taskId: v.id("kanbanTasks") },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
     const task = await ctx.db.get(args.taskId);
     if (!task) return;
+
+    const board = await ctx.db.get(task.boardId);
+    if (!board) throw new Error("Board not found");
+
+    // Only members can delete tasks
+    const isOwner = board.userId === identity.subject;
+    const member = board.members?.find(m => m.userId === identity.subject);
+    if (!isOwner && (!member || member.role === "viewer")) {
+      throw new Error("You don't have permission to delete tasks on this board");
+    }
 
     await ctx.db.delete(args.taskId);
 
@@ -447,20 +535,34 @@ export const moveTask = mutation({
     newOrder: v.number(),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
     const task = await ctx.db.get(args.taskId);
     if (!task) return;
 
+    const board = await ctx.db.get(task.boardId);
+    if (!board) throw new Error("Board not found");
+
+    // Only members can move tasks
+    const isOwner = board.userId === identity.subject;
+    const member = board.members?.find(m => m.userId === identity.subject);
+    if (!isOwner && (!member || member.role === "viewer")) {
+      throw new Error("You don't have permission to move tasks on this board");
+    }
+
     const sourceColumnId = task.columnId;
     const now = Date.now();
+    const patchPromises: Promise<any>[] = [];
 
     // If moving to a different column
     if (sourceColumnId !== args.targetColumnId) {
       // Update the task's column
-      await ctx.db.patch(args.taskId, {
+      patchPromises.push(ctx.db.patch(args.taskId, {
         columnId: args.targetColumnId,
         order: args.newOrder,
         updatedAt: now,
-      });
+      }));
 
       // Reorder source column tasks
       const sourceTasks = await ctx.db
@@ -470,7 +572,7 @@ export const moveTask = mutation({
       const sortedSourceTasks = sourceTasks.sort((a, b) => a.order - b.order);
       for (let i = 0; i < sortedSourceTasks.length; i++) {
         if (sortedSourceTasks[i].order !== i) {
-          await ctx.db.patch(sortedSourceTasks[i]._id, { order: i });
+          patchPromises.push(ctx.db.patch(sortedSourceTasks[i]._id, { order: i }));
         }
       }
 
@@ -486,7 +588,7 @@ export const moveTask = mutation({
       for (let i = 0; i < sortedTargetTasks.length; i++) {
         const newOrder = i >= args.newOrder ? i + 1 : i;
         if (sortedTargetTasks[i].order !== newOrder) {
-          await ctx.db.patch(sortedTargetTasks[i]._id, { order: newOrder });
+          patchPromises.push(ctx.db.patch(sortedTargetTasks[i]._id, { order: newOrder }));
         }
       }
     } else {
@@ -501,20 +603,22 @@ export const moveTask = mutation({
       
       for (const t of sortedTasks) {
         if (t._id === args.taskId) {
-          await ctx.db.patch(t._id, { order: args.newOrder, updatedAt: now });
+          patchPromises.push(ctx.db.patch(t._id, { order: args.newOrder, updatedAt: now }));
         } else if (oldOrder < args.newOrder) {
           // Moving down: shift tasks up
           if (t.order > oldOrder && t.order <= args.newOrder) {
-            await ctx.db.patch(t._id, { order: t.order - 1 });
+            patchPromises.push(ctx.db.patch(t._id, { order: t.order - 1 }));
           }
         } else {
           // Moving up: shift tasks down
           if (t.order >= args.newOrder && t.order < oldOrder) {
-            await ctx.db.patch(t._id, { order: t.order + 1 });
+            patchPromises.push(ctx.db.patch(t._id, { order: t.order + 1 }));
           }
         }
       }
     }
+
+    await Promise.all(patchPromises);
 
     // Update board timestamp
     await ctx.db.patch(task.boardId, { updatedAt: now });
@@ -525,6 +629,22 @@ export const moveTask = mutation({
 export const completeTask = mutation({
   args: { taskId: v.id("kanbanTasks") },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const task = await ctx.db.get(args.taskId);
+    if (!task) return;
+
+    const board = await ctx.db.get(task.boardId);
+    if (!board) throw new Error("Board not found");
+
+    // Only members can complete tasks
+    const isOwner = board.userId === identity.subject;
+    const member = board.members?.find(m => m.userId === identity.subject);
+    if (!isOwner && (!member || member.role === "viewer")) {
+      throw new Error("You don't have permission to complete tasks on this board");
+    }
+
     await ctx.db.patch(args.taskId, {
       completedAt: Date.now(),
       updatedAt: Date.now(),
@@ -889,9 +1009,12 @@ export const addSubtask = mutation({
   args: {
     taskId: v.id("kanbanTasks"),
     title: v.string(),
-    createdBy: v.string(),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const userId = identity.subject;
+
     const task = await ctx.db.get(args.taskId);
     if (!task) throw new Error("Task not found");
 
@@ -910,7 +1033,7 @@ export const addSubtask = mutation({
       isCompleted: false,
       order: maxOrder + 1,
       createdAt: now,
-      createdBy: args.createdBy,
+      createdBy: userId,
     });
 
     // Update task timestamp

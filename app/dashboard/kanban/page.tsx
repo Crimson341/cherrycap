@@ -562,7 +562,6 @@ function AddTaskDialog({
         columnId,
         title: title.trim(),
         description: description.trim() || undefined,
-        createdBy: user.id,
         priority: priority as "low" | "medium" | "high" | "urgent" | undefined,
         labels: labels.length > 0 ? labels : undefined,
         assignedTo: assignedTo.length > 0 ? assignedTo : undefined,
@@ -1264,7 +1263,6 @@ function QuickAddInput({
         boardId,
         columnId,
         title: title.trim(),
-        createdBy: user.id,
       });
       setTitle("");
       onSuccess();

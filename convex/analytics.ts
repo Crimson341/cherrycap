@@ -455,63 +455,59 @@ export const getAnalyticsForAI = query({
     const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
     const fiveMinutesAgo = now - 5 * 60 * 1000;
 
-    const analyticsData = [];
-
-    for (const site of sites) {
-      // Get sessions (7 days)
-      const sessions7d = await ctx.db
-        .query("sessions")
-        .withIndex("by_siteId_startTime", (q) =>
-          q.eq("siteId", site.siteId).gte("startTime", sevenDaysAgo)
-        )
-        .collect();
-
-      // Get sessions (30 days)
-      const sessions30d = await ctx.db
-        .query("sessions")
-        .withIndex("by_siteId_startTime", (q) =>
-          q.eq("siteId", site.siteId).gte("startTime", thirtyDaysAgo)
-        )
-        .collect();
-
-      // Get page views (7 days)
-      const pageViews7d = await ctx.db
-        .query("pageViews")
-        .withIndex("by_siteId_timestamp", (q) =>
-          q.eq("siteId", site.siteId).gte("timestamp", sevenDaysAgo)
-        )
-        .collect();
-
-      // Get page views (30 days)
-      const pageViews30d = await ctx.db
-        .query("pageViews")
-        .withIndex("by_siteId_timestamp", (q) =>
-          q.eq("siteId", site.siteId).gte("timestamp", thirtyDaysAgo)
-        )
-        .collect();
-
-      // Get performance metrics (7 days)
-      const performance7d = await ctx.db
-        .query("performance")
-        .withIndex("by_siteId_timestamp", (q) =>
-          q.eq("siteId", site.siteId).gte("timestamp", sevenDaysAgo)
-        )
-        .collect();
-
-      // Get custom events (7 days)
-      const events7d = await ctx.db
-        .query("events")
-        .withIndex("by_siteId_timestamp", (q) =>
-          q.eq("siteId", site.siteId).gte("timestamp", sevenDaysAgo)
-        )
-        .collect();
-
-      // Get active visitors
-      const activeSessions = await ctx.db
-        .query("sessions")
-        .withIndex("by_siteId", (q) => q.eq("siteId", site.siteId))
-        .filter((q) => q.gte(q.field("lastActivity"), fiveMinutesAgo))
-        .collect();
+    const sitePromises = sites.map(async (site) => {
+      // Execute all 7 queries for a site concurrently
+      const [
+        sessions7d,
+        sessions30d,
+        pageViews7d,
+        pageViews30d,
+        performance7d,
+        events7d,
+        activeSessions
+      ] = await Promise.all([
+        ctx.db
+          .query("sessions")
+          .withIndex("by_siteId_startTime", (q) =>
+            q.eq("siteId", site.siteId).gte("startTime", sevenDaysAgo)
+          )
+          .collect(),
+        ctx.db
+          .query("sessions")
+          .withIndex("by_siteId_startTime", (q) =>
+            q.eq("siteId", site.siteId).gte("startTime", thirtyDaysAgo)
+          )
+          .collect(),
+        ctx.db
+          .query("pageViews")
+          .withIndex("by_siteId_timestamp", (q) =>
+            q.eq("siteId", site.siteId).gte("timestamp", sevenDaysAgo)
+          )
+          .collect(),
+        ctx.db
+          .query("pageViews")
+          .withIndex("by_siteId_timestamp", (q) =>
+            q.eq("siteId", site.siteId).gte("timestamp", thirtyDaysAgo)
+          )
+          .collect(),
+        ctx.db
+          .query("performance")
+          .withIndex("by_siteId_timestamp", (q) =>
+            q.eq("siteId", site.siteId).gte("timestamp", sevenDaysAgo)
+          )
+          .collect(),
+        ctx.db
+          .query("events")
+          .withIndex("by_siteId_timestamp", (q) =>
+            q.eq("siteId", site.siteId).gte("timestamp", sevenDaysAgo)
+          )
+          .collect(),
+        ctx.db
+          .query("sessions")
+          .withIndex("by_siteId", (q) => q.eq("siteId", site.siteId))
+          .filter((q) => q.gte(q.field("lastActivity"), fiveMinutesAgo))
+          .collect()
+      ]);
 
       // Calculate metrics
       const uniqueVisitors7d = new Set(sessions7d.map(s => s.visitorId)).size;
@@ -601,7 +597,7 @@ export const getAnalyticsForAI = query({
         pageViews: data.pageViews,
       }));
 
-      analyticsData.push({
+      return {
         site: {
           name: site.name,
           domain: site.domain,
@@ -631,8 +627,10 @@ export const getAnalyticsForAI = query({
         },
         topEvents,
         trafficByDay,
-      });
-    }
+      };
+    });
+
+    const analyticsData = await Promise.all(sitePromises);
 
     return {
       hasSites: true,

@@ -71,20 +71,30 @@ export const refresh = mutation({
     let totalLikes = 0;
     let totalComments = 0;
 
-    for (const slug of postSlugs) {
-      if (!slug) continue;
+    const statsPromises = postSlugs.map(async (slug) => {
+      if (!slug) return { likes: 0, comments: 0 };
 
-      const likes = await ctx.db
+      const likesPromise = ctx.db
         .query("blogLikes")
         .withIndex("by_postSlug", (q) => q.eq("postSlug", slug))
         .collect();
-      totalLikes += likes.length;
 
-      const comments = await ctx.db
+      const commentsPromise = ctx.db
         .query("blogComments")
         .withIndex("by_postSlug", (q) => q.eq("postSlug", slug))
         .collect();
-      totalComments += comments.filter((c) => !c.isDeleted).length;
+
+      const [likes, comments] = await Promise.all([likesPromise, commentsPromise]);
+      return {
+        likes: likes.length,
+        comments: comments.filter((c) => !c.isDeleted).length
+      };
+    });
+
+    const statsResults = await Promise.all(statsPromises);
+    for (const res of statsResults) {
+      totalLikes += res.likes;
+      totalComments += res.comments;
     }
 
     // TODO: Add view tracking once we have that table

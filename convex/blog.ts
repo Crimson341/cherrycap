@@ -5,15 +5,18 @@ import { mutation, query } from "./_generated/server";
 
 export const toggleLike = mutation({
   args: {
-    userId: v.string(),
     postSlug: v.string(),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const userId = identity.subject;
+
     // Check if already liked
     const existing = await ctx.db
       .query("blogLikes")
       .withIndex("by_userId_postSlug", (q) =>
-        q.eq("userId", args.userId).eq("postSlug", args.postSlug)
+        q.eq("userId", userId).eq("postSlug", args.postSlug)
       )
       .first();
 
@@ -25,7 +28,7 @@ export const toggleLike = mutation({
     } else {
       // Like
       await ctx.db.insert("blogLikes", {
-        userId: args.userId,
+        userId,
         postSlug: args.postSlug,
         createdAt: Date.now(),
       });
@@ -58,14 +61,17 @@ export const hasLiked = query({
 
 export const toggleBookmark = mutation({
   args: {
-    userId: v.string(),
     postSlug: v.string(),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const userId = identity.subject;
+
     const existing = await ctx.db
       .query("blogBookmarks")
       .withIndex("by_userId_postSlug", (q) =>
-        q.eq("userId", args.userId).eq("postSlug", args.postSlug)
+        q.eq("userId", userId).eq("postSlug", args.postSlug)
       )
       .first();
 
@@ -75,7 +81,7 @@ export const toggleBookmark = mutation({
       return { bookmarked: false };
     } else {
       await ctx.db.insert("blogBookmarks", {
-        userId: args.userId,
+        userId,
         postSlug: args.postSlug,
         createdAt: Date.now(),
       });
@@ -123,7 +129,6 @@ export const getUserBookmarks = query({
 
 export const addComment = mutation({
   args: {
-    userId: v.string(),
     userName: v.string(),
     userImage: v.optional(v.string()),
     postSlug: v.string(),
@@ -131,8 +136,12 @@ export const addComment = mutation({
     parentId: v.optional(v.id("blogComments")),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const userId = identity.subject;
+
     const commentId = await ctx.db.insert("blogComments", {
-      userId: args.userId,
+      userId,
       userName: args.userName,
       userImage: args.userImage,
       postSlug: args.postSlug,
@@ -153,17 +162,20 @@ export const addComment = mutation({
 export const editComment = mutation({
   args: {
     commentId: v.id("blogComments"),
-    userId: v.string(),
     content: v.string(),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const userId = identity.subject;
+
     const comment = await ctx.db.get(args.commentId);
 
     if (!comment) {
       throw new Error("Comment not found");
     }
 
-    if (comment.userId !== args.userId) {
+    if (comment.userId !== userId) {
       throw new Error("Not authorized to edit this comment");
     }
 
@@ -180,16 +192,19 @@ export const editComment = mutation({
 export const deleteComment = mutation({
   args: {
     commentId: v.id("blogComments"),
-    userId: v.string(),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const userId = identity.subject;
+
     const comment = await ctx.db.get(args.commentId);
 
     if (!comment) {
       throw new Error("Comment not found");
     }
 
-    if (comment.userId !== args.userId) {
+    if (comment.userId !== userId) {
       throw new Error("Not authorized to delete this comment");
     }
 

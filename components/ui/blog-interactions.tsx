@@ -74,12 +74,12 @@ export function BlogInteractions({ postSlug, postTitle }: BlogInteractionsProps)
 
   const handleLike = async () => {
     if (!isSignedIn || !user) return;
-    await toggleLike({ userId: user.id, postSlug });
+    await toggleLike({ postSlug });
   };
 
   const handleBookmark = async () => {
     if (!isSignedIn || !user) return;
-    await toggleBookmark({ userId: user.id, postSlug });
+    await toggleBookmark({ postSlug });
   };
 
   const handleShare = async (platform: string) => {
@@ -252,7 +252,6 @@ function CommentsSection({ postSlug }: { postSlug: string }) {
     if (!isSignedIn || !user || !newComment.trim()) return;
 
     await addComment({
-      userId: user.id,
       userName: user.fullName || user.username || "Anonymous",
       userImage: user.imageUrl,
       postSlug,
@@ -269,7 +268,6 @@ function CommentsSection({ postSlug }: { postSlug: string }) {
 
     await editComment({
       commentId,
-      userId: user.id,
       content: editContent.trim(),
     });
 
@@ -281,7 +279,7 @@ function CommentsSection({ postSlug }: { postSlug: string }) {
     if (!user) return;
     if (!confirm("Are you sure you want to delete this comment?")) return;
 
-    await deleteComment({ commentId, userId: user.id });
+    await deleteComment({ commentId });
   };
 
   return (
