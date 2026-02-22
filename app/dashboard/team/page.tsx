@@ -116,9 +116,6 @@ function CreateOrgDialog({
       await createOrg({
         name,
         slug,
-        ownerId: userId,
-        ownerEmail: userEmail,
-        ownerName: userName,
         plan: "free",
       });
       onOpenChange(false);
@@ -219,7 +216,6 @@ function InviteMemberDialog({
     try {
       const result = await inviteMember({
         organizationId,
-        inviterId,
         email,
         role: role as "admin" | "manager" | "member" | "viewer",
         message: message || undefined,
@@ -464,7 +460,6 @@ function MemberRow({
     try {
       await removeMember({
         organizationId,
-        removerId: currentUserId,
         targetUserId: member.userId,
       });
     } catch (error) {
@@ -478,7 +473,6 @@ function MemberRow({
     try {
       await updateRole({
         organizationId,
-        updaterId: currentUserId,
         targetUserId: member.userId,
         newRole: newRole as "admin" | "manager" | "member" | "viewer",
       });
@@ -701,7 +695,6 @@ export default function TeamPage() {
     try {
       await updateSettings({
         organizationId: selectedOrg._id,
-        userId: user.id,
         updates: {
           settings: { [key]: value },
         },

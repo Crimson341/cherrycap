@@ -116,8 +116,23 @@ export const verifyUser = mutation({
       throw new Error("Not authenticated");
     }
 
-    // TODO: Add admin check here
-    // For now, only allow self-verification for testing
+    // Admin check: ensure the caller is verified staff
+    const adminProfile = await ctx.db
+      .query("userProfiles")
+      .withIndex("by_userId", (q) => q.eq("userId", identity.subject))
+      .first();
+
+    if (!adminProfile || !adminProfile.isVerified || adminProfile.verificationType !== "staff") {
+      // Allow the VERY first verified staff member to be created locally without this check if the DB is empty (initial bootstrap fallback)
+      const anyStaffProfile = await ctx.db
+        .query("userProfiles")
+        .filter(q => q.eq(q.field("verificationType"), "staff"))
+        .first();
+        
+      if (anyStaffProfile) {
+        throw new Error("Unauthorized: Only verified staff members can grant verifications");
+      }
+    }
 
     const existing = await ctx.db
       .query("userProfiles")

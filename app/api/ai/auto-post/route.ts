@@ -487,12 +487,14 @@ Write the full ${format} post now in HTML format. Make it exceptional and ensure
         const creditsToDeduct = Math.ceil(creditsCost * 100);
 
         await convex.mutation(api.credits.deductCredits, {
+          userId,
           amount: creditsToDeduct,
           feature: "auto-post",
           model,
           promptTokens: totalPromptTokens,
           completionTokens: totalCompletionTokens,
           actualCostUSD: actualCost,
+          serverSecret: process.env.CONVEX_SERVER_SECRET || "",
         });
 
         creditsDeducted = true;

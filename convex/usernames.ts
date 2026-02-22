@@ -109,10 +109,13 @@ export const getUsername = query({
 // Set or update username
 export const setUsername = mutation({
   args: {
-    userId: v.string(),
     username: v.string(),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const userId = identity.subject;
+
     const normalized = args.username.toLowerCase().trim();
     const displayName = args.username.trim();
 
@@ -133,14 +136,14 @@ export const setUsername = mutation({
       .withIndex("by_username", (q) => q.eq("username", normalized))
       .first();
 
-    if (existing && existing.userId !== args.userId) {
+    if (existing && existing.userId !== userId) {
       return { success: false, error: "Username is already taken" };
     }
 
     // Check if user already has a username
     const currentUsername = await ctx.db
       .query("usernames")
-      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
       .first();
 
     if (currentUsername) {
@@ -170,7 +173,7 @@ export const setUsername = mutation({
     } else {
       // Create new
       await ctx.db.insert("usernames", {
-        userId: args.userId,
+        userId: userId,
         username: normalized,
         displayName,
         createdAt: Date.now(),

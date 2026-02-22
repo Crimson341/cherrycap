@@ -215,9 +215,6 @@ export const create = mutation({
   args: {
     name: v.string(),
     slug: v.string(),
-    ownerId: v.string(),
-    ownerEmail: v.string(),
-    ownerName: v.optional(v.string()),
     plan: v.optional(
       v.union(
         v.literal("free"),
@@ -229,6 +226,13 @@ export const create = mutation({
     ),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const ownerId = identity.subject;
+    const ownerEmail = identity.email;
+    const ownerName = identity.name;
+
     const plan = args.plan || "free";
     const limits = PLAN_LIMITS[plan];
     const now = Date.now();
@@ -247,7 +251,7 @@ export const create = mutation({
     const orgId = await ctx.db.insert("organizations", {
       name: args.name,
       slug: args.slug.toLowerCase(),
-      ownerId: args.ownerId,
+      ownerId: ownerId,
       plan,
       maxSeats: limits.maxSeats,
       currentSeats: 1, // Owner counts as first seat
@@ -268,9 +272,9 @@ export const create = mutation({
     // Add owner as first member
     await ctx.db.insert("organizationMembers", {
       organizationId: orgId,
-      userId: args.ownerId,
-      email: args.ownerEmail,
-      name: args.ownerName,
+      userId: ownerId,
+      email: ownerEmail || "",
+      name: ownerName,
       role: "owner",
       status: "active",
       joinedAt: now,
@@ -279,7 +283,7 @@ export const create = mutation({
     // Log the creation
     await ctx.db.insert("organizationAuditLog", {
       organizationId: orgId,
-      userId: args.ownerId,
+      userId: ownerId,
       action: "organization.created",
       details: { name: args.name, plan },
       timestamp: now,
@@ -293,7 +297,6 @@ export const create = mutation({
 export const inviteMember = mutation({
   args: {
     organizationId: v.id("organizations"),
-    inviterId: v.string(),
     email: v.string(),
     role: v.union(
       v.literal("admin"),
@@ -304,16 +307,20 @@ export const inviteMember = mutation({
     message: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const inviterId = identity.subject;
+
     const org = await ctx.db.get(args.organizationId);
     if (!org) throw new Error("Organization not found");
 
     // Check if inviter has permission
-    const isOwner = org.ownerId === args.inviterId;
+    const isOwner = org.ownerId === inviterId;
     if (!isOwner) {
       const membership = await ctx.db
         .query("organizationMembers")
         .withIndex("by_organizationId_userId", (q) =>
-          q.eq("organizationId", args.organizationId).eq("userId", args.inviterId)
+          q.eq("organizationId", args.organizationId).eq("userId", inviterId)
         )
         .first();
 
@@ -369,7 +376,7 @@ export const inviteMember = mutation({
       organizationId: args.organizationId,
       email: args.email.toLowerCase(),
       role: args.role,
-      invitedBy: args.inviterId,
+      invitedBy: inviterId,
       inviteCode,
       message: args.message,
       status: "pending",
@@ -380,7 +387,7 @@ export const inviteMember = mutation({
     // Log the invite
     await ctx.db.insert("organizationAuditLog", {
       organizationId: args.organizationId,
-      userId: args.inviterId,
+      userId: inviterId,
       action: "member.invited",
       targetType: "invite",
       targetId: inviteId,
@@ -396,12 +403,14 @@ export const inviteMember = mutation({
 export const acceptInvite = mutation({
   args: {
     inviteCode: v.string(),
-    userId: v.string(),
-    email: v.string(),
-    name: v.optional(v.string()),
-    avatar: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const userId = identity.subject;
+    const email = identity.email;
+    if (!email) throw new Error("User has no associated email address");
+
     const invite = await ctx.db
       .query("organizationInvites")
       .withIndex("by_inviteCode", (q) => q.eq("inviteCode", args.inviteCode))
@@ -415,7 +424,7 @@ export const acceptInvite = mutation({
     }
 
     // Verify email matches (case-insensitive)
-    if (invite.email.toLowerCase() !== args.email.toLowerCase()) {
+    if (invite.email.toLowerCase() !== email.toLowerCase()) {
       throw new Error("This invite was sent to a different email address");
     }
 
@@ -433,10 +442,10 @@ export const acceptInvite = mutation({
     // Create membership
     await ctx.db.insert("organizationMembers", {
       organizationId: invite.organizationId,
-      userId: args.userId,
-      email: args.email.toLowerCase(),
-      name: args.name,
-      avatar: args.avatar,
+      userId: userId,
+      email: email.toLowerCase(),
+      name: identity.name,
+      avatar: identity.pictureUrl,
       role: invite.role,
       status: "active",
       invitedBy: invite.invitedBy,
@@ -458,9 +467,9 @@ export const acceptInvite = mutation({
     // Log the join
     await ctx.db.insert("organizationAuditLog", {
       organizationId: invite.organizationId,
-      userId: args.userId,
+      userId: userId,
       action: "member.joined",
-      details: { email: args.email, role: invite.role },
+      details: { email: email, role: invite.role },
       timestamp: now,
     });
 
@@ -472,10 +481,13 @@ export const acceptInvite = mutation({
 export const removeMember = mutation({
   args: {
     organizationId: v.id("organizations"),
-    removerId: v.string(), // Who is removing
     targetUserId: v.string(), // Who is being removed
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const removerId = identity.subject;
+
     const org = await ctx.db.get(args.organizationId);
     if (!org) throw new Error("Organization not found");
 
@@ -485,12 +497,12 @@ export const removeMember = mutation({
     }
 
     // Check remover permission
-    const isOwner = org.ownerId === args.removerId;
+    const isOwner = org.ownerId === removerId;
     if (!isOwner) {
       const removerMembership = await ctx.db
         .query("organizationMembers")
         .withIndex("by_organizationId_userId", (q) =>
-          q.eq("organizationId", args.organizationId).eq("userId", args.removerId)
+          q.eq("organizationId", args.organizationId).eq("userId", removerId)
         )
         .first();
 
@@ -538,7 +550,7 @@ export const removeMember = mutation({
     // Log the removal
     await ctx.db.insert("organizationAuditLog", {
       organizationId: args.organizationId,
-      userId: args.removerId,
+      userId: removerId,
       action: "member.removed",
       targetType: "member",
       targetId: args.targetUserId,
@@ -554,7 +566,6 @@ export const removeMember = mutation({
 export const updateMemberRole = mutation({
   args: {
     organizationId: v.id("organizations"),
-    updaterId: v.string(),
     targetUserId: v.string(),
     newRole: v.union(
       v.literal("admin"),
@@ -564,6 +575,10 @@ export const updateMemberRole = mutation({
     ),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const updaterId = identity.subject;
+
     const org = await ctx.db.get(args.organizationId);
     if (!org) throw new Error("Organization not found");
 
@@ -573,12 +588,12 @@ export const updateMemberRole = mutation({
     }
 
     // Check updater permission
-    const isOwner = org.ownerId === args.updaterId;
+    const isOwner = org.ownerId === updaterId;
     if (!isOwner) {
       const updaterMembership = await ctx.db
         .query("organizationMembers")
         .withIndex("by_organizationId_userId", (q) =>
-          q.eq("organizationId", args.organizationId).eq("userId", args.updaterId)
+          q.eq("organizationId", args.organizationId).eq("userId", updaterId)
         )
         .first();
 
@@ -604,7 +619,7 @@ export const updateMemberRole = mutation({
     // Log the change
     await ctx.db.insert("organizationAuditLog", {
       organizationId: args.organizationId,
-      userId: args.updaterId,
+      userId: updaterId,
       action: "member.role_updated",
       targetType: "member",
       targetId: args.targetUserId,
@@ -620,7 +635,6 @@ export const updateMemberRole = mutation({
 export const updateSettings = mutation({
   args: {
     organizationId: v.id("organizations"),
-    userId: v.string(),
     updates: v.object({
       name: v.optional(v.string()),
       logo: v.optional(v.string()),
@@ -636,16 +650,20 @@ export const updateSettings = mutation({
     }),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const userId = identity.subject;
+
     const org = await ctx.db.get(args.organizationId);
     if (!org) throw new Error("Organization not found");
 
     // Check permission (owner or admin only)
-    const isOwner = org.ownerId === args.userId;
+    const isOwner = org.ownerId === userId;
     if (!isOwner) {
       const membership = await ctx.db
         .query("organizationMembers")
         .withIndex("by_organizationId_userId", (q) =>
-          q.eq("organizationId", args.organizationId).eq("userId", args.userId)
+          q.eq("organizationId", args.organizationId).eq("userId", userId)
         )
         .first();
 
@@ -674,7 +692,7 @@ export const updateSettings = mutation({
     // Log the update
     await ctx.db.insert("organizationAuditLog", {
       organizationId: args.organizationId,
-      userId: args.userId,
+      userId: userId,
       action: "settings.updated",
       details: args.updates,
       timestamp: now,

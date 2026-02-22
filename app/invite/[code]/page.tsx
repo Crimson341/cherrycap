@@ -75,10 +75,6 @@ export default function InvitePage() {
     try {
       const result = await acceptInvite({
         inviteCode,
-        userId: user.id,
-        email: user.primaryEmailAddress?.emailAddress || "",
-        name: user.fullName || user.firstName || undefined,
-        avatar: user.imageUrl || undefined,
       });
 
       if (result.success) {

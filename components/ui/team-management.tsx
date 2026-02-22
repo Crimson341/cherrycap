@@ -122,7 +122,6 @@ export function TeamManagement({ organizationId, currentUserId }: TeamManagement
     try {
       const result = await inviteMember({
         organizationId,
-        inviterId: currentUserId,
         email: inviteEmail.trim(),
         role: inviteRole,
         message: inviteMessage || undefined,
@@ -145,7 +144,6 @@ export function TeamManagement({ organizationId, currentUserId }: TeamManagement
     try {
       await removeMember({
         organizationId,
-        removerId: currentUserId,
         targetUserId,
       });
     } catch (error) {
@@ -158,7 +156,6 @@ export function TeamManagement({ organizationId, currentUserId }: TeamManagement
     try {
       await updateMemberRole({
         organizationId,
-        updaterId: currentUserId,
         targetUserId,
         newRole,
       });

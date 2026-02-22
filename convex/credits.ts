@@ -91,9 +91,7 @@ export const hasCredits = query({
 
 // Initialize credits for a new user (called on first use)
 export const initializeCredits = mutation({
-  args: {
-    bonusCredits: v.optional(v.number()),
-  },
+  args: {},
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
@@ -109,7 +107,7 @@ export const initializeCredits = mutation({
     if (existing) return existing._id;
 
     const now = Date.now();
-    const bonusAmount = args.bonusCredits || 100; // Default 100 cents ($1) bonus for new users
+    const bonusAmount = 100; // Hardcoded $1 bonus for new users, removing public override vulnerability
 
     // Create credit record
     const creditId = await ctx.db.insert("userCredits", {
@@ -137,21 +135,30 @@ export const initializeCredits = mutation({
   },
 });
 
-// Deduct credits for usage (called from API routes)
+// Deduct credits for usage (called from secure API routes)
 export const deductCredits = mutation({
   args: {
+    userId: v.string(),
     amount: v.number(),
     feature: v.string(),
     model: v.string(),
     promptTokens: v.number(),
     completionTokens: v.number(),
     actualCostUSD: v.number(),
+    serverSecret: v.string(),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    if (!process.env.CONVEX_SERVER_SECRET) {
+      throw new Error("Missing CONVEX_SERVER_SECRET environment variable");
+    }
+    if (args.serverSecret !== process.env.CONVEX_SERVER_SECRET) {
+      throw new Error("Unauthorized server call");
+    }
+    if (args.amount <= 0) {
+      throw new Error("Deduction amount must be positive");
+    }
 
-    const userId = identity.subject;
+    const userId = args.userId;
 
     // Get current balance
     const credits = await ctx.db
@@ -210,8 +217,19 @@ export const addCreditsFromPurchase = mutation({
     productId: v.optional(v.string()),
     amountPaidUSD: v.number(),
     description: v.string(),
+    serverSecret: v.string(),
   },
   handler: async (ctx, args) => {
+    if (!process.env.CONVEX_SERVER_SECRET) {
+      throw new Error("Missing CONVEX_SERVER_SECRET environment variable");
+    }
+    if (args.serverSecret !== process.env.CONVEX_SERVER_SECRET) {
+      throw new Error("Unauthorized server call");
+    }
+    if (args.amount <= 0) {
+      throw new Error("Purchase amount must be positive");
+    }
+
     const now = Date.now();
 
     // Get or create credit record
@@ -273,8 +291,17 @@ export const addBonusCredits = mutation({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
 
-    // TODO: Add admin check here
-    // For now, allow any authenticated user (you should restrict this)
+    // Admin check: ensure the caller is verified staff
+    const adminProfile = await ctx.db
+      .query("userProfiles")
+      .withIndex("by_userId", (q) => q.eq("userId", identity.subject))
+      .first();
+
+    if (!adminProfile || !adminProfile.isVerified || adminProfile.verificationType !== "staff") {
+      throw new Error("Unauthorized: Only verified staff members can grant bonus credits");
+    }
+
+    if (args.amount <= 0) throw new Error("Bonus amount must be positive");
 
     const now = Date.now();
 
@@ -336,6 +363,16 @@ export const createPackage = mutation({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
 
+    // Admin check: ensure the caller is verified staff
+    const adminProfile = await ctx.db
+      .query("userProfiles")
+      .withIndex("by_userId", (q) => q.eq("userId", identity.subject))
+      .first();
+
+    if (!adminProfile || !adminProfile.isVerified || adminProfile.verificationType !== "staff") {
+      throw new Error("Unauthorized: Only verified staff members can create credit packages");
+    }
+
     // Get highest order
     const packages = await ctx.db.query("creditPackages").collect();
     const maxOrder = packages.reduce((max, p) => Math.max(max, p.order), 0);
@@ -365,6 +402,16 @@ export const seedDefaultPackages = mutation({
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
+
+    // Admin check: ensure the caller is verified staff
+    const adminProfile = await ctx.db
+      .query("userProfiles")
+      .withIndex("by_userId", (q) => q.eq("userId", identity.subject))
+      .first();
+
+    if (!adminProfile || !adminProfile.isVerified || adminProfile.verificationType !== "staff") {
+      throw new Error("Unauthorized: Only verified staff members can seed packages");
+    }
 
     // Check if packages already exist
     const existing = await ctx.db.query("creditPackages").first();

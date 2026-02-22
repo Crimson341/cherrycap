@@ -123,6 +123,7 @@ export async function POST(req: NextRequest) {
           productId,
           amountPaidUSD: order.total / 100, // Convert cents to dollars
           description: `${packageName} - ${order.total_formatted}${bonusCredits > 0 ? ` (+${bonusCredits} bonus)` : ""}`,
+          serverSecret: process.env.CONVEX_SERVER_SECRET || "",
         });
 
         console.log(`Added ${creditsToAdd} credits to user ${userId}`);

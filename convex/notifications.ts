@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
 
 // Get notifications for the current user
 export const list = query({
@@ -96,7 +96,7 @@ export const markAllAsRead = mutation({
 });
 
 // Create a notification (internal use)
-export const create = mutation({
+export const create = internalMutation({
   args: {
     userId: v.string(),
     type: v.union(
@@ -157,7 +157,15 @@ export const sendMarketingNotification = mutation({
       throw new Error("Not authenticated");
     }
 
-    // TODO: Add admin check here
+    // Admin check: ensure the caller is verified staff
+    const adminProfile = await ctx.db
+      .query("userProfiles")
+      .withIndex("by_userId", (q) => q.eq("userId", identity.subject))
+      .first();
+
+    if (!adminProfile || !adminProfile.isVerified || adminProfile.verificationType !== "staff") {
+      throw new Error("Unauthorized: Only verified staff members can send marketing notifications");
+    }
 
     // Get all users who have marketing notifications enabled
     const profiles = await ctx.db

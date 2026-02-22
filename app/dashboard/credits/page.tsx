@@ -39,7 +39,7 @@ export default function CreditsPage() {
     if (balance && balance.balance === 0 && balance.totalPurchased === 0 && balance.totalUsed === 0) {
       // New user, initialize with bonus
       setIsInitializing(true);
-      initializeCredits({ bonusCredits: 100 })
+      initializeCredits()
         .then(() => setIsInitializing(false))
         .catch(() => setIsInitializing(false));
     }
