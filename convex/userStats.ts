@@ -44,12 +44,6 @@ export const refresh = mutation({
 
     const userId = args.userId || identity.subject;
 
-    // Count kanban boards (projects)
-    const boards = await ctx.db
-      .query("kanbanBoards")
-      .withIndex("by_userId", (q) => q.eq("userId", userId))
-      .collect();
-    const projectsCount = boards.filter((b) => !b.isArchived).length;
 
     // Count blog posts
     const posts = await ctx.db
@@ -61,11 +55,6 @@ export const refresh = mutation({
 
     // Count team members across all boards
     let teamMembersCount = 0;
-    for (const board of boards) {
-      if (board.members) {
-        teamMembersCount += board.members.length;
-      }
-    }
 
     // Get likes count for user's posts
     const postSlugs = posts.map((p) => p.slug).filter(Boolean);
@@ -109,7 +98,6 @@ export const refresh = mutation({
 
     const statsData = {
       userId,
-      projectsCount,
       postsCount,
       draftsCount,
       totalViews,
@@ -146,7 +134,6 @@ export const initialize = mutation({
 
     return await ctx.db.insert("userStats", {
       userId: identity.subject,
-      projectsCount: 0,
       postsCount: 0,
       draftsCount: 0,
       totalViews: 0,

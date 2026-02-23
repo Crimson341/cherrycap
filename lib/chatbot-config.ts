@@ -28,7 +28,6 @@ export const CHATBOT_CONFIG = {
       { path: "/chat", name: "AI Chat Dashboard", description: "Full AI chat interface for logged-in users with analytics integration" },
       { path: "/dashboard", name: "Analytics Dashboard", description: "View website analytics, traffic stats, and performance metrics" },
       { path: "/dashboard/sites", name: "Site Management", description: "Add and manage tracked websites" },
-      { path: "/dashboard/kanban", name: "Kanban Boards", description: "Linear-style project management with drag-and-drop task boards, priorities, labels, due dates, and filtering" },
       { path: "/dashboard/blog-editor", name: "Blog Editor", description: "AI-powered blog writing with SEO optimization" },
     ],
     comingSoon: [
@@ -55,10 +54,6 @@ export const CHATBOT_CONFIG = {
     {
       name: "Custom Event Tracking",
       description: "Track custom events like button clicks, form submissions, and user interactions.",
-    },
-    {
-      name: "Kanban Project Management",
-      description: "Linear-style kanban boards for project management. Features include: multiple boards/projects, drag-and-drop tasks between columns (To Do, In Progress, Done), priority levels (Urgent, High, Medium, Low) with color-coded badges, labels (Bug, Feature, Improvement, Docs, Design), due dates with overdue tracking, search and filter functionality, task detail modal for editing, and real-time updates.",
     },
     {
       name: "AI Blog Editor",
@@ -97,14 +92,6 @@ export const CHATBOT_CONFIG = {
     {
       question: "What websites can I track?",
       answer: "Any website! Our tracking script works with React, Next.js, Vue, WordPress, Shopify, static HTML, and more.",
-    },
-    {
-      question: "How do I use the Kanban boards?",
-      answer: "Go to Dashboard > Kanban Boards. Create a new project, then add tasks to columns. Drag and drop tasks between columns (To Do, In Progress, Done). You can set priorities (Urgent/High/Medium/Low), add labels (Bug, Feature, etc.), set due dates, and use the search/filter bar to find specific tasks. Click any task to view details or edit it.",
-    },
-    {
-      question: "What features does the Kanban board have?",
-      answer: "Our Kanban boards include: multiple projects with custom colors, drag-and-drop task management, priority levels with color-coded badges, labels for categorizing tasks (Bug, Feature, Improvement, Docs, Design), due date tracking with overdue alerts, search functionality, filters by priority and label, and a detailed task view for editing all properties.",
     },
   ],
 

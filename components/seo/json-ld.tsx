@@ -1,11 +1,23 @@
 import { siteConfig } from '@/lib/seo-config'
 
-type JsonLdProps = {
-  type: 'LocalBusiness' | 'Organization' | 'BlogPosting' | 'WebPage' | 'Service'
-  data?: Record<string, unknown>
+type BreadcrumbItem = {
+  name: string
+  url: string
 }
 
-export function JsonLd({ type, data = {} }: JsonLdProps) {
+type FAQItem = {
+  question: string
+  answer: string
+}
+
+type JsonLdProps = {
+  type: 'LocalBusiness' | 'Organization' | 'BlogPosting' | 'WebPage' | 'Service' | 'WebSite' | 'FAQPage' | 'BreadcrumbList'
+  data?: Record<string, unknown>
+  breadcrumbs?: BreadcrumbItem[]
+  faqs?: FAQItem[]
+}
+
+export function JsonLd({ type, data = {}, breadcrumbs, faqs }: JsonLdProps) {
   let schema: Record<string, unknown>
 
   switch (type) {
@@ -57,6 +69,7 @@ export function JsonLd({ type, data = {} }: JsonLdProps) {
           areaServed: 'US',
           availableLanguage: 'English',
         },
+        sameAs: [],
         ...data,
       }
       break
@@ -103,6 +116,60 @@ export function JsonLd({ type, data = {} }: JsonLdProps) {
         areaServed: siteConfig.business.areaServed.map((area) => ({
           '@type': 'City',
           name: area,
+        })),
+        ...data,
+      }
+      break
+
+    case 'WebSite':
+      schema = {
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        '@id': `${siteConfig.url}/#website`,
+        name: siteConfig.name,
+        url: siteConfig.url,
+        description: siteConfig.description,
+        publisher: {
+          '@type': 'Organization',
+          '@id': `${siteConfig.url}/#organization`,
+        },
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: {
+            '@type': 'EntryPoint',
+            urlTemplate: `${siteConfig.url}/blog?q={search_term_string}`,
+          },
+          'query-input': 'required name=search_term_string',
+        },
+        ...data,
+      }
+      break
+
+    case 'FAQPage':
+      schema = {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: (faqs || []).map((faq) => ({
+          '@type': 'Question',
+          name: faq.question,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: faq.answer,
+          },
+        })),
+        ...data,
+      }
+      break
+
+    case 'BreadcrumbList':
+      schema = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: (breadcrumbs || []).map((crumb, index) => ({
+          '@type': 'ListItem',
+          position: index + 1,
+          name: crumb.name,
+          item: crumb.url,
         })),
         ...data,
       }

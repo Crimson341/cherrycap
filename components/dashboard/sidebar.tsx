@@ -90,7 +90,6 @@ const staggerVariants = {
 const mainNavItems = [
   { href: "/dashboard", icon: User, label: "Profile" },
   { href: "/dashboard/blog-editor", icon: FileText, label: "Blog Editor" },
-  { href: "/dashboard/kanban", icon: LayoutGrid, label: "Kanban" },
   { href: "/dashboard/menu-maker", icon: UtensilsCrossed, label: "Menu Maker" },
   { href: "/dashboard/team", icon: Users, label: "Team" },
   { href: "/dashboard/brand", icon: Palette, label: "Brand Context" },

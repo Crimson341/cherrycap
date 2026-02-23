@@ -1,14 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ajAIChat } from "@/lib/arcjet";
 import { SOCIAL_MEDIA_SYSTEM_PROMPT } from "@/lib/social-media-templates";
-import { KANBAN_TOOLS, KANBAN_FUNCTION_TO_ACTION, KANBAN_SYSTEM_PROMPT } from "@/lib/kanban-tools";
 import { auth } from "@clerk/nextjs/server";
-import { ConvexHttpClient } from "convex/browser";
-import { api } from "@/convex/_generated/api";
-import { Id } from "@/convex/_generated/dataModel";
 
-// Initialize Convex HTTP client for Kanban operations
-const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 // OpenRouter API endpoint
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
@@ -42,7 +36,6 @@ export interface ChatRequest {
   reasoning?: ReasoningConfig;
   webSearch?: boolean;
   systemPrompt?: string; // Custom system prompt (e.g., for invoice builder)
-  enableKanban?: boolean; // Enable Kanban board access
 }
 
 // Extended message type for tool calls
@@ -130,207 +123,14 @@ const BASE_SYSTEM_PROMPT = `You are CherryCap AI, a helpful business assistant f
 - Content ideas and calendars
 - Customer engagement strategies
 - Local business marketing tips
-- Project management and task tracking (via Kanban boards)
 
 Be concise, professional, and actionable in your responses. Format your responses with markdown when appropriate.
 Use a friendly, approachable tone while being genuinely helpful.
 
 ${SOCIAL_MEDIA_SYSTEM_PROMPT}`;
 
-function buildSystemPrompt(includeKanban: boolean = false): string {
-  if (includeKanban) {
-    return BASE_SYSTEM_PROMPT + KANBAN_SYSTEM_PROMPT;
-  }
+function buildSystemPrompt(): string {
   return BASE_SYSTEM_PROMPT;
-}
-
-// Execute a Kanban tool call directly via Convex
-async function executeKanbanTool(
-  functionName: string,
-  args: Record<string, unknown>,
-  userId: string
-): Promise<{ success: boolean; data?: unknown; message?: string; error?: string }> {
-  const action = KANBAN_FUNCTION_TO_ACTION[functionName];
-  if (!action) {
-    return { success: false, error: `Unknown Kanban function: ${functionName}` };
-  }
-
-  try {
-    let result: unknown;
-
-    switch (action) {
-      case "getBoards": {
-        result = await convex.query(api.kanban.getBoards, {});
-        return {
-          success: true,
-          data: result,
-          message: `Found ${Array.isArray(result) ? result.length : 0} board(s)`,
-        };
-      }
-
-      case "getBoard": {
-        if (!args.boardId) {
-          return { success: false, error: "boardId is required" };
-        }
-        result = await convex.query(api.kanban.getBoard, {
-          boardId: args.boardId as Id<"kanbanBoards">,
-        });
-        if (!result) {
-          return { success: false, error: "Board not found" };
-        }
-        return {
-          success: true,
-          data: result,
-          message: "Board retrieved successfully",
-        };
-      }
-
-      case "createBoard": {
-        if (!args.boardName) {
-          return { success: false, error: "boardName is required" };
-        }
-        result = await convex.mutation(api.kanban.createBoard, {
-          name: args.boardName as string,
-          description: args.boardDescription as string | undefined,
-          color: args.boardColor as string | undefined,
-        });
-        return {
-          success: true,
-          data: { boardId: result },
-          message: `Board "${args.boardName}" created successfully`,
-        };
-      }
-
-      case "createTask": {
-        if (!args.boardId || !args.columnId || !args.title) {
-          return { success: false, error: "boardId, columnId, and title are required" };
-        }
-        result = await convex.mutation(api.kanban.createTask, {
-          boardId: args.boardId as Id<"kanbanBoards">,
-          columnId: args.columnId as Id<"kanbanColumns">,
-          title: args.title as string,
-          description: args.description as string | undefined,
-          priority: args.priority as "low" | "medium" | "high" | "urgent" | undefined,
-          dueDate: args.dueDate ? new Date(args.dueDate as string).getTime() : undefined,
-          labels: args.labels as string[] | undefined,
-          assignedTo: args.assignedTo as string[] | undefined,
-        });
-        return {
-          success: true,
-          data: { taskId: result },
-          message: `Task "${args.title}" created successfully`,
-        };
-      }
-
-      case "updateTask": {
-        if (!args.taskId) {
-          return { success: false, error: "taskId is required" };
-        }
-        await convex.mutation(api.kanban.updateTask, {
-          taskId: args.taskId as Id<"kanbanTasks">,
-          title: args.title as string | undefined,
-          description: args.description as string | undefined,
-          priority: args.priority as "low" | "medium" | "high" | "urgent" | undefined,
-          dueDate: args.dueDate ? new Date(args.dueDate as string).getTime() : undefined,
-          labels: args.labels as string[] | undefined,
-          assignedTo: args.assignedTo as string[] | undefined,
-        });
-        return {
-          success: true,
-          message: "Task updated successfully",
-        };
-      }
-
-      case "deleteTask": {
-        if (!args.taskId) {
-          return { success: false, error: "taskId is required" };
-        }
-        await convex.mutation(api.kanban.deleteTask, {
-          taskId: args.taskId as Id<"kanbanTasks">,
-        });
-        return {
-          success: true,
-          message: "Task deleted successfully",
-        };
-      }
-
-      case "moveTask": {
-        if (!args.taskId || !args.targetColumnId) {
-          return { success: false, error: "taskId and targetColumnId are required" };
-        }
-        await convex.mutation(api.kanban.moveTask, {
-          taskId: args.taskId as Id<"kanbanTasks">,
-          targetColumnId: args.targetColumnId as Id<"kanbanColumns">,
-          newOrder: (args.newOrder as number) ?? 0,
-        });
-        return {
-          success: true,
-          message: "Task moved successfully",
-        };
-      }
-
-      case "getMyTasks": {
-        result = await convex.query(api.kanban.getMyTasks, { userId });
-        return {
-          success: true,
-          data: result,
-          message: `Found ${Array.isArray(result) ? result.length : 0} task(s) assigned to you`,
-        };
-      }
-
-      case "completeTask": {
-        if (!args.taskId || !args.boardId) {
-          return { success: false, error: "taskId and boardId are required" };
-        }
-        // Get the board to find the "Done" column
-        const board = await convex.query(api.kanban.getBoard, {
-          boardId: args.boardId as Id<"kanbanBoards">,
-        }) as { columns: Array<{ _id: string; name: string }> } | null;
-        
-        if (!board) {
-          return { success: false, error: "Board not found" };
-        }
-        
-        const doneColumn = board.columns?.find(
-          (col) => col.name.toLowerCase() === "done"
-        );
-        
-        if (doneColumn) {
-          await convex.mutation(api.kanban.moveTask, {
-            taskId: args.taskId as Id<"kanbanTasks">,
-            targetColumnId: doneColumn._id as Id<"kanbanColumns">,
-            newOrder: 0,
-          });
-        }
-        return {
-          success: true,
-          message: "Task marked as complete",
-        };
-      }
-
-      case "addSubtask": {
-        if (!args.taskId || !args.subtaskTitle) {
-          return { success: false, error: "taskId and subtaskTitle are required" };
-        }
-        result = await convex.mutation(api.kanban.addSubtask, {
-          taskId: args.taskId as Id<"kanbanTasks">,
-          title: args.subtaskTitle as string,
-        });
-        return {
-          success: true,
-          data: { subtaskId: result },
-          message: "Subtask added successfully",
-        };
-      }
-
-      default:
-        return { success: false, error: `Unknown action: ${action}` };
-    }
-  } catch (error) {
-    console.error("Kanban tool error:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    return { success: false, error: `Kanban operation failed: ${errorMessage}` };
-  }
 }
 
 export async function POST(req: NextRequest) {
@@ -369,21 +169,11 @@ export async function POST(req: NextRequest) {
     const { userId } = await auth();
 
     const body: ChatRequest = await req.json();
-    const { messages, model = DEFAULT_MODEL, stream = false, reasoning, webSearch = false, systemPrompt: customSystemPrompt, enableKanban = false } = body;
+    const { messages, model = DEFAULT_MODEL, stream = false, reasoning, webSearch = false, systemPrompt: customSystemPrompt } = body;
     
     // Check if model supports reasoning
     const supportsReasoning = REASONING_MODELS.includes(model as typeof REASONING_MODELS[number]);
     
-    // Check if model supports tools (for Kanban)
-    const supportsTools = TOOL_CAPABLE_MODELS.includes(model as typeof TOOL_CAPABLE_MODELS[number]);
-    
-    // Only enable Kanban if user is authenticated and model supports tools
-    const useKanban = enableKanban && supportsTools && !!userId;
-    
-    // Debug logging
-    if (enableKanban) {
-      console.log("[Chat API] Kanban requested:", { enableKanban, supportsTools, userId: !!userId, useKanban, model });
-    }
     
     // For web search, we append :online to the model slug
     const effectiveModel = webSearch ? `${model}:online` : model;
@@ -397,8 +187,8 @@ export async function POST(req: NextRequest) {
 
     // Build system prompt - use custom if provided (e.g., for invoice builder)
     const systemPrompt = customSystemPrompt 
-      ? `${buildSystemPrompt(useKanban)}\n\n${customSystemPrompt}`
-      : buildSystemPrompt(useKanban);
+      ? `${buildSystemPrompt()}\n\n${customSystemPrompt}`
+      : buildSystemPrompt();
 
     // Prepend system message
     const messagesWithSystem: ExtendedChatMessage[] = [
@@ -415,10 +205,6 @@ export async function POST(req: NextRequest) {
       };
       
       // Add tools if Kanban is enabled
-      if (useKanban) {
-        requestBody.tools = KANBAN_TOOLS;
-        requestBody.tool_choice = "auto";
-      }
       
       // Add reasoning config if model supports it and reasoning is requested
       if (supportsReasoning && reasoning?.enabled) {
@@ -474,45 +260,6 @@ export async function POST(req: NextRequest) {
         const message = choice?.message;
         
         // Check if AI wants to call tools
-        if (message?.tool_calls && message.tool_calls.length > 0 && useKanban) {
-          console.log("[Chat API] AI requested tool calls:", message.tool_calls.map((t: { function: { name: string } }) => t.function.name));
-          
-          // Add assistant message with tool calls
-          currentMessages.push({
-            role: "assistant",
-            content: message.content || null,
-            tool_calls: message.tool_calls,
-          });
-          
-          // Execute each tool call
-          for (const toolCall of message.tool_calls) {
-            const functionName = toolCall.function.name;
-            let args: Record<string, unknown> = {};
-            
-            try {
-              args = JSON.parse(toolCall.function.arguments);
-            } catch {
-              args = {};
-            }
-            
-            console.log("[Chat API] Executing tool:", functionName, args);
-            
-            // Execute the Kanban tool
-            const result = await executeKanbanTool(functionName, args, userId!);
-            console.log("[Chat API] Tool result:", result);
-            
-            // Add tool result to messages
-            currentMessages.push({
-              role: "tool",
-              tool_call_id: toolCall.id,
-              name: functionName,
-              content: JSON.stringify(result),
-            });
-          }
-          
-          // Continue the loop to get AI's response after tool execution
-          continue;
-        }
         
         // No tool calls, return the response
         const rawMessage = message?.content || "Sorry, I couldn't generate a response.";
@@ -540,116 +287,6 @@ export async function POST(req: NextRequest) {
 
     // For streaming with tools, we need a custom approach
     // First, make a non-streaming call to check for tool calls
-    if (useKanban) {
-      // For Kanban-enabled requests, use non-streaming for tool handling
-      // then stream the final response
-      let currentMessages = [...messagesWithSystem];
-      let maxIterations = 5;
-      let iteration = 0;
-      let toolsExecuted: Array<{ name: string; result: unknown }> = [];
-      
-      while (iteration < maxIterations) {
-        iteration++;
-        
-        const response = await fetch(OPENROUTER_API_URL, {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-            "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
-            "X-Title": "CherryCap AI",
-          },
-          body: JSON.stringify(buildRequestBody(false, currentMessages)), // Non-streaming for tool detection
-        });
-
-        if (!response.ok) {
-          const error = await response.text();
-          console.error("OpenRouter API error:", error);
-          return NextResponse.json(
-            { error: "Failed to get response from AI" },
-            { status: response.status }
-          );
-        }
-
-        const data = await response.json();
-        const choice = data.choices?.[0];
-        const message = choice?.message;
-        
-        if (message?.tool_calls && message.tool_calls.length > 0) {
-          currentMessages.push({
-            role: "assistant",
-            content: message.content || null,
-            tool_calls: message.tool_calls,
-          });
-          
-          for (const toolCall of message.tool_calls) {
-            const functionName = toolCall.function.name;
-            let args: Record<string, unknown> = {};
-            
-            try {
-              args = JSON.parse(toolCall.function.arguments);
-            } catch {
-              args = {};
-            }
-            
-            const result = await executeKanbanTool(functionName, args, userId);
-            toolsExecuted.push({ name: functionName, result });
-            
-            currentMessages.push({
-              role: "tool",
-              tool_call_id: toolCall.id,
-              name: functionName,
-              content: JSON.stringify(result),
-            });
-          }
-          
-          continue;
-        }
-        
-        // No more tool calls, stream the final response
-        // Create a readable stream from the final content
-        const finalContent = message?.content || "";
-        const cleanedContent = cleanModelContent(finalContent, model);
-        
-        const responseStream = new ReadableStream({
-          start(controller) {
-            // If tools were executed, send tool execution info first
-            if (toolsExecuted.length > 0) {
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ 
-                toolsExecuted: toolsExecuted.map(t => t.name) 
-              })}\n\n`));
-            }
-            
-            // Stream the content character by character for a typing effect
-            const words = cleanedContent.split(' ');
-            let wordIndex = 0;
-            
-            const streamWords = () => {
-              if (wordIndex < words.length) {
-                const word = words[wordIndex] + (wordIndex < words.length - 1 ? ' ' : '');
-                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: word })}\n\n`));
-                wordIndex++;
-                // Small delay between words for typing effect
-                setTimeout(streamWords, 10);
-              } else {
-                controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-                controller.close();
-              }
-            };
-            
-            streamWords();
-          },
-        });
-        
-        return new Response(responseStream, {
-          headers: {
-            "Content-Type": "text/event-stream",
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive",
-          },
-        });
-      }
-    }
 
     // Regular streaming (no Kanban tools)
     const response = await fetch(OPENROUTER_API_URL, {

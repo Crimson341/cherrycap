@@ -139,7 +139,6 @@ export default defineSchema({
       canManageAnalytics: v.boolean(),
       canManageBlog: v.boolean(),
       canManageInbox: v.boolean(),
-      canManageKanban: v.boolean(),
       canViewBilling: v.boolean(),
       canInviteMembers: v.boolean(),
       canAccessApi: v.boolean(),
@@ -343,7 +342,6 @@ export default defineSchema({
     userId: v.string(), // Clerk user ID
     
     // Content stats
-    projectsCount: v.number(), // Number of kanban boards
     postsCount: v.number(), // Number of blog posts (published)
     draftsCount: v.number(), // Number of draft posts
     
@@ -861,170 +859,6 @@ export default defineSchema({
     .index("by_authorId", ["authorId"])
     .index("by_parentId", ["parentId"])
     .index("by_postId_isResolved", ["postId", "isResolved"]),
-
-  // ============ KANBAN BOARDS ============
-
-  // Kanban boards (projects)
-  kanbanBoards: defineTable({
-    userId: v.string(), // Owner (Clerk user ID)
-    name: v.string(),
-    description: v.optional(v.string()),
-    color: v.optional(v.string()), // Board accent color
-    createdAt: v.number(),
-    updatedAt: v.number(),
-    isArchived: v.boolean(),
-    // Organization link (for team boards)
-    organizationId: v.optional(v.id("organizations")),
-    // Team members (array of user IDs with roles and metadata)
-    members: v.optional(v.array(v.object({
-      userId: v.string(),
-      email: v.optional(v.string()),
-      name: v.optional(v.string()),
-      avatar: v.optional(v.string()),
-      role: v.union(v.literal("owner"), v.literal("admin"), v.literal("member"), v.literal("viewer")),
-      addedAt: v.number(),
-    }))),
-    // Board visibility
-    visibility: v.optional(v.union(v.literal("private"), v.literal("team"), v.literal("organization"))),
-    // Solo features
-    scratchpad: v.optional(v.string()),
-  })
-    .index("by_userId", ["userId"])
-    .index("by_userId_updatedAt", ["userId", "updatedAt"])
-    .index("by_organizationId", ["organizationId"]),
-
-  // Kanban columns (lists within a board)
-  kanbanColumns: defineTable({
-    boardId: v.id("kanbanBoards"),
-    name: v.string(),
-    color: v.optional(v.string()), // Column color
-    order: v.number(), // Position in the board
-    createdAt: v.number(),
-  })
-    .index("by_boardId", ["boardId"])
-    .index("by_boardId_order", ["boardId", "order"]),
-
-  // Kanban tasks (cards within a column)
-  kanbanTasks: defineTable({
-    boardId: v.id("kanbanBoards"),
-    columnId: v.id("kanbanColumns"),
-    title: v.string(),
-    description: v.optional(v.string()),
-    order: v.number(), // Position within the column
-    // Assignment & ownership
-    createdBy: v.string(), // Clerk user ID
-    assignedTo: v.optional(v.array(v.string())), // Array of user IDs
-    // Metadata
-    priority: v.optional(v.union(v.literal("low"), v.literal("medium"), v.literal("high"), v.literal("urgent"))),
-    dueDate: v.optional(v.number()),
-    labels: v.optional(v.array(v.string())), // Tag/label names
-    // Solo Features
-    subtasks: v.optional(v.array(v.object({
-      id: v.string(),
-      title: v.string(),
-      isCompleted: v.boolean(),
-    }))),
-    estimatedMinutes: v.optional(v.number()),
-    spentMinutes: v.optional(v.number()),
-    pomodoroCount: v.optional(v.number()),
-    isTodayFocus: v.optional(v.boolean()),
-    // Timestamps
-    createdAt: v.number(),
-    updatedAt: v.number(),
-    completedAt: v.optional(v.number()),
-  })
-    .index("by_boardId", ["boardId"])
-    .index("by_columnId", ["columnId"])
-    .index("by_columnId_order", ["columnId", "order"])
-    .index("by_assignedTo", ["assignedTo"])
-    .index("by_createdBy", ["createdBy"]),
-
-  // Kanban task comments
-  kanbanComments: defineTable({
-    taskId: v.id("kanbanTasks"),
-    boardId: v.id("kanbanBoards"), // For easier querying
-    userId: v.string(), // Clerk user ID
-    userName: v.string(),
-    userAvatar: v.optional(v.string()),
-    content: v.string(),
-    // For mentions
-    mentions: v.optional(v.array(v.string())), // Array of mentioned user IDs
-    // Timestamps
-    createdAt: v.number(),
-    updatedAt: v.number(),
-    isEdited: v.boolean(),
-  })
-    .index("by_taskId", ["taskId"])
-    .index("by_taskId_createdAt", ["taskId", "createdAt"])
-    .index("by_boardId", ["boardId"]),
-
-  // Kanban activity log (for task history)
-  kanbanActivity: defineTable({
-    taskId: v.id("kanbanTasks"),
-    boardId: v.id("kanbanBoards"),
-    userId: v.string(),
-    userName: v.string(),
-    userAvatar: v.optional(v.string()),
-    // Action types: created, updated, moved, assigned, unassigned, commented, completed
-    action: v.string(),
-    // Details about the change
-    details: v.optional(v.object({
-      field: v.optional(v.string()), // Which field changed
-      oldValue: v.optional(v.any()),
-      newValue: v.optional(v.any()),
-      columnFrom: v.optional(v.string()), // For moves
-      columnTo: v.optional(v.string()),
-    })),
-    createdAt: v.number(),
-  })
-    .index("by_taskId", ["taskId"])
-    .index("by_taskId_createdAt", ["taskId", "createdAt"])
-    .index("by_boardId", ["boardId"])
-    .index("by_boardId_createdAt", ["boardId", "createdAt"]),
-
-  // Kanban subtasks / checklist items
-  kanbanSubtasks: defineTable({
-    taskId: v.id("kanbanTasks"),
-    boardId: v.id("kanbanBoards"),
-    title: v.string(),
-    isCompleted: v.boolean(),
-    order: v.number(),
-    completedAt: v.optional(v.number()),
-    completedBy: v.optional(v.string()),
-    createdAt: v.number(),
-    createdBy: v.string(),
-  })
-    .index("by_taskId", ["taskId"])
-    .index("by_taskId_order", ["taskId", "order"]),
-
-  // Kanban board invites (separate from org invites for board-specific sharing)
-  kanbanBoardInvites: defineTable({
-    boardId: v.id("kanbanBoards"),
-    email: v.string(),
-    role: v.union(v.literal("admin"), v.literal("member"), v.literal("viewer")),
-    invitedBy: v.string(),
-    inviteCode: v.string(),
-    status: v.union(v.literal("pending"), v.literal("accepted"), v.literal("expired"), v.literal("revoked")),
-    createdAt: v.number(),
-    expiresAt: v.number(),
-  })
-    .index("by_boardId", ["boardId"])
-    .index("by_email", ["email"])
-    .index("by_inviteCode", ["inviteCode"]),
-
-  // Kanban task attachments
-  kanbanAttachments: defineTable({
-    taskId: v.id("kanbanTasks"),
-    boardId: v.id("kanbanBoards"),
-    fileName: v.string(),
-    fileUrl: v.string(),
-    fileType: v.string(), // mime type
-    fileSize: v.number(), // bytes
-    uploadedBy: v.string(),
-    createdAt: v.number(),
-  })
-    .index("by_taskId", ["taskId"])
-    .index("by_boardId", ["boardId"]),
 
   // ============ AI CREDITS SYSTEM ============
 

@@ -197,7 +197,6 @@ export const makeMeSuperadmin = mutation({
     if (!stats) {
       await ctx.db.insert("userStats", {
         userId: identity.subject,
-        projectsCount: 0,
         postsCount: 0,
         draftsCount: 0,
         totalViews: 0,
