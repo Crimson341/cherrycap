@@ -74,15 +74,18 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      await convex.mutation(api.credits.addCreditsFromPurchase, {
-        userId,
-        amount: creditsToAdd,
-        provider: "stripe",
-        orderId: session.id,
-        productId: priceId || "unknown",
-        amountPaidUSD: amountUSD,
-        description: `${packageName} — $${amountUSD.toFixed(2)}`,
+      await convex.action(api.admin.runInternalMutation, {
+        path: "credits:addCreditsFromPurchase",
         serverSecret: process.env.CONVEX_SERVER_SECRET || "",
+        args: {
+          userId,
+          amount: creditsToAdd,
+          provider: "stripe",
+          orderId: session.id,
+          productId: priceId || "unknown",
+          amountPaidUSD: amountUSD,
+          description: `${packageName} — $${amountUSD.toFixed(2)}`,
+        }
       });
 
       console.log(`✅ Added ${creditsToAdd} credits to user ${userId}`);

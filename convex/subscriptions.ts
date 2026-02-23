@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
 
 // Get all subscriptions for a user
 export const getByUserId = query({
@@ -82,7 +82,7 @@ export const hasActiveAISubscription = query({
 });
 
 // Create a new subscription (called by webhook)
-export const create = mutation({
+export const create = internalMutation({
   args: {
     userId: v.string(),
     organizationId: v.optional(v.id("organizations")),
@@ -105,11 +105,8 @@ export const create = mutation({
     customerPortalUrl: v.optional(v.string()),
     isPaused: v.boolean(),
     isUsageBased: v.optional(v.boolean()),
-    serverSecret: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!process.env.CONVEX_SERVER_SECRET) throw new Error("Missing CONVEX_SERVER_SECRET");
-    if (args.serverSecret !== process.env.CONVEX_SERVER_SECRET) throw new Error("Unauthorized");
     const now = Date.now();
 
     // Check if subscription already exists
@@ -151,7 +148,7 @@ export const create = mutation({
 });
 
 // Update subscription (called by webhook)
-export const update = mutation({
+export const update = internalMutation({
   args: {
     lemonSqueezySubscriptionId: v.string(),
     status: v.optional(v.string()),
@@ -167,12 +164,8 @@ export const update = mutation({
     productName: v.optional(v.string()),
     variantName: v.optional(v.string()),
     lemonSqueezyVariantId: v.optional(v.string()),
-    serverSecret: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!process.env.CONVEX_SERVER_SECRET) throw new Error("Missing CONVEX_SERVER_SECRET");
-    if (args.serverSecret !== process.env.CONVEX_SERVER_SECRET) throw new Error("Unauthorized");
-
     const subscription = await ctx.db
       .query("subscriptions")
       .withIndex("by_lemonSqueezySubscriptionId", (q) =>
@@ -209,16 +202,12 @@ export const update = mutation({
 });
 
 // Cancel subscription (mark as cancelled)
-export const cancel = mutation({
+export const cancel = internalMutation({
   args: {
     lemonSqueezySubscriptionId: v.string(),
     endsAt: v.optional(v.number()),
-    serverSecret: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!process.env.CONVEX_SERVER_SECRET) throw new Error("Missing CONVEX_SERVER_SECRET");
-    if (args.serverSecret !== process.env.CONVEX_SERVER_SECRET) throw new Error("Unauthorized");
-
     const subscription = await ctx.db
       .query("subscriptions")
       .withIndex("by_lemonSqueezySubscriptionId", (q) =>
@@ -251,15 +240,11 @@ export const cancel = mutation({
 });
 
 // Expire subscription
-export const expire = mutation({
+export const expire = internalMutation({
   args: {
     lemonSqueezySubscriptionId: v.string(),
-    serverSecret: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!process.env.CONVEX_SERVER_SECRET) throw new Error("Missing CONVEX_SERVER_SECRET");
-    if (args.serverSecret !== process.env.CONVEX_SERVER_SECRET) throw new Error("Unauthorized");
-
     const subscription = await ctx.db
       .query("subscriptions")
       .withIndex("by_lemonSqueezySubscriptionId", (q) =>
@@ -295,15 +280,11 @@ export const expire = mutation({
 });
 
 // Pause subscription
-export const pause = mutation({
+export const pause = internalMutation({
   args: {
     lemonSqueezySubscriptionId: v.string(),
-    serverSecret: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!process.env.CONVEX_SERVER_SECRET) throw new Error("Missing CONVEX_SERVER_SECRET");
-    if (args.serverSecret !== process.env.CONVEX_SERVER_SECRET) throw new Error("Unauthorized");
-
     const subscription = await ctx.db
       .query("subscriptions")
       .withIndex("by_lemonSqueezySubscriptionId", (q) =>
@@ -336,15 +317,11 @@ export const pause = mutation({
 });
 
 // Resume subscription
-export const resume = mutation({
+export const resume = internalMutation({
   args: {
     lemonSqueezySubscriptionId: v.string(),
-    serverSecret: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!process.env.CONVEX_SERVER_SECRET) throw new Error("Missing CONVEX_SERVER_SECRET");
-    if (args.serverSecret !== process.env.CONVEX_SERVER_SECRET) throw new Error("Unauthorized");
-
     const subscription = await ctx.db
       .query("subscriptions")
       .withIndex("by_lemonSqueezySubscriptionId", (q) =>
@@ -377,16 +354,12 @@ export const resume = mutation({
 });
 
 // Update payment status (for failed payments)
-export const updatePaymentStatus = mutation({
+export const updatePaymentStatus = internalMutation({
   args: {
     lemonSqueezySubscriptionId: v.string(),
     status: v.string(),
-    serverSecret: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!process.env.CONVEX_SERVER_SECRET) throw new Error("Missing CONVEX_SERVER_SECRET");
-    if (args.serverSecret !== process.env.CONVEX_SERVER_SECRET) throw new Error("Unauthorized");
-
     const subscription = await ctx.db
       .query("subscriptions")
       .withIndex("by_lemonSqueezySubscriptionId", (q) =>

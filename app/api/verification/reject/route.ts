@@ -17,10 +17,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Reject the request
-    const result = await convex.mutation(api.verification.rejectByToken, { 
-      token,
-      reason,
+    const result = await convex.action(api.admin.runInternalMutation, { 
+      path: "verification:rejectByToken",
       serverSecret: process.env.CONVEX_SERVER_SECRET!,
+      args: { token, reason },
     });
 
     return new NextResponse(

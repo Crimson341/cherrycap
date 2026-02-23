@@ -136,7 +136,7 @@ export const initializeCredits = mutation({
 });
 
 // Deduct credits for usage (called from secure API routes)
-export const deductCredits = mutation({
+export const deductCredits = internalMutation({
   args: {
     userId: v.string(),
     amount: v.number(),
@@ -145,15 +145,8 @@ export const deductCredits = mutation({
     promptTokens: v.number(),
     completionTokens: v.number(),
     actualCostUSD: v.number(),
-    serverSecret: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!process.env.CONVEX_SERVER_SECRET) {
-      throw new Error("Missing CONVEX_SERVER_SECRET environment variable");
-    }
-    if (args.serverSecret !== process.env.CONVEX_SERVER_SECRET) {
-      throw new Error("Unauthorized server call");
-    }
     if (args.amount <= 0) {
       throw new Error("Deduction amount must be positive");
     }
@@ -206,9 +199,8 @@ export const deductCredits = mutation({
 });
 
 // Add credits from purchase (called from webhook)
-// Note: Changed from internalMutation to mutation temporarily to resolve Next.js build errors.
-// This should ideally be protected by a webhook secret or converted to an HTTP action.
-export const addCreditsFromPurchase = mutation({
+// Note: Brought back to internalMutation securely through the http proxy.
+export const addCreditsFromPurchase = internalMutation({
   args: {
     userId: v.string(),
     amount: v.number(),
@@ -217,15 +209,8 @@ export const addCreditsFromPurchase = mutation({
     productId: v.optional(v.string()),
     amountPaidUSD: v.number(),
     description: v.string(),
-    serverSecret: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!process.env.CONVEX_SERVER_SECRET) {
-      throw new Error("Missing CONVEX_SERVER_SECRET environment variable");
-    }
-    if (args.serverSecret !== process.env.CONVEX_SERVER_SECRET) {
-      throw new Error("Unauthorized server call");
-    }
     if (args.amount <= 0) {
       throw new Error("Purchase amount must be positive");
     }

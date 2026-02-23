@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation, internalQuery } from "./_generated/server";
 
 // Generate a random approval token
 function generateToken(): string {
@@ -109,12 +109,9 @@ export const getMyRequest = query({
 });
 
 // Get request by approval token (for API route)
-export const getByToken = query({
-  args: { token: v.string(), serverSecret: v.string() },
+export const getByToken = internalQuery({
+  args: { token: v.string() },
   handler: async (ctx, args) => {
-    if (!process.env.CONVEX_SERVER_SECRET || args.serverSecret !== process.env.CONVEX_SERVER_SECRET) {
-      throw new Error("Unauthorized");
-    }
     return await ctx.db
       .query("verificationRequests")
       .withIndex("by_approvalToken", (q) => q.eq("approvalToken", args.token))
@@ -123,16 +120,11 @@ export const getByToken = query({
 });
 
 // Approve a request by token (called from API route)
-export const approveByToken = mutation({
+export const approveByToken = internalMutation({
   args: { 
     token: v.string(),
-    serverSecret: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!process.env.CONVEX_SERVER_SECRET || args.serverSecret !== process.env.CONVEX_SERVER_SECRET) {
-      throw new Error("Unauthorized");
-    }
-
     const request = await ctx.db
       .query("verificationRequests")
       .withIndex("by_approvalToken", (q) => q.eq("approvalToken", args.token))
@@ -215,17 +207,12 @@ export const approveByToken = mutation({
 });
 
 // Reject a request by token (called from API route)
-export const rejectByToken = mutation({
+export const rejectByToken = internalMutation({
   args: { 
     token: v.string(),
     reason: v.optional(v.string()),
-    serverSecret: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!process.env.CONVEX_SERVER_SECRET || args.serverSecret !== process.env.CONVEX_SERVER_SECRET) {
-      throw new Error("Unauthorized");
-    }
-
     const request = await ctx.db
       .query("verificationRequests")
       .withIndex("by_approvalToken", (q) => q.eq("approvalToken", args.token))

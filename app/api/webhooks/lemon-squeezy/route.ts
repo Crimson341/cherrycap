@@ -93,11 +93,14 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        await convex.mutation(api.subscriptions.create, {
-          userId,
-          organizationId: customData.organization_id || undefined,
-          ...subscriptionData,
+        await convex.action(api.admin.runInternalMutation, {
+          path: "subscriptions:create",
           serverSecret: process.env.CONVEX_SERVER_SECRET || "",
+          args: {
+            userId,
+            organizationId: customData.organization_id || undefined,
+            ...subscriptionData,
+          }
         });
 
         console.log(`Subscription created for user ${userId}`);
@@ -105,21 +108,24 @@ export async function POST(request: NextRequest) {
       }
 
       case "subscription_updated": {
-        await convex.mutation(api.subscriptions.update, {
-          lemonSqueezySubscriptionId: subscriptionData.lemonSqueezySubscriptionId,
-          status: subscriptionData.status,
-          renewsAt: subscriptionData.renewsAt,
-          endsAt: subscriptionData.endsAt,
-          trialEndsAt: subscriptionData.trialEndsAt,
-          cardBrand: subscriptionData.cardBrand,
-          cardLastFour: subscriptionData.cardLastFour,
-          updatePaymentMethodUrl: subscriptionData.updatePaymentMethodUrl,
-          customerPortalUrl: subscriptionData.customerPortalUrl,
-          isPaused: subscriptionData.isPaused,
-          productName: subscriptionData.productName,
-          variantName: subscriptionData.variantName,
-          lemonSqueezyVariantId: subscriptionData.lemonSqueezyVariantId,
+        await convex.action(api.admin.runInternalMutation, {
+          path: "subscriptions:update",
           serverSecret: process.env.CONVEX_SERVER_SECRET || "",
+          args: {
+            lemonSqueezySubscriptionId: subscriptionData.lemonSqueezySubscriptionId,
+            status: subscriptionData.status,
+            renewsAt: subscriptionData.renewsAt,
+            endsAt: subscriptionData.endsAt,
+            trialEndsAt: subscriptionData.trialEndsAt,
+            cardBrand: subscriptionData.cardBrand,
+            cardLastFour: subscriptionData.cardLastFour,
+            updatePaymentMethodUrl: subscriptionData.updatePaymentMethodUrl,
+            customerPortalUrl: subscriptionData.customerPortalUrl,
+            isPaused: subscriptionData.isPaused,
+            productName: subscriptionData.productName,
+            variantName: subscriptionData.variantName,
+            lemonSqueezyVariantId: subscriptionData.lemonSqueezyVariantId,
+          }
         });
 
         console.log(`Subscription updated: ${subscriptionData.lemonSqueezySubscriptionId}`);
@@ -127,10 +133,13 @@ export async function POST(request: NextRequest) {
       }
 
       case "subscription_cancelled": {
-        await convex.mutation(api.subscriptions.cancel, {
-          lemonSqueezySubscriptionId: subscriptionData.lemonSqueezySubscriptionId,
-          endsAt: subscriptionData.endsAt,
+        await convex.action(api.admin.runInternalMutation, {
+          path: "subscriptions:cancel",
           serverSecret: process.env.CONVEX_SERVER_SECRET || "",
+          args: {
+            lemonSqueezySubscriptionId: subscriptionData.lemonSqueezySubscriptionId,
+            endsAt: subscriptionData.endsAt,
+          }
         });
 
         console.log(`Subscription cancelled: ${subscriptionData.lemonSqueezySubscriptionId}`);
@@ -138,9 +147,12 @@ export async function POST(request: NextRequest) {
       }
 
       case "subscription_resumed": {
-        await convex.mutation(api.subscriptions.resume, {
-          lemonSqueezySubscriptionId: subscriptionData.lemonSqueezySubscriptionId,
+        await convex.action(api.admin.runInternalMutation, {
+          path: "subscriptions:resume",
           serverSecret: process.env.CONVEX_SERVER_SECRET || "",
+          args: {
+            lemonSqueezySubscriptionId: subscriptionData.lemonSqueezySubscriptionId,
+          }
         });
 
         console.log(`Subscription resumed: ${subscriptionData.lemonSqueezySubscriptionId}`);
@@ -148,9 +160,12 @@ export async function POST(request: NextRequest) {
       }
 
       case "subscription_expired": {
-        await convex.mutation(api.subscriptions.expire, {
-          lemonSqueezySubscriptionId: subscriptionData.lemonSqueezySubscriptionId,
+        await convex.action(api.admin.runInternalMutation, {
+          path: "subscriptions:expire",
           serverSecret: process.env.CONVEX_SERVER_SECRET || "",
+          args: {
+            lemonSqueezySubscriptionId: subscriptionData.lemonSqueezySubscriptionId,
+          }
         });
 
         console.log(`Subscription expired: ${subscriptionData.lemonSqueezySubscriptionId}`);
@@ -158,9 +173,12 @@ export async function POST(request: NextRequest) {
       }
 
       case "subscription_paused": {
-        await convex.mutation(api.subscriptions.pause, {
-          lemonSqueezySubscriptionId: subscriptionData.lemonSqueezySubscriptionId,
+        await convex.action(api.admin.runInternalMutation, {
+          path: "subscriptions:pause",
           serverSecret: process.env.CONVEX_SERVER_SECRET || "",
+          args: {
+            lemonSqueezySubscriptionId: subscriptionData.lemonSqueezySubscriptionId,
+          }
         });
 
         console.log(`Subscription paused: ${subscriptionData.lemonSqueezySubscriptionId}`);
@@ -168,9 +186,12 @@ export async function POST(request: NextRequest) {
       }
 
       case "subscription_unpaused": {
-        await convex.mutation(api.subscriptions.resume, {
-          lemonSqueezySubscriptionId: subscriptionData.lemonSqueezySubscriptionId,
+        await convex.action(api.admin.runInternalMutation, {
+          path: "subscriptions:resume",
           serverSecret: process.env.CONVEX_SERVER_SECRET || "",
+          args: {
+            lemonSqueezySubscriptionId: subscriptionData.lemonSqueezySubscriptionId,
+          }
         });
 
         console.log(`Subscription unpaused: ${subscriptionData.lemonSqueezySubscriptionId}`);
@@ -178,10 +199,13 @@ export async function POST(request: NextRequest) {
       }
 
       case "subscription_payment_failed": {
-        await convex.mutation(api.subscriptions.updatePaymentStatus, {
-          lemonSqueezySubscriptionId: subscriptionData.lemonSqueezySubscriptionId,
-          status: "past_due",
+        await convex.action(api.admin.runInternalMutation, {
+          path: "subscriptions:updatePaymentStatus",
           serverSecret: process.env.CONVEX_SERVER_SECRET || "",
+          args: {
+            lemonSqueezySubscriptionId: subscriptionData.lemonSqueezySubscriptionId,
+            status: "past_due",
+          }
         });
 
         console.log(`Payment failed for subscription: ${subscriptionData.lemonSqueezySubscriptionId}`);
@@ -190,10 +214,13 @@ export async function POST(request: NextRequest) {
 
       case "subscription_payment_success":
       case "subscription_payment_recovered": {
-        await convex.mutation(api.subscriptions.updatePaymentStatus, {
-          lemonSqueezySubscriptionId: subscriptionData.lemonSqueezySubscriptionId,
-          status: "active",
+        await convex.action(api.admin.runInternalMutation, {
+          path: "subscriptions:updatePaymentStatus",
           serverSecret: process.env.CONVEX_SERVER_SECRET || "",
+          args: {
+            lemonSqueezySubscriptionId: subscriptionData.lemonSqueezySubscriptionId,
+            status: "active",
+          }
         });
 
         console.log(`Payment succeeded for subscription: ${subscriptionData.lemonSqueezySubscriptionId}`);

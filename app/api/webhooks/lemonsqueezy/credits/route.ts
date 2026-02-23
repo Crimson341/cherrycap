@@ -115,15 +115,18 @@ export async function POST(req: NextRequest) {
 
       // Add credits to user's account
       try {
-        await convex.mutation(api.credits.addCreditsFromPurchase, {
-          userId,
-          amount: creditsToAdd,
-          provider: "lemon_squeezy",
-          orderId: payload.data.id,
-          productId,
-          amountPaidUSD: order.total / 100, // Convert cents to dollars
-          description: `${packageName} - ${order.total_formatted}${bonusCredits > 0 ? ` (+${bonusCredits} bonus)` : ""}`,
+        await convex.action(api.admin.runInternalMutation, {
+          path: "credits:addCreditsFromPurchase",
           serverSecret: process.env.CONVEX_SERVER_SECRET || "",
+          args: {
+            userId,
+            amount: creditsToAdd,
+            provider: "lemon_squeezy",
+            orderId: payload.data.id,
+            productId,
+            amountPaidUSD: order.total / 100, // Convert cents to dollars
+            description: `${packageName} - ${order.total_formatted}${bonusCredits > 0 ? ` (+${bonusCredits} bonus)` : ""}`,
+          }
         });
 
         console.log(`Added ${creditsToAdd} credits to user ${userId}`);

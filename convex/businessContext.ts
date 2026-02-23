@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 
 // Get business context for current user
 export const get = query({
@@ -270,7 +270,7 @@ export const removeProduct = mutation({
 
 // Get formatted context for AI (public query for API)
 // Supports different scopes to reduce context size for different AI features
-export const getForAI = query({
+export const getForAI = internalQuery({
   args: { 
     userId: v.string(),
     // Scope determines which sections to include
@@ -283,16 +283,8 @@ export const getForAI = query({
       v.literal("content"),
       v.literal("minimal")
     )),
-    serverSecret: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!process.env.CONVEX_SERVER_SECRET) {
-      throw new Error("Missing CONVEX_SERVER_SECRET environment variable");
-    }
-    if (args.serverSecret !== process.env.CONVEX_SERVER_SECRET) {
-      throw new Error("Unauthorized server call");
-    }
-
     const context = await ctx.db
       .query("businessContext")
       .withIndex("by_userId", (q) => q.eq("userId", args.userId))

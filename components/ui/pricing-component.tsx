@@ -65,7 +65,7 @@ const Pricing = () => {
                 }`}
               onClick={() => setShowMonthly(false)}
             >
-              Website Packages
+              Website Projects
             </button>
             <button
               className={`px-6 py-2.5 rounded-full text-sm font-medium transition-colors ${showMonthly
@@ -74,7 +74,7 @@ const Pricing = () => {
                 }`}
               onClick={() => setShowMonthly(true)}
             >
-              Monthly Support
+              Software & Services
             </button>
           </motion.div>
         </div>

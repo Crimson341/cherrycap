@@ -1047,4 +1047,29 @@ export default defineSchema({
     .index("by_adminEmail", ["adminEmail"])
     .index("by_adminEmail_date", ["adminEmail", "date"]),
 
+  // ============ SECURITY & AUDIT ============
+
+  // Audit logs for sensitive operations
+  auditLogs: defineTable({
+    action: v.string(),
+    userId: v.optional(v.string()), // Who performed the action (Clerk ID)
+    targetUserId: v.optional(v.string()), // Who was affected by the action
+    resourceType: v.string(), // "organization", "user", "subscription", etc.
+    resourceId: v.string(),
+    details: v.optional(v.any()), // Extra contextual details
+    ipAddress: v.optional(v.string()),
+    timestamp: v.number(),
+  })
+    .index("by_resource_type", ["resourceType"])
+    .index("by_userId", ["userId"])
+    .index("by_action", ["action"]),
+
+  // Rate limiting records
+  rateLimits: defineTable({
+    userId: v.string(), // Clerk user ID or IP address
+    action: v.string(), // e.g., "message", "upload", "api"
+    timestamp: v.number(),
+  })
+    .index("by_user_and_action", ["userId", "action"])
+    .index("by_user_and_action_timestamp", ["userId", "action", "timestamp"]),
 });

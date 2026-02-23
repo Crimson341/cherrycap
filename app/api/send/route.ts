@@ -1,10 +1,10 @@
 import { ajEmailForm } from "@/lib/arcjet";
+import { Resend } from "resend";
 
-const WEB3FORMS_ACCESS_KEY = "0e7f4172-cdfa-4310-b80f-ee8bf073062a";
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: Request) {
   try {
-    // Clone the request so we can read the body twice
     const clonedRequest = request.clone();
     const body = await clonedRequest.json();
     const { firstName, lastName, email, subject, message } = body;
@@ -24,7 +24,6 @@ export async function POST(request: Request) {
     });
 
     if (decision.isDenied()) {
-      // Provide user-friendly error messages based on denial reason
       let errorMessage = "Request blocked";
       
       if (decision.reason.isEmail?.()) {
@@ -41,27 +40,24 @@ export async function POST(request: Request) {
       );
     }
 
-    // Forward to Web3Forms after Arcjet validation passes
-    const web3Response = await fetch("https://api.web3forms.com/submit", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
-        access_key: WEB3FORMS_ACCESS_KEY,
-        name: `${firstName} ${lastName}`.trim(),
-        email: email,
-        subject: subject,
-        message: message,
-        from_name: "CherryCap Contact Form",
-      }),
+    // Send with Resend
+    const data = await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL || "CherryCap <onboarding@resend.dev>",
+      to: [process.env.RESEND_TO_EMAIL || "hello@cherrycap.com"],
+      subject: `New Contact Form Submission: ${subject}`,
+      html: `
+        <h2>New Contact Form Submission</h2>
+        <p><strong>Name:</strong> ${firstName} ${lastName || ""}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Subject:</strong> ${subject}</p>
+        <h3>Message:</h3>
+        <p>${message.replace(/\n/g, "<br>")}</p>
+      `,
+      replyTo: email,
     });
 
-    const data = await web3Response.json();
-
-    if (!data.success) {
-      console.error("Web3Forms error:", data);
+    if (data.error) {
+      console.error("Resend error:", data.error);
       return Response.json(
         { error: "Failed to send message. Please try again." },
         { status: 500 }

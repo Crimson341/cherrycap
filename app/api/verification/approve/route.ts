@@ -16,7 +16,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Approve the request
-    const result = await convex.mutation(api.verification.approveByToken, { token, serverSecret: process.env.CONVEX_SERVER_SECRET! });
+    const result = await convex.action(api.admin.runInternalMutation, { 
+      path: "verification:approveByToken", 
+      serverSecret: process.env.CONVEX_SERVER_SECRET!,
+      args: { token } 
+    });
 
     return new NextResponse(
       generateHtml(
