@@ -1,6 +1,6 @@
-# Scott Heney - CherryCapitalWeb Portfolio ✨
+# Cherry Capital Portfolio ✨
 
-Welcome to the source code for Scott Heney's personal portfolio website showcasing CherryCapitalWeb! This project demonstrates modern web development skills and business expertise using cutting-edge tech that outperforms WordPress solutions. The site is designed to be fast, responsive, and professional.
+Welcome to the source code for the Cherry Capital portfolio website. This project demonstrates modern web development skills and business expertise using cutting-edge tech that outperforms WordPress solutions. The site is designed to be fast, responsive, and professional.
 
 [![Next.js](https://img.shields.io/badge/Next.js-v15-blue?style=flat-square)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-blue?style=flat-square)](https://www.typescriptlang.org/)
@@ -13,10 +13,10 @@ Welcome to the source code for Scott Heney's personal portfolio website showcasi
 
 - **Responsive Design:**  The portfolio adapts seamlessly to various screen sizes, ensuring a consistent user experience across desktops, tablets, and mobile devices.
 - **Dark Mode:**  Users can easily switch between light and dark themes to match their preferences.
-- **Interactive Profile:** A visually appealing profile section includes an image and animated text showcasing Scott's expertise and CherryCapitalWeb services.
-- **Experience & Projects:**  Collapsible accordions provide detailed information about Scott's experience building websites in the Beulah area and showcase projects that demonstrate superiority over WordPress solutions.
+- **Interactive Profile:** A visually appealing profile section includes an image and animated text showcasing Cherry Capital's expertise and services.
+- **Experience & Projects:**  Collapsible accordions provide detailed information about Cherry Capital's experience building websites in the Beulah area and showcase projects that demonstrate superiority over WordPress solutions.
 - **Contact Form:** A user-friendly contact form allows potential clients to easily reach out for modern web development services.
-- **Social Links:**  Quick access to Scott's professional social media profiles and CherryCapitalWeb business pages.
+- **Social Links:**  Quick access to Cherry Capital's professional social media profiles and business pages.
 
 ## Tech Stack 🛠️
 

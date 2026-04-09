@@ -8,6 +8,7 @@ import { FlickeringGrid } from "@/components/ui/FlickingGridBG";
 import { BlogStructuredData } from "@/components/BlogStructuredData";
 import { NextjsSpecialPost } from "@/components";
 import { blogPosts } from "@/lib/blogPosts";
+import { portfolioConfig } from "@/lib/portfolioConfig";
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
@@ -106,10 +107,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 <div className="flex-1">
                   <h3 className="text-xl font-semibold mb-2 font-mono">About the Author</h3>
                   <p className="text-muted-foreground font-mono text-sm leading-relaxed mb-4">
-                    Scott Heney is the founder of CherryCapitalWeb, a modern web development agency 
-                    serving local businesses in Northern Michigan. With expertise in Next.js, React, 
-                    and local SEO, Scott helps businesses outperform their WordPress-using competitors 
-                    through faster, more secure custom websites.
+                    Cherry Capital is a modern web development studio serving local businesses in Northern Michigan. 
+                    With expertise in Next.js, React, and local SEO, the studio helps businesses outperform their 
+                    WordPress-using competitors through faster, more secure custom websites.
                   </p>
                   <div className="flex gap-3">
                     <Button variant="outline" size="sm" asChild>
@@ -146,7 +146,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               </Button>
               <Button variant="outline" asChild>
                 <Link href="/#contact">
-                  Let's Work Together
+                  Let&apos;s Work Together
                 </Link>
               </Button>
             </div>
@@ -180,12 +180,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: post.title,
     description: post.excerpt,
     keywords: post.tags,
+    authors: portfolioConfig.seo.authors,
     openGraph: {
       title: post.title,
       description: post.excerpt,
       type: "article",
       publishedTime: post.publishedAt,
-      authors: ["Scott Heney"],
+      authors: [portfolioConfig.name],
       tags: post.tags,
     },
     twitter: {

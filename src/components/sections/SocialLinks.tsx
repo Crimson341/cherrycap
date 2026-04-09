@@ -7,11 +7,11 @@ import { ExternalLink } from "lucide-react";
 function SocialLinks() {
   const socialLinks = [
     {
-      name: "LinkedIn",
-      username: "@scott-heney", // TODO: Update with actual LinkedIn
+      name: "Cherry Capital",
+      username: "Official Website",
       src: LinkedinLogo.src,
-      alt: "LinkedIn",
-      href: "https://www.linkedin.com/in/scott-heney/", // TODO: Update with actual LinkedIn
+      alt: "Cherry Capital",
+      href: "https://cherrycapitalweb.com/",
     },
   ];
 

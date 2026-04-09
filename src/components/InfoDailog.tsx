@@ -48,7 +48,7 @@ export default function PortfolioInfoDialog() {
             <Button variant="outline" className="w-full justify-start" asChild>
               <a href="https://cherrycapitalweb.com/" target="_blank" rel="noopener noreferrer"> {/* TODO: Update with actual domain */}
                 <ExternalLink className="h-4 w-4 mr-2" />
-                Visit CherryCapitalWeb
+                Visit Cherry Capital
                 <ExternalLink className="h-3 w-3 ml-auto" />
               </a>
             </Button>

@@ -3,10 +3,10 @@ import { portfolioConfig } from "@/lib/portfolioConfig";
 
 export const metadata: Metadata = {
   title: {
-    default: "Blog - CherryCapitalWeb",
-    template: `%s - CherryCapitalWeb Blog`,
+    default: "Blog - Cherry Capital",
+    template: `%s - Cherry Capital Blog`,
   },
-  description: "Real talk about modern web development, local business growth, and why WordPress isn't always the answer. Written by Scott Heney, founder of CherryCapitalWeb.",
+  description: "Real talk about modern web development, local business growth, and why WordPress isn't always the answer. Published by Cherry Capital.",
   
   // Enhanced SEO keywords for blog
   keywords: [
@@ -18,8 +18,7 @@ export const metadata: Metadata = {
     "modern web development",
     "seo tips",
     "web performance",
-    "cherrycapitalweb blog",
-    "scott heney blog"
+    "cherry capital blog",
   ],
 
   // Enhanced metadata for blog section
@@ -38,7 +37,7 @@ export const metadata: Metadata = {
     "target-audience": "Local Business Owners, Web Developers",
     
     // Authority signals
-    "author": "Scott Heney - CherryCapitalWeb",
+    "author": "Cherry Capital",
     "expertise": "Full Stack Development, Local SEO, Business Growth",
   },
 
@@ -47,23 +46,23 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: `${portfolioConfig.seo.url}/blog`,
-    title: "CherryCapitalWeb Blog - Modern Web Development Insights",
-    description: "Real talk about modern web development, local business growth, and why WordPress isn't always the answer. Written by Scott Heney.",
+    title: "Cherry Capital Blog - Modern Web Development Insights",
+    description: "Real talk about modern web development, local business growth, and why WordPress isn't always the answer. Published by Cherry Capital.",
     images: [
       {
         url: `${portfolioConfig.seo.url}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: "CherryCapitalWeb Blog - Web Development & Business Insights",
+        alt: "Cherry Capital Blog - Web Development & Business Insights",
       }
     ],
-    siteName: "CherryCapitalWeb Blog",
+    siteName: "Cherry Capital Blog",
   },
 
   // Enhanced Twitter metadata for blog
   twitter: {
     card: "summary_large_image",
-    title: "CherryCapitalWeb Blog - Modern Web Development Insights",
+    title: "Cherry Capital Blog - Modern Web Development Insights",
     description: "Real talk about modern web development, local business growth, and why WordPress isn't always the answer.",
     images: [`${portfolioConfig.seo.url}/og-image.png`],
     creator: portfolioConfig.seo.twitterHandle,

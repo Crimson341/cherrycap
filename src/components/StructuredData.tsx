@@ -1,67 +1,19 @@
 import Script from 'next/script';
+import { portfolioConfig } from '@/lib/portfolioConfig';
 
 export function StructuredData() {
-  const baseUrl = process.env.NODE_ENV === 'production' 
-    ? 'https://cherrycapitalweb.com' 
-    : 'http://localhost:3000';
-
-  // Person Schema
-  const personSchema = {
-    "@context": "https://schema.org",
-    "@type": "Person",
-    "@id": `${baseUrl}/#person`,
-    "name": "Scott Heney",
-    "alternateName": ["Scott", "thuggys"],
-    "description": "Full Stack Developer and Founder of CherryCapitalWeb, specializing in modern web solutions that outperform WordPress",
-    "url": baseUrl,
-    "image": `${baseUrl}/myImage.png`,
-    "sameAs": [
-      "https://github.com/thuggys",
-      "https://www.linkedin.com/in/scott-heney"
-    ],
-    "jobTitle": "Full Stack Developer & Founder",
-    "worksFor": {
-      "@type": "Organization",
-      "@id": `${baseUrl}/#organization`,
-      "name": "CherryCapitalWeb"
-    },
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": "Beulah",
-      "addressRegion": "Michigan",
-      "addressCountry": "US"
-    },
-    "email": "scott@cherrycapitalweb.com",
-    "knowsAbout": [
-      "Next.js",
-      "React",
-      "TypeScript",
-      "JavaScript",
-      "Web Development",
-      "Full Stack Development",
-      "Modern Web Solutions",
-      "Custom Websites"
-    ]
-  };
+  const baseUrl = portfolioConfig.seo.url;
 
   // Local Business Schema
   const businessSchema = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     "@id": `${baseUrl}/#organization`,
-    "name": "CherryCapitalWeb",
-    "alternateName": "Cherry Capital Web",
-    "description": "Professional web development services in Beulah, Michigan. Creating modern, custom websites that outperform WordPress solutions.",
+    "name": portfolioConfig.name,
+    "alternateName": "Cherry Capital",
+    "description": portfolioConfig.description,
     "url": baseUrl,
     "logo": `${baseUrl}/myImage.png`,
-    "founder": {
-      "@type": "Person",
-      "@id": `${baseUrl}/#person`
-    },
-    "employee": {
-      "@type": "Person",
-      "@id": `${baseUrl}/#person`
-    },
     "address": {
       "@type": "PostalAddress",
       "addressLocality": "Beulah",
@@ -85,7 +37,7 @@ export function StructuredData() {
     "serviceType": "Web Development",
     "priceRange": "$$",
     "telephone": "Contact via website",
-    "email": "scott@cherrycapitalweb.com",
+    "email": portfolioConfig.email,
     "hasOfferCatalog": {
       "@type": "OfferCatalog",
       "name": "Web Development Services",
@@ -118,17 +70,34 @@ export function StructuredData() {
     }
   };
 
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": `${baseUrl}/#company`,
+    "name": portfolioConfig.name,
+    "alternateName": "Cherry Capital",
+    "description": portfolioConfig.description,
+    "url": baseUrl,
+    "logo": `${baseUrl}/myImage.png`,
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Beulah",
+      "addressRegion": "Michigan",
+      "addressCountry": "US"
+    }
+  };
+
   // Website Schema
   const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
     "@id": `${baseUrl}/#website`,
     "url": baseUrl,
-    "name": "Scott Heney - CherryCapitalWeb Portfolio",
-    "description": "Professional portfolio showcasing modern web development expertise and CherryCapitalWeb services",
+    "name": "Cherry Capital Portfolio",
+    "description": "Professional portfolio showcasing modern web development expertise and Cherry Capital services",
     "publisher": {
-      "@type": "Person",
-      "@id": `${baseUrl}/#person`
+      "@type": "Organization",
+      "@id": `${baseUrl}/#company`
     },
     "potentialAction": {
       "@type": "SearchAction",
@@ -139,15 +108,15 @@ export function StructuredData() {
 
   return (
     <>
-      <Script
-        id="person-schema"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
-      />
-      <Script
-        id="business-schema"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(businessSchema) }}
+    <Script
+      id="organization-schema"
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+    />
+    <Script
+      id="business-schema"
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(businessSchema) }}
       />
       <Script
         id="website-schema"

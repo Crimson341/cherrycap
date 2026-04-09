@@ -7,7 +7,7 @@ export default function GiveawayRulesPage() {
         <section>
           <h2 className="text-xl font-bold mb-2">1. Sponsor</h2>
           <p>
-            This giveaway is sponsored by CherryCapitalWeb, located in Michigan, United States.
+            This giveaway is sponsored by Cherry Capital, located in Michigan, United States.
           </p>
         </section>
 
@@ -22,7 +22,7 @@ export default function GiveawayRulesPage() {
           <h2 className="text-xl font-bold mb-2">3. Eligibility</h2>
           <p>
             Open to legal residents of the United States who are 18 years of age or older at the time of entry. 
-            Employees of CherryCapitalWeb and their immediate family members are not eligible to participate.
+            Employees of Cherry Capital and their immediate family members are not eligible to participate.
           </p>
         </section>
 
@@ -55,7 +55,7 @@ export default function GiveawayRulesPage() {
           <h2 className="text-xl font-bold mb-2">7. Prize</h2>
           <p>One (1) prize will be awarded consisting of:</p>
           <ul className="list-disc ml-6 mt-2 space-y-1">
-            <li>Custom-built portfolio website designed and developed by CherryCapitalWeb</li>
+            <li>Custom-built portfolio website designed and developed by Cherry Capital</li>
             <li>Professional design optimized for the winner&apos;s profession</li>
             <li>Mobile-responsive design</li>
             <li>SEO optimization</li>
@@ -65,7 +65,7 @@ export default function GiveawayRulesPage() {
           <p className="mt-2">
             Prize is provided as a professional service with no cash value. Prize is non-transferable. 
             No substitution or cash equivalent permitted except at sponsor&apos;s discretion. Website will 
-            include a small "Built by CherryCapitalWeb" credit link in the footer as part of the agreement.
+            include a small &quot;Built by Cherry Capital&quot; credit link in the footer as part of the agreement.
           </p>
         </section>
 
@@ -89,7 +89,7 @@ export default function GiveawayRulesPage() {
         <section>
           <h2 className="text-xl font-bold mb-2">10. Limitation of Liability</h2>
           <p>
-            By entering, participants agree to release and hold harmless CherryCapitalWeb, its owners, employees, 
+            By entering, participants agree to release and hold harmless Cherry Capital, its owners, employees, 
             and agents from any and all liability for any injuries, losses, or damages of any kind arising from 
             participation in this giveaway or acceptance/use of the prize.
           </p>
@@ -116,8 +116,8 @@ export default function GiveawayRulesPage() {
           <h2 className="text-xl font-bold mb-2">13. Contact Information</h2>
           <p>
             For questions about this giveaway, contact:<br />
-            CherryCapitalWeb<br />
-            Email: scott@cherrycapitalweb.com<br />
+            Cherry Capital<br />
+            Email: hello@cherrycapitalweb.com<br />
             Phone: (616) 260-9863
           </p>
         </section>

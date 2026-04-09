@@ -8,8 +8,8 @@ function AboutSection() {
       </h2>
       <div className="flex flex-col gap-4 py-4 font-mono text-sm ">
         <p className="tracking-wide">
-          Hey! I&apos;m Scott Heney, founder of <strong>CherryCapitalWeb</strong>. I build websites that actually work—and make you money. 
-          No fluff, no templates, just real solutions that convert visitors into customers. Based in Beulah, Michigan, I&apos;ve helped 
+          Cherry Capital builds websites that actually work and make you money. 
+          No fluff, no templates, just real solutions that convert visitors into customers. Based in Beulah, Michigan, the studio has helped 
           local businesses go from invisible online to dominating their market.
         </p>
         <p className="tracking-wide">
@@ -28,8 +28,8 @@ function AboutSection() {
           and always working hard for you.
         </p>
         <p className="tracking-wide">
-          Ready to stop wasting time with mediocre web solutions? Let&apos;s talk. <strong>Call me at (616) 260-9863</strong> or 
-          <strong> email scott@cherrycapitalweb.com</strong> and let&apos;s build something that actually works. <em>Currently accepting new clients.</em>
+          Ready to stop wasting time with mediocre web solutions? Let&apos;s talk. <strong>Call (616) 260-9863</strong> or 
+          <strong> email hello@cherrycapitalweb.com</strong> and let&apos;s build something that actually works. <em>Currently accepting new clients.</em>
         </p>
       </div>
     </section>

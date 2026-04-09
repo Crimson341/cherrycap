@@ -5,12 +5,12 @@ function BioSection() {
   const bioData = [
     {
       icon: CodeXml,
-      title: "Market Expert & Website Solutions Specialist",
+      title: "Cherry Capital - Website Solutions Specialist",
       type: "text",
     },
-    { icon: BriefcaseBusiness, title: "Founder of CherryCapitalWeb", type: "text" },
+    { icon: BriefcaseBusiness, title: "Cherry Capital", type: "text" },
     { icon: MapPin, title: "Beulah, Michigan", type: "text" },
-    { icon: Mail, title: "scott@cherrycapitalweb.com", type: "link" }, // TODO: Update with actual email
+    { icon: Mail, title: "hello@cherrycapitalweb.com", type: "link" }, // TODO: Update with actual email
     { icon: Phone, title: "+1 (616) 260-9863", type: "link" },
   ];
   return (

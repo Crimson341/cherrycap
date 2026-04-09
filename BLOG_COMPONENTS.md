@@ -233,7 +233,7 @@ Client testimonials and quotes.
 
 ```tsx
 <BlockQuote
-  quote="Scott rebuilt our site and sales increased 40% in the first month."
+  quote="Cherry Capital rebuilt our site and sales increased 40% in the first month."
   author="Sarah Johnson"
   role="Owner"
   company="Lynn & Perin Mercantile"

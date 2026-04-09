@@ -18,7 +18,7 @@ function ProfileSection() {
         <div className="p-1">
           <Image
             className="size-32 rounded-full ring-1 ring-border ring-offset-2 ring-offset-background select-none sm:size-40"
-            alt={`Scott Heney avatar`}
+            alt={`Cherry Capital avatar`}
             src={MyImage.src}
             width={512}
             height={512}
@@ -38,7 +38,7 @@ function ProfileSection() {
         </div>
         <div className=" border-t">
           <h1 className=" pl-4 py-0.5 font-semibold  select-none text-2xl flex items-center font-mono  ">
-            Scott Heney&nbsp;
+            Cherry Capital&nbsp;
             <VerifiedFilledIcon />{" "}
           </h1>
         </div>

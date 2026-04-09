@@ -58,8 +58,8 @@ export const metadata: Metadata = {
     "color-scheme": "dark light",
     
     // Authority signals
-    "author": "Scott Heney",
-    "copyright": `© ${new Date().getFullYear()} Scott Heney - CherryCapitalWeb`,
+    "author": portfolioConfig.name,
+    "copyright": `© ${new Date().getFullYear()} ${portfolioConfig.name}`,
     "robots": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
   },
 
@@ -80,10 +80,10 @@ export const metadata: Metadata = {
         url: `${portfolioConfig.seo.url}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: "Scott Heney - Full Stack Developer & CherryCapitalWeb Founder",
+        alt: "Cherry Capital - Full Stack Developer & Web Development Studio",
       }
     ],
-    siteName: "CherryCapitalWeb Portfolio",
+    siteName: "Cherry Capital Portfolio",
   },
 
   // Enhanced Twitter metadata

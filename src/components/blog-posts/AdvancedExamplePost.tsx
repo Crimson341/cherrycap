@@ -18,17 +18,17 @@ export function AdvancedExamplePost() {
   return (
     <BlogContent>
       <BlogParagraph>
-        Here's how to use all the advanced blog components to make your content way more engaging and professional.
+        Here&apos;s how to use all the advanced blog components to make your content way more engaging and professional.
       </BlogParagraph>
 
       <BlogHeading>Callout Boxes for Important Info</BlogHeading>
       
       <Callout type="warning" title="WordPress Alert">
-        WordPress sites are getting hacked every 39 seconds. That's not a typo - it's a security nightmare.
+        WordPress sites are getting hacked every 39 seconds. That&apos;s not a typo - it&apos;s a security nightmare.
       </Callout>
 
       <Callout type="success" title="Performance Win">
-        Next.js 15 with Turbopack reduces build times by 76%. That's 30 seconds instead of 2 minutes.
+        Next.js 15 with Turbopack reduces build times by 76%. That&apos;s 30 seconds instead of 2 minutes.
       </Callout>
 
       <Callout type="tip" title="Pro Tip">
@@ -74,7 +74,7 @@ export function AdvancedExamplePost() {
       <BlogHeading>Client Testimonials</BlogHeading>
       
       <BlockQuote
-        quote="Scott rebuilt our WordPress disaster into a Next.js masterpiece. Our site went from 15-second load times to under 2 seconds. Sales increased 40% in the first month."
+        quote="Cherry Capital rebuilt our WordPress disaster into a Next.js masterpiece. Our site went from 15-second load times to under 2 seconds. Sales increased 40% in the first month."
         author="Sarah Johnson"
         role="Owner"
         company="Lynn & Perin Mercantile"

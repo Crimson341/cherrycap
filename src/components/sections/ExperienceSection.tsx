@@ -93,12 +93,12 @@ export default ExperienceSection;
 const experienceData = [
   {
     id: 1,
-    title: "Founder & Developer - CherryCapitalWeb",
+    title: "Founder & Developer - Cherry Capital",
     icon: Building,
     current: true,
     duration: "2024 - Present",
     description: "Building modern web solutions for local businesses in Northern Michigan, outperforming WordPress competitors.",
-    overview: "Founded CherryCapitalWeb to provide modern, custom web development services to local businesses. Focused on delivering superior performance and user experience compared to traditional WordPress solutions commonly used by competitors in the area.",
+    overview: "Founded Cherry Capital to provide modern, custom web development services to local businesses. Focused on delivering superior performance and user experience compared to traditional WordPress solutions commonly used by competitors in the area.",
     achievements: [
       "Successfully launched 5+ client websites for local businesses",
       "Established strong reputation in Beulah/Benzonia area",
@@ -117,7 +117,7 @@ const experienceData = [
       "Local SEO",
       "Performance Optimization"
     ],
-    impact: "Established CherryCapitalWeb as the go-to modern web development service in Northern Michigan, helping local businesses compete effectively online with cutting-edge technology."
+    impact: "Established Cherry Capital as the go-to modern web development service in Northern Michigan, helping local businesses compete effectively online with cutting-edge technology."
   },
   {
     id: 2,

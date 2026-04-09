@@ -13,13 +13,13 @@ export function BlogStructuredData({ post }: { post?: { slug: string; title: str
     "description": post.excerpt,
     "image": `${portfolioConfig.seo.url}/og-image.png`,
     "author": {
-      "@type": "Person",
-      "name": "Scott Heney",
+      "@type": "Organization",
+      "name": portfolioConfig.name,
       "url": portfolioConfig.seo.url
     },
     "publisher": {
       "@type": "Organization",
-      "name": "CherryCapitalWeb",
+      "name": portfolioConfig.name,
       "logo": {
         "@type": "ImageObject",
         "url": `${portfolioConfig.seo.url}/myImage.png`

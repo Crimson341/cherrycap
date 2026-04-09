@@ -20,7 +20,7 @@ function FooterSection() {
                   "before:bg-size-[10px_10px] before:[--pattern-foreground:var(--color-edge)]/56"
                 )}
               />
-        <p className="text-center font-mono text-sm text-balance text-muted-foreground">Built by <a className="font-semibold underline" href="https://cherrycapitalweb.com/" target="_blank" rel="noopener">Scott Heney</a>.</p>
+        <p className="text-center font-mono text-sm text-balance text-muted-foreground">Built by <a className="font-semibold underline" href="https://cherrycapitalweb.com/" target="_blank" rel="noopener">Cherry Capital</a>.</p>
     </section>
   )
 }
