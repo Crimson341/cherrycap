@@ -1,6 +1,6 @@
 'use client';
 
-import { GithubIcon } from 'lucide-react';
+import { ExternalLinkIcon } from 'lucide-react';
 import { motion } from 'motion/react';
 
 import { Logo } from '../Logo';
@@ -114,7 +114,7 @@ export const Header = ({ transition }: { transition: boolean }) => {
               "rounded-full"
             )}
           >
-            <GithubIcon />
+            <ExternalLinkIcon />
           </Link>
           <ToggleThemeBtn />
         </div>

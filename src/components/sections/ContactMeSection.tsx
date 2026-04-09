@@ -24,7 +24,7 @@ const FormSchema = z.object({
   }),
   email: z
     .string({
-      required_error: "Email is required.",
+      error: "Email is required.",
     })
     .email("Please enter a valid email address."),
   message: z.string().min(2, {
