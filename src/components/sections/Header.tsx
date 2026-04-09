@@ -1,6 +1,6 @@
 'use client';
 
-import { GithubIcon, BookOpen } from 'lucide-react';
+import { GithubIcon } from 'lucide-react';
 import { motion } from 'motion/react';
 
 import { Logo } from '../Logo';

@@ -154,8 +154,8 @@ export default config;`}
 {`// package.json dependencies that matter
 {
   "dependencies": {
-    "next": "15.0.0", // The foundation
-    "react": "19.0.0", // Latest stable
+    "next": "16.2.3", // The foundation
+    "react": "19.2.5", // Latest stable
     "typescript": "^5.0.0", // Type safety
     "tailwindcss": "^4.0.0", // CSS that doesn't suck
     "convex": "^1.0.0", // Real-time database

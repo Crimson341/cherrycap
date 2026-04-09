@@ -2,6 +2,7 @@
 
 import {
   ComponentPropsWithoutRef,
+  useCallback,
   useEffect,
   useId,
   useRef,
@@ -37,24 +38,27 @@ export function AnimatedGridPattern({
   ...props
 }: AnimatedGridPatternProps) {
   const id = useId()
-  const containerRef = useRef(null)
+  const containerRef = useRef<SVGSVGElement | null>(null)
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
-  const [squares, setSquares] = useState(() => generateSquares(numSquares))
-
-  function getPos() {
+  const getPos = useCallback(() => {
     return [
       Math.floor((Math.random() * dimensions.width) / width),
       Math.floor((Math.random() * dimensions.height) / height),
     ]
-  }
+  }, [dimensions.height, dimensions.width, height, width])
 
-  // Adjust the generateSquares function to return objects with an id, x, and y
-  function generateSquares(count: number) {
+  // Build a fresh square list whenever the container size changes.
+  const generateSquares = useCallback((count: number, size: { width: number; height: number }) => {
     return Array.from({ length: count }, (_, i) => ({
       id: i,
-      pos: getPos(),
+      pos: [
+        Math.floor((Math.random() * size.width) / width),
+        Math.floor((Math.random() * size.height) / height),
+      ],
     }))
-  }
+  }, [height, width])
+
+  const [squares, setSquares] = useState(() => generateSquares(numSquares, dimensions))
 
   // Function to update a single square's position
   const updateSquarePosition = (id: number) => {
@@ -72,32 +76,28 @@ export function AnimatedGridPattern({
 
   // Update squares to animate in
   useEffect(() => {
-    if (dimensions.width && dimensions.height) {
-      setSquares(generateSquares(numSquares))
-    }
-  }, [dimensions, numSquares, generateSquares])
-
-  // Resize observer to update container dimensions
-  useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        setDimensions({
+        const nextDimensions = {
           width: entry.contentRect.width,
           height: entry.contentRect.height,
-        })
+        }
+        setDimensions(nextDimensions)
+        setSquares(generateSquares(numSquares, nextDimensions))
       }
     })
 
-    if (containerRef.current) {
-      resizeObserver.observe(containerRef.current)
+    const container = containerRef.current
+    if (container) {
+      resizeObserver.observe(container)
     }
 
     return () => {
-      if (containerRef.current) {
-        resizeObserver.unobserve(containerRef.current)
+      if (container) {
+        resizeObserver.unobserve(container)
       }
     }
-  }, [containerRef])
+  }, [generateSquares, numSquares])
 
   return (
     <svg
