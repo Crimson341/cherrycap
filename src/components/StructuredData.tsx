@@ -1,128 +1,110 @@
-import Script from 'next/script';
-import { portfolioConfig } from '@/lib/portfolioConfig';
+import { portfolioConfig } from "@/lib/portfolioConfig";
+import { absoluteUrl, safeJsonLd, siteDescription, siteName } from "@/lib/seo";
 
 export function StructuredData() {
-  const baseUrl = portfolioConfig.seo.url;
-
-  // Local Business Schema
-  const businessSchema = {
+  const organizationSchema = {
     "@context": "https://schema.org",
-    "@type": "LocalBusiness",
-    "@id": `${baseUrl}/#organization`,
-    "name": portfolioConfig.name,
-    "alternateName": "Cherry Capital",
-    "description": portfolioConfig.description,
-    "url": baseUrl,
-    "logo": `${baseUrl}/myImage.png`,
+    "@type": "Organization",
+    "@id": absoluteUrl("/#organization"),
+    "name": siteName,
+    "description": siteDescription,
+    "url": portfolioConfig.seo.url,
+    "logo": absoluteUrl("/myImage.png"),
+    "image": absoluteUrl("/og-image.png"),
+    "email": portfolioConfig.email,
+    "telephone": portfolioConfig.phone,
     "address": {
       "@type": "PostalAddress",
       "addressLocality": "Beulah",
       "addressRegion": "MI",
       "addressCountry": "US"
     },
-    "geo": {
-      "@type": "GeoCoordinates",
-      "latitude": "44.6344",
-      "longitude": "-86.2422"
+    "sameAs": Object.values(portfolioConfig.socialLinks).filter(Boolean)
+  };
+
+  const serviceSchema = {
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    "@id": absoluteUrl("/#service"),
+    "name": siteName,
+    "description": siteDescription,
+    "url": portfolioConfig.seo.url,
+    "image": absoluteUrl("/og-image.png"),
+    "provider": {
+      "@id": absoluteUrl("/#organization")
     },
     "areaServed": {
-      "@type": "GeoCircle",
-      "geoMidpoint": {
-        "@type": "GeoCoordinates",
-        "latitude": "44.6344",
-        "longitude": "-86.2422"
-      },
-      "geoRadius": "50000"
+      "@type": "AdministrativeArea",
+      "name": "Michigan"
     },
-    "serviceType": "Web Development",
-    "priceRange": "$$",
-    "telephone": "Contact via website",
-    "email": portfolioConfig.email,
+    "serviceType": [
+      "Custom website development",
+      "Next.js development",
+      "Website redesign",
+      "Local SEO"
+    ],
     "hasOfferCatalog": {
       "@type": "OfferCatalog",
-      "name": "Web Development Services",
+      "name": "Cherry Capital Services",
       "itemListElement": [
         {
           "@type": "Offer",
           "itemOffered": {
             "@type": "Service",
             "name": "Custom Website Development",
-            "description": "Modern, responsive websites built with Next.js and React"
-          }
-        },
-        {
-          "@type": "Offer", 
-          "itemOffered": {
-            "@type": "Service",
-            "name": "Full Stack Development",
-            "description": "Complete web applications with frontend and backend solutions"
+            "description": "High-performance custom websites built for lead generation and local visibility."
           }
         },
         {
           "@type": "Offer",
           "itemOffered": {
-            "@type": "Service", 
-            "name": "WordPress Alternative Solutions",
-            "description": "High-performance custom solutions that outperform WordPress"
+            "@type": "Service",
+            "name": "Website Redesign",
+            "description": "Conversion-focused redesigns for slow, outdated, or underperforming websites."
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Local SEO",
+            "description": "Technical SEO and local search optimization for Northern Michigan businesses."
           }
         }
       ]
     }
   };
 
-  const organizationSchema = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "@id": `${baseUrl}/#company`,
-    "name": portfolioConfig.name,
-    "alternateName": "Cherry Capital",
-    "description": portfolioConfig.description,
-    "url": baseUrl,
-    "logo": `${baseUrl}/myImage.png`,
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": "Beulah",
-      "addressRegion": "Michigan",
-      "addressCountry": "US"
-    }
-  };
-
-  // Website Schema
   const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "@id": `${baseUrl}/#website`,
-    "url": baseUrl,
-    "name": "Cherry Capital Portfolio",
-    "description": "Professional portfolio showcasing modern web development expertise and Cherry Capital services",
+    "@id": absoluteUrl("/#website"),
+    "url": portfolioConfig.seo.url,
+    "name": siteName,
+    "description": siteDescription,
     "publisher": {
-      "@type": "Organization",
-      "@id": `${baseUrl}/#company`
+      "@id": absoluteUrl("/#organization")
     },
-    "potentialAction": {
-      "@type": "SearchAction",
-      "target": `${baseUrl}/?s={search_term_string}`,
-      "query-input": "required name=search_term_string"
-    }
+    "inLanguage": "en-US"
   };
 
   return (
     <>
-    <Script
-      id="organization-schema"
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
-    />
-    <Script
-      id="business-schema"
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(businessSchema) }}
+      <script
+        id="organization-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(organizationSchema) }}
       />
-      <Script
+      <script
+        id="service-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(serviceSchema) }}
+      />
+      <script
         id="website-schema"
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(websiteSchema) }}
       />
     </>
   );
-} 
+}

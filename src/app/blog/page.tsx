@@ -5,25 +5,15 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { FlickeringGrid } from "@/components/ui/FlickingGridBG";
 import { BlogStructuredData } from "@/components/BlogStructuredData";
-
-// TODO: Replace with actual blog data from CMS or API
-const blogPosts = [
-  {
-    id: 1,
-    title: "What Makes Next.js Special: Why Enterprise Companies Choose It Over Everything Else",
-    slug: "what-makes-nextjs-special",
-    excerpt: "Nike, Spotify, OpenAI, and Netflix all run on Next.js. Here's exactly why this framework dominates the modern web and what it means for your business website.",
-    publishedAt: "2025-01-18",
-    readTime: "9 min read",
-    category: "Technology",
-    tags: ["Next.js", "Performance", "Enterprise", "Modern Web", "Framework"],
-    featured: true,
-  },
-];
+import { publishedBlogPosts } from "@/lib/blogPosts";
 
 export default function BlogPage() {
-  const featuredPosts = blogPosts.filter(post => post.featured);
-  const recentPosts = blogPosts.filter(post => !post.featured);
+  const posts = [...publishedBlogPosts].sort(
+    (left, right) =>
+      new Date(right.publishedAt).getTime() - new Date(left.publishedAt).getTime()
+  );
+  const featuredPosts = posts.filter((post) => post.featured);
+  const recentPosts = posts.filter((post) => !post.featured);
 
   return (
     <>
@@ -116,50 +106,51 @@ export default function BlogPage() {
             </section>
           )}
 
-          {/* Recent Posts */}
-          <section className="border-x full-line-bottom relative">
-            <h2 className="pl-4 text-3xl font-semibold relative full-line-bottom">
-              Recent Posts
-            </h2>
-            <div className="p-4 space-y-4">
-              {recentPosts.map((post) => (
-                <Link key={post.id} href={`/blog/${post.slug}`} className="block group">
-                  <article className="p-6 border border-border/40 rounded-lg bg-background/50 hover:bg-background/80 transition-all duration-200 hover:border-primary/20">
-                    <div className="flex items-center gap-2 flex-wrap mb-3">
-                      <Badge variant="secondary" className="text-xs">
-                        {post.category}
-                      </Badge>
-                      <div className="flex flex-wrap gap-1">
-                        {post.tags.slice(0, 3).map((tag, idx) => (
-                          <Badge key={idx} variant="outline" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
+          {recentPosts.length > 0 && (
+            <section className="border-x full-line-bottom relative">
+              <h2 className="pl-4 text-3xl font-semibold relative full-line-bottom">
+                Recent Posts
+              </h2>
+              <div className="p-4 space-y-4">
+                {recentPosts.map((post) => (
+                  <Link key={post.id} href={`/blog/${post.slug}`} className="block group">
+                    <article className="p-6 border border-border/40 rounded-lg bg-background/50 hover:bg-background/80 transition-all duration-200 hover:border-primary/20">
+                      <div className="flex items-center gap-2 flex-wrap mb-3">
+                        <Badge variant="secondary" className="text-xs">
+                          {post.category}
+                        </Badge>
+                        <div className="flex flex-wrap gap-1">
+                          {post.tags.slice(0, 3).map((tag, idx) => (
+                            <Badge key={idx} variant="outline" className="text-xs">
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                    
-                    <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors font-mono">
-                      {post.title}
-                    </h3>
-                    
-                    <p className="text-muted-foreground mb-4 text-sm leading-relaxed">
-                      {post.excerpt}
-                    </p>
-                    
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="size-3" />
-                        <span>{new Date(post.publishedAt).toLocaleDateString()}</span>
+
+                      <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors font-mono">
+                        {post.title}
+                      </h3>
+
+                      <p className="text-muted-foreground mb-4 text-sm leading-relaxed">
+                        {post.excerpt}
+                      </p>
+
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="size-3" />
+                          <span>{new Date(post.publishedAt).toLocaleDateString()}</span>
+                        </div>
+                        <span className="text-primary font-mono group-hover:translate-x-1 transition-transform">
+                          Read more →
+                        </span>
                       </div>
-                      <span className="text-primary font-mono group-hover:translate-x-1 transition-transform">
-                        Read more →
-                      </span>
-                    </div>
-                  </article>
-                </Link>
-              ))}
-            </div>
-          </section>
+                    </article>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* Footer CTA Section */}
           <section className="px-4 border-x full-line-bottom relative">

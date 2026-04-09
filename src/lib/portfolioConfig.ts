@@ -25,33 +25,28 @@ export const portfolioConfig = {
     twitterHandle: "@cherrycapweb",
     keywords: [
       "cherry capital",
-      "Cherry Capital",
+      "northern michigan web design",
       "beulah web developer",
       "michigan web developer",
       "custom websites",
-      "nextjs developer",
-      "react developer",
-      "portfolio",
+      "next.js agency",
+      "react development studio",
+      "local seo services",
+      "small business websites",
+      "website redesign",
       "web developer",
-      "web",
-      "web dev",
-      "developer",
-      "programmer",
-      "software engineer",
-      "SCOTT HENEY",
-      "website",
-      "better than wordpress",
+      "website optimization",
+      "conversion-focused websites",
       "modern web development",
-      "full stack developer",
       "beulah michigan",
+      "northern michigan",
+      "traverse city web design",
       "local web developer",
-      "website sales",
-      "market expert",
       "business websites",
       "professional web solutions",
       "custom website development",
       "website design services",
-      "digital marketing solutions",
+      "digital marketing solutions"
     ],
     authors: [
       {
@@ -60,14 +55,6 @@ export const portfolioConfig = {
       },
     ],
   },
-
-
-
-
-
-
-
-
 
 
 };

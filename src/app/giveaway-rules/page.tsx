@@ -1,3 +1,17 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Giveaway Rules",
+  description: "Official giveaway rules and terms for Cherry Capital promotions.",
+  alternates: {
+    canonical: "/giveaway-rules",
+  },
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
+
 export default function GiveawayRulesPage() {
   return (
     <div className="min-h-screen px-4 py-12 max-w-4xl mx-auto">

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import React from "react";
 import { notFound } from "next/navigation";
 import { Calendar, ArrowLeft } from "lucide-react";
@@ -7,8 +8,9 @@ import Link from "next/link";
 import { FlickeringGrid } from "@/components/ui/FlickingGridBG";
 import { BlogStructuredData } from "@/components/BlogStructuredData";
 import { NextjsSpecialPost } from "@/components";
-import { blogPosts } from "@/lib/blogPosts";
+import { publishedBlogPosts } from "@/lib/blogPosts";
 import { portfolioConfig } from "@/lib/portfolioConfig";
+import { defaultOgImage } from "@/lib/seo";
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
@@ -16,7 +18,7 @@ interface BlogPostPageProps {
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params;
-  const post = blogPosts.find(p => p.slug === slug);
+  const post = publishedBlogPosts.find((entry) => entry.slug === slug);
 
   if (!post) {
     notFound();
@@ -60,7 +62,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 </p>
                 <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground font-mono">
                   <Calendar className="size-4" />
-                  <span>{new Date(post.publishedAt).toLocaleDateString()}</span>
+                  <time dateTime={post.publishedAt}>
+                    {new Date(post.publishedAt).toLocaleDateString()}
+                  </time>
                 </div>
               </div>
             </div>
@@ -160,39 +164,57 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
 // Generate static params for all blog posts
 export async function generateStaticParams() {
-  return blogPosts.map((post) => ({
+  return publishedBlogPosts.map((post) => ({
     slug: post.slug,
   }));
 }
 
 // Generate metadata for each blog post
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
   const { slug } = await params;
-  const post = blogPosts.find(p => p.slug === slug);
+  const post = publishedBlogPosts.find((entry) => entry.slug === slug);
 
   if (!post) {
     return {
       title: "Post Not Found",
+      robots: {
+        index: false,
+        follow: false,
+      },
     };
   }
+
+  const canonicalPath = `/blog/${post.slug}`;
 
   return {
     title: post.title,
     description: post.excerpt,
-    keywords: post.tags,
+    keywords: [...post.tags, "Cherry Capital", "web development"],
     authors: portfolioConfig.seo.authors,
+    alternates: {
+      canonical: canonicalPath,
+    },
     openGraph: {
       title: post.title,
       description: post.excerpt,
       type: "article",
+      url: canonicalPath,
       publishedTime: post.publishedAt,
+      modifiedTime: post.updatedAt ?? post.publishedAt,
       authors: [portfolioConfig.name],
       tags: post.tags,
+      section: post.category,
+      images: [defaultOgImage],
     },
     twitter: {
       card: "summary_large_image",
       title: post.title,
       description: post.excerpt,
+      images: [defaultOgImage.url],
     },
   };
-} 
+}

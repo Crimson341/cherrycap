@@ -1,4 +1,19 @@
-export const blogPosts = [
+export interface BlogPost {
+  id: number;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  publishedAt: string;
+  updatedAt?: string;
+  readTime: string;
+  category: string;
+  tags: string[];
+  featured: boolean;
+  published: boolean;
+}
+
+export const blogPosts: BlogPost[] = [
   {
     id: 1,
     title: "What Makes Next.js Special: Why Enterprise Companies Choose It Over Everything Else",
@@ -6,10 +21,12 @@ export const blogPosts = [
     excerpt: "Nike, Spotify, OpenAI, and Netflix all run on Next.js. Here's exactly why this framework dominates the modern web and what it means for your business website.",
     content: "Next.js Special Content", // This will be handled by the component
     publishedAt: "2025-01-18",
+    updatedAt: "2025-01-18",
     readTime: "9 min read",
     category: "Technology",
     tags: ["Next.js", "Performance", "Enterprise", "Modern Web", "Framework"],
     featured: true,
+    published: true,
   },
   {
     id: 2,
@@ -22,6 +39,7 @@ export const blogPosts = [
     category: "Web Development",
     tags: ["Web Development", "Modern Web", "Next.js"],
     featured: false,
+    published: false,
   },
   {
     id: 3,
@@ -34,6 +52,7 @@ export const blogPosts = [
     category: "Web Development",
     tags: ["WordPress", "Modern Web", "Performance"],
     featured: false,
+    published: false,
   },
   {
     id: 4,
@@ -46,6 +65,7 @@ export const blogPosts = [
     category: "Web Development",
     tags: ["PWA", "Michigan", "Tourism"],
     featured: false,
+    published: false,
   },
   {
     id: 5,
@@ -58,6 +78,7 @@ export const blogPosts = [
     category: "SEO",
     tags: ["SEO", "Local SEO", "Marketing"],
     featured: false,
+    published: false,
   },
   {
     id: 6,
@@ -70,5 +91,8 @@ export const blogPosts = [
     category: "Web Development",
     tags: ["DIY", "Website Builders", "Cost"],
     featured: false,
+    published: false,
   },
 ];
+
+export const publishedBlogPosts = blogPosts.filter((post) => post.published);
