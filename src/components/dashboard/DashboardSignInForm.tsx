@@ -1,5 +1,3 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,15 +8,14 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
-import { useState } from "react";
 
 const OWNER_EMAIL = "scott@cherrycapitalweb.com";
 
-export function DashboardSignInForm() {
-  const [password, setPassword] = useState("");
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
+export function DashboardSignInForm({
+  error,
+}: {
+  error?: string | null;
+}) {
   return (
     <main className="min-h-screen border-x">
       <section className="border-b px-4 py-14 md:px-8">
@@ -45,55 +42,14 @@ export function DashboardSignInForm() {
               <CardTitle className="text-3xl">Enter the dashboard</CardTitle>
             </CardHeader>
             <CardContent>
-              <form
-                className="space-y-4"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  setPending(true);
-                  setError(null);
-
-                  void fetch("/api/auth", {
-                    method: "POST",
-                    headers: {
-                      "content-type": "application/json",
-                    },
-                    body: JSON.stringify({
-                      action: "auth:signIn",
-                      args: {
-                        provider: "dashboard-owner",
-                        params: {
-                          email: OWNER_EMAIL,
-                          password: password.trim(),
-                          redirectTo: "/dashboard",
-                        },
-                      },
-                    }),
-                  })
-                    .then(async (response) => {
-                      const data = (await response.json().catch(() => null)) as
-                        | { error?: string }
-                        | null;
-
-                      if (!response.ok) {
-                        throw new Error(
-                          data?.error || "Could not complete authentication.",
-                        );
-                      }
-
-                      window.location.replace("/dashboard");
-                    })
-                    .catch((authError) => {
-                      setError(
-                        authError instanceof Error
-                          ? authError.message
-                          : "Could not complete authentication.",
-                      );
-                    })
-                    .finally(() => {
-                      setPending(false);
-                    });
-                }}
-              >
+              <form className="space-y-4" method="post" action="/api/auth">
+                <input type="hidden" name="action" value="auth:signIn" />
+                <input
+                  type="hidden"
+                  name="provider"
+                  value="dashboard-owner"
+                />
+                <input type="hidden" name="redirectTo" value="/dashboard" />
                 <div className="space-y-2">
                   <label
                     htmlFor="dashboard-email"
@@ -103,6 +59,7 @@ export function DashboardSignInForm() {
                   </label>
                   <Input
                     id="dashboard-email"
+                    name="email"
                     type="email"
                     autoComplete="email"
                     value={OWNER_EMAIL}
@@ -121,10 +78,9 @@ export function DashboardSignInForm() {
                   </label>
                   <Input
                     id="dashboard-password"
+                    name="password"
                     type="password"
                     autoComplete="current-password"
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
                     placeholder="Owner password"
                     className="rounded-none"
                     required
@@ -140,10 +96,9 @@ export function DashboardSignInForm() {
                 <div className="flex flex-wrap gap-3">
                   <Button
                     type="submit"
-                    disabled={pending}
                     className="rounded-none font-mono uppercase tracking-[0.18em]"
                   >
-                    {pending ? "Working" : "Sign in"}
+                    Sign in
                   </Button>
                 </div>
               </form>

@@ -3,10 +3,19 @@ import { DashboardSignInForm } from "@/components/dashboard/DashboardSignInForm"
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-export default async function SignInPage() {
+export default async function SignInPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string | string[] }>;
+}) {
   if (process.env.NEXT_PUBLIC_CONVEX_URL && (await isAuthenticatedNextjs())) {
     redirect("/dashboard");
   }
+
+  const resolvedSearchParams = await searchParams;
+  const error = Array.isArray(resolvedSearchParams.error)
+    ? resolvedSearchParams.error[0]
+    : resolvedSearchParams.error;
 
   if (!process.env.NEXT_PUBLIC_CONVEX_URL) {
     return (
@@ -34,5 +43,5 @@ export default async function SignInPage() {
     );
   }
 
-  return <DashboardSignInForm />;
+  return <DashboardSignInForm error={error} />;
 }
