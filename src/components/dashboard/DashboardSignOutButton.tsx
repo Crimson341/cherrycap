@@ -1,11 +1,9 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export function DashboardSignOutButton() {
-  const router = useRouter();
   const [pending, setPending] = useState(false);
 
   return (
@@ -26,8 +24,7 @@ export function DashboardSignOutButton() {
           }),
         })
           .then(() => {
-            router.replace("/signin");
-            router.refresh();
+            window.location.replace("/signin");
           })
           .finally(() => {
             setPending(false);

@@ -10,13 +10,11 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 const OWNER_EMAIL = "scott@cherrycapitalweb.com";
 
 export function DashboardSignInForm() {
-  const router = useRouter();
   const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -82,8 +80,7 @@ export function DashboardSignInForm() {
                         );
                       }
 
-                      router.replace("/dashboard");
-                      router.refresh();
+                      window.location.replace("/dashboard");
                     })
                     .catch((authError) => {
                       setError(
