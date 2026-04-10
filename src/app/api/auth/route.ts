@@ -5,6 +5,15 @@ type CookieConfig = {
   maxAge: number | null;
 };
 
+type AuthAction = "auth:signIn" | "auth:signOut";
+
+type AuthRequestPayload = {
+  action: AuthAction;
+  args: Record<string, unknown>;
+  redirectTo?: string;
+  responseType: "json" | "redirect";
+};
+
 function isLocalHost(host: string | null) {
   return /(localhost|127\.0\.0\.1):\d+/.test(host ?? "");
 }
@@ -88,6 +97,50 @@ function json(body: unknown, status = 200) {
   });
 }
 
+function getStringValue(value: FormDataEntryValue | null) {
+  return typeof value === "string" ? value : undefined;
+}
+
+function normalizeRedirectPath(
+  request: NextRequest,
+  value: string | undefined,
+  fallback: string,
+) {
+  if (!value) {
+    return fallback;
+  }
+
+  try {
+    const requestUrl = new URL(request.url);
+    const redirectUrl = new URL(value, requestUrl);
+
+    if (redirectUrl.origin !== requestUrl.origin) {
+      return fallback;
+    }
+
+    return `${redirectUrl.pathname}${redirectUrl.search}${redirectUrl.hash}`;
+  } catch {
+    return fallback;
+  }
+}
+
+function redirect(request: NextRequest, location: string) {
+  return NextResponse.redirect(new URL(location, request.url), { status: 303 });
+}
+
+function redirectToSignIn(
+  request: NextRequest,
+  error: string | undefined,
+) {
+  const url = new URL("/signin", request.url);
+
+  if (error) {
+    url.searchParams.set("error", error);
+  }
+
+  return NextResponse.redirect(url, { status: 303 });
+}
+
 function getConvexOptions() {
   if (process.env.NEXT_PUBLIC_CONVEX_URL) {
     return { url: process.env.NEXT_PUBLIC_CONVEX_URL };
@@ -98,6 +151,24 @@ function getConvexOptions() {
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Authentication failed";
+}
+
+function getPublicErrorMessage(error: unknown) {
+  const message = getErrorMessage(error);
+
+  if (message.includes("Invalid credentials")) {
+    return "Invalid credentials";
+  }
+
+  if (message.includes("Email and password are required")) {
+    return "Email and password are required";
+  }
+
+  if (message.includes("Dashboard owner password is not configured")) {
+    return "Dashboard owner password is not configured";
+  }
+
+  return "Could not complete authentication.";
 }
 
 function isInvalidAuthHeaderError(error: unknown) {
@@ -133,6 +204,60 @@ async function fetchSignInAction(
   );
 }
 
+async function parseRequestPayload(
+  request: NextRequest,
+): Promise<AuthRequestPayload> {
+  const contentType = request.headers.get("content-type") ?? "";
+
+  if (contentType.includes("application/json")) {
+    const payload = (await request.json()) as {
+      action?: unknown;
+      args?: Record<string, unknown>;
+    };
+
+    return {
+      action: payload.action as AuthAction,
+      args: payload.args ?? {},
+      responseType: "json",
+    };
+  }
+
+  const formData = await request.formData();
+  const action = getStringValue(formData.get("action")) as AuthAction;
+  const redirectTo = getStringValue(formData.get("redirectTo"));
+
+  if (action === "auth:signIn") {
+    const provider = getStringValue(formData.get("provider"));
+    const refreshToken = getStringValue(formData.get("refreshToken"));
+    const params = Object.fromEntries(
+      [
+        ["email", getStringValue(formData.get("email"))],
+        ["password", getStringValue(formData.get("password"))],
+        ["code", getStringValue(formData.get("code"))],
+        ["redirectTo", redirectTo],
+      ].filter((entry): entry is [string, string] => typeof entry[1] === "string"),
+    );
+
+    return {
+      action,
+      args: {
+        ...(provider ? { provider } : {}),
+        ...(refreshToken ? { refreshToken } : {}),
+        ...(Object.keys(params).length > 0 ? { params } : {}),
+      },
+      redirectTo,
+      responseType: "redirect",
+    };
+  }
+
+  return {
+    action,
+    args: {},
+    redirectTo,
+    responseType: "redirect",
+  };
+}
+
 export async function POST(request: NextRequest) {
   const cookieConfig = { maxAge: null } satisfies CookieConfig;
   const host = request.headers.get("host");
@@ -141,7 +266,8 @@ export async function POST(request: NextRequest) {
     return new NextResponse("Invalid origin", { status: 403 });
   }
 
-  const { action, args } = await request.json();
+  const payload = await parseRequestPayload(request);
+  const { action, args } = payload;
 
   if (action !== "auth:signIn" && action !== "auth:signOut") {
     return new NextResponse("Invalid action", { status: 400 });
@@ -155,6 +281,10 @@ export async function POST(request: NextRequest) {
     )?.value;
 
     if (!refreshToken) {
+      if (payload.responseType === "redirect") {
+        return redirectToSignIn(request, "Session expired");
+      }
+
       return json({ tokens: null });
     }
 
@@ -165,8 +295,13 @@ export async function POST(request: NextRequest) {
 
   if (action === "auth:signIn") {
     try {
+      const signInArgs = args as {
+        refreshToken?: unknown;
+        params?: { code?: unknown };
+      };
       const shouldAuthenticateRequest =
-        args?.refreshToken === undefined && args?.params?.code === undefined;
+        signInArgs.refreshToken === undefined &&
+        signInArgs.params?.code === undefined;
 
       let result: Awaited<ReturnType<typeof fetchSignInAction>>;
 
@@ -194,7 +329,11 @@ export async function POST(request: NextRequest) {
         "redirect" in result &&
         typeof result.redirect === "string"
       ) {
-        const response = json({ redirect: result.redirect });
+        const response =
+          payload.responseType === "redirect"
+            ? redirect(request, result.redirect)
+            : json({ redirect: result.redirect });
+
         if ("verifier" in result && typeof result.verifier === "string") {
           setCookie(
             response,
@@ -212,12 +351,22 @@ export async function POST(request: NextRequest) {
         result !== null &&
         "tokens" in result
       ) {
-        const response = json({
-          tokens:
-            result.tokens !== null
-              ? { token: result.tokens.token, refreshToken: "dummy" }
-              : null,
-        });
+        const response =
+          payload.responseType === "redirect"
+            ? redirect(
+                request,
+                normalizeRedirectPath(
+                  request,
+                  payload.redirectTo,
+                  "/dashboard",
+                ),
+              )
+            : json({
+                tokens:
+                  result.tokens !== null
+                    ? { token: result.tokens.token, refreshToken: "dummy" }
+                    : null,
+              });
 
         setAuthCookies(response, result.tokens, cookieConfig, host);
         return response;
@@ -225,25 +374,40 @@ export async function POST(request: NextRequest) {
 
       return json(result);
     } catch (error) {
-      const response = json(
-        {
-          error: getErrorMessage(error),
-        },
-        400,
-      );
+      const response =
+        payload.responseType === "redirect"
+          ? redirectToSignIn(request, getPublicErrorMessage(error))
+          : json(
+              {
+                error: getErrorMessage(error),
+              },
+              400,
+            );
+
       setAuthCookies(response, null, cookieConfig, host);
       return response;
     }
   }
 
   try {
-    await fetchAction(action, args, {
-      ...getConvexOptions(),
-      token,
-    });
+    await fetchAction(
+      action as unknown as Parameters<typeof fetchAction>[0],
+      args as Parameters<typeof fetchAction>[1],
+      {
+        ...getConvexOptions(),
+        token,
+      },
+    );
   } catch {}
 
-  const response = json(null);
+  const response =
+    payload.responseType === "redirect"
+      ? redirect(
+          request,
+          normalizeRedirectPath(request, payload.redirectTo, "/signin"),
+        )
+      : json(null);
+
   setAuthCookies(response, null, cookieConfig, host);
   return response;
 }
