@@ -45,17 +45,12 @@ function ContactMeSection() {
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     try {
-      // Submit to Web3Forms
-      const formData = new FormData();
-      formData.append("access_key", "c2147bbb-80e5-4247-be9b-59b36f804b59");
-      formData.append("name", data.name);
-      formData.append("email", data.email);
-      formData.append("message", data.message);
-      formData.append("subject", `Portfolio Contact: ${data.name}`);
-
-      const response = await fetch("https://api.web3forms.com/submit", {
+      const response = await fetch("/api/contact", {
         method: "POST",
-        body: formData,
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(data),
       });
 
       if (response.ok) {

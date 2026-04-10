@@ -46,6 +46,18 @@ type ClickEvent = {
   category?: string;
 };
 
+type OutgoingEmailCapture = {
+  createdAt: number;
+  provider: "web3forms";
+  subject: string;
+  name: string;
+  email: string;
+  message: string;
+  destination: string;
+  deliveryStatus: "sent" | "unknown";
+  providerMessageId?: string;
+};
+
 function floorToBucket(timestamp: number, bucketMs: number) {
   return Math.floor(timestamp / bucketMs) * bucketMs;
 }
@@ -369,6 +381,51 @@ export const ingestClickEvents = mutation({
   },
 });
 
+export const captureOutgoingEmail = mutation({
+  args: {
+    name: v.string(),
+    email: v.string(),
+    message: v.string(),
+    subject: v.string(),
+    destination: v.string(),
+    provider: v.literal("web3forms"),
+    deliveryStatus: v.union(v.literal("sent"), v.literal("unknown")),
+    providerMessageId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const createdAt = Date.now();
+
+    const emailRecord: OutgoingEmailCapture = {
+      createdAt,
+      provider: args.provider,
+      subject: args.subject,
+      name: args.name,
+      email: args.email,
+      message: args.message,
+      destination: args.destination,
+      deliveryStatus: args.deliveryStatus,
+      providerMessageId: args.providerMessageId,
+    };
+
+    const outgoingEmailId = await ctx.db.insert("outgoingEmails", {
+      site: SITE,
+      ...emailRecord,
+    });
+
+    await ctx.db.insert("leadEvents", {
+      site: SITE,
+      createdAt,
+      status: "new",
+      source: "web3forms",
+    });
+
+    return {
+      outgoingEmailId,
+      capturedAt: createdAt,
+    };
+  },
+});
+
 export const getDashboard = query({
   args: {
     range: v.union(v.literal("24h"), v.literal("7d"), v.literal("30d")),
@@ -388,6 +445,12 @@ export const getDashboard = query({
 
     const recentLeads = await ctx.db
       .query("leadEvents")
+      .withIndex("by_site_createdAt", (q) => q.eq("site", SITE))
+      .order("desc")
+      .take(10);
+
+    const recentEmails = await ctx.db
+      .query("outgoingEmails")
       .withIndex("by_site_createdAt", (q) => q.eq("site", SITE))
       .order("desc")
       .take(10);
@@ -429,10 +492,28 @@ export const getDashboard = query({
       },
       topPages: snapshot?.topPages ?? [],
       leadSummary: {
-        isLive: false,
+        isLive: recentLeads.length > 0,
         total: recentLeads.length,
-        note: "Placeholder until Web3Forms submissions are stored in Convex.",
+        note: recentLeads.length > 0
+          ? "Contact submissions are being mirrored into Convex."
+          : "Waiting for the first captured contact submission.",
         lastCapturedAt: recentLeads[0]?.createdAt ?? null,
+      },
+      emails: {
+        isLive: recentEmails.length > 0,
+        total: recentEmails.length,
+        lastCapturedAt: recentEmails[0]?.createdAt ?? null,
+        items: recentEmails.map((email) => ({
+          id: email._id,
+          createdAt: email.createdAt,
+          name: email.name,
+          email: email.email,
+          subject: email.subject,
+          message: email.message,
+          destination: email.destination,
+          provider: email.provider,
+          deliveryStatus: email.deliveryStatus,
+        })),
       },
       uptimeSummary: {
         isLive: false,
@@ -446,12 +527,15 @@ export const getDashboard = query({
         trafficCapturedAt: snapshot?.capturedAt ?? null,
         clickCapturedAt: snapshot?.capturedAt ?? null,
         leadCapturedAt: recentLeads[0]?.createdAt ?? null,
+        emailCapturedAt: recentEmails[0]?.createdAt ?? null,
         uptimeCapturedAt: latestCheck?.checkedAt ?? null,
         notes: [
           snapshot?.isLive
             ? "Traffic, regions, referrers, devices, browsers, and click activity are updating from live events."
             : "No live analytics data has been received yet.",
-          "Leads remain placeholder until contact submissions are persisted.",
+          recentEmails.length > 0
+            ? "Contact emails are being captured after a successful Web3Forms send."
+            : "No contact emails have been captured yet.",
           "Uptime remains placeholder until a monitor is connected.",
         ],
       },

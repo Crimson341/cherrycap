@@ -50,6 +50,22 @@ export type DashboardPayload = {
     note: string;
     lastCapturedAt: number | null;
   };
+  emails: {
+    isLive: boolean;
+    total: number;
+    lastCapturedAt: number | null;
+    items: Array<{
+      id: string;
+      createdAt: number;
+      name: string;
+      email: string;
+      subject: string;
+      message: string;
+      destination: string;
+      provider: string;
+      deliveryStatus: string;
+    }>;
+  };
   uptimeSummary: {
     isLive: boolean;
     status: string;
@@ -62,6 +78,7 @@ export type DashboardPayload = {
     trafficCapturedAt: number | null;
     clickCapturedAt: number | null;
     leadCapturedAt: number | null;
+    emailCapturedAt: number | null;
     uptimeCapturedAt: number | null;
     notes: string[];
   };

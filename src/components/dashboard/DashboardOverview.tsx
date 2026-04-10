@@ -53,6 +53,10 @@ function rangeLabel(range: DashboardRange) {
   return "Last 30 days";
 }
 
+function formatCompactStatus(status: string) {
+  return status.charAt(0).toUpperCase() + status.slice(1);
+}
+
 function TrafficChart({
   series,
 }: {
@@ -243,8 +247,9 @@ export function DashboardOverview({
             </h1>
             <p className="max-w-2xl text-base text-muted-foreground md:text-lg">
               This dashboard now tracks page traffic, click activity, regions,
-              referrers, devices, and browsers from live site interactions. Leads
-              and uptime remain visible, but still use placeholder data.
+              referrers, devices, and browsers from live site interactions.
+              Contact emails are mirrored into Convex after successful sends, and
+              uptime remains placeholder.
             </p>
           </div>
 
@@ -423,7 +428,56 @@ export function DashboardOverview({
       </section>
 
       <section className="border-t px-4 py-8 md:px-8">
-        <div className="mx-auto grid max-w-6xl gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="mx-auto grid max-w-6xl gap-4 xl:grid-cols-[1.15fr_0.85fr_0.85fr]">
+          <Card className="rounded-none">
+            <CardHeader>
+              <CardDescription className="font-mono uppercase tracking-[0.2em]">
+                Captured emails
+              </CardDescription>
+              <CardTitle>Recent contact sends</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {payload.emails.items.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No emails have been captured yet. New contact submissions will
+                  appear here after Web3Forms accepts them.
+                </p>
+              ) : (
+                payload.emails.items.map((item) => (
+                  <div
+                    key={item.id}
+                    className="space-y-3 border-b pb-4 last:border-b-0 last:pb-0"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-0 space-y-1">
+                        <p className="truncate font-mono text-sm">{item.subject}</p>
+                        <p className="truncate text-sm text-muted-foreground">
+                          {item.name} · {item.email}
+                        </p>
+                      </div>
+                      <div className="space-y-1 text-right text-xs text-muted-foreground">
+                        <p>{formatTimestamp(item.createdAt)}</p>
+                        <p>{item.provider}</p>
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground">{item.message}</p>
+                    <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
+                      <span>Destination: {item.destination}</span>
+                      <Badge variant="outline">
+                        {formatCompactStatus(item.deliveryStatus)}
+                      </Badge>
+                    </div>
+                  </div>
+                ))
+              )}
+            </CardContent>
+            <CardFooter className="text-sm text-muted-foreground">
+              {payload.emails.isLive
+                ? `${numberFormatter.format(payload.emails.items.length)} recent captured email${payload.emails.items.length === 1 ? "" : "s"}`
+                : "Waiting on the first captured email"}
+            </CardFooter>
+          </Card>
+
           <Card className="rounded-none">
             <CardHeader>
               <CardDescription className="font-mono uppercase tracking-[0.2em]">
@@ -457,6 +511,10 @@ export function DashboardOverview({
               <div className="flex items-start justify-between gap-3">
                 <span className="text-muted-foreground">Leads</span>
                 <span>{formatTimestamp(payload.dataFreshness.leadCapturedAt)}</span>
+              </div>
+              <div className="flex items-start justify-between gap-3">
+                <span className="text-muted-foreground">Emails</span>
+                <span>{formatTimestamp(payload.dataFreshness.emailCapturedAt)}</span>
               </div>
               <div className="flex items-start justify-between gap-3">
                 <span className="text-muted-foreground">Uptime</span>

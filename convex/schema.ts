@@ -111,6 +111,19 @@ export default defineSchema({
     source: v.union(v.literal("placeholder"), v.literal("web3forms")),
   }).index("by_site_createdAt", ["site", "createdAt"]),
 
+  outgoingEmails: defineTable({
+    site: v.literal("cherrycap"),
+    createdAt: v.number(),
+    provider: v.literal("web3forms"),
+    subject: v.string(),
+    name: v.string(),
+    email: v.string(),
+    message: v.string(),
+    destination: v.string(),
+    deliveryStatus: v.union(v.literal("sent"), v.literal("unknown")),
+    providerMessageId: v.optional(v.string()),
+  }).index("by_site_createdAt", ["site", "createdAt"]),
+
   uptimeChecks: defineTable({
     site: v.literal("cherrycap"),
     checkedAt: v.number(),

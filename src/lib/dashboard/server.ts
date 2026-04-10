@@ -34,6 +34,12 @@ function createFallbackDashboard(range: DashboardRange): DashboardPayload {
       note: "Placeholder until lead events are persisted.",
       lastCapturedAt: null,
     },
+    emails: {
+      isLive: false,
+      total: 0,
+      lastCapturedAt: null,
+      items: [],
+    },
     uptimeSummary: {
       isLive: false,
       status: "pending",
@@ -46,10 +52,11 @@ function createFallbackDashboard(range: DashboardRange): DashboardPayload {
       trafficCapturedAt: null,
       clickCapturedAt: null,
       leadCapturedAt: null,
+      emailCapturedAt: null,
       uptimeCapturedAt: null,
       notes: [
         "Traffic, clicks, regions, and source breakdowns will appear once live analytics events arrive.",
-        "Leads remain placeholder until contact submissions are persisted.",
+        "Captured contact emails will appear once submissions are relayed through the app.",
         "Uptime remains placeholder until a monitor is connected.",
       ],
     },
