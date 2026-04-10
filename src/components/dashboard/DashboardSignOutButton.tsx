@@ -1,18 +1,12 @@
 "use client";
 
-import { useAuthActions } from "@convex-dev/auth/react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export function DashboardSignOutButton() {
-  const authActions = useAuthActions();
   const router = useRouter();
   const [pending, setPending] = useState(false);
-
-  if (!authActions?.signOut) {
-    return null;
-  }
 
   return (
     <Button
@@ -21,7 +15,16 @@ export function DashboardSignOutButton() {
       disabled={pending}
       onClick={() => {
         setPending(true);
-        void authActions.signOut()
+        void fetch("/api/auth", {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            action: "auth:signOut",
+            args: {},
+          }),
+        })
           .then(() => {
             router.replace("/signin");
             router.refresh();

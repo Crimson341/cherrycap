@@ -1,6 +1,5 @@
 "use client";
 
-import { useAuthActions } from "@convex-dev/auth/react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,7 +16,6 @@ import { useState } from "react";
 const OWNER_EMAIL = "scott@cherrycapitalweb.com";
 
 export function DashboardSignInForm() {
-  const { signIn } = useAuthActions();
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
@@ -56,12 +54,34 @@ export function DashboardSignInForm() {
                   setPending(true);
                   setError(null);
 
-                  void signIn("dashboard-owner", {
-                    email: OWNER_EMAIL,
-                    password: password.trim(),
-                    redirectTo: "/dashboard",
+                  void fetch("/api/auth", {
+                    method: "POST",
+                    headers: {
+                      "content-type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      action: "auth:signIn",
+                      args: {
+                        provider: "dashboard-owner",
+                        params: {
+                          email: OWNER_EMAIL,
+                          password: password.trim(),
+                          redirectTo: "/dashboard",
+                        },
+                      },
+                    }),
                   })
-                    .then(() => {
+                    .then(async (response) => {
+                      const data = (await response.json().catch(() => null)) as
+                        | { error?: string }
+                        | null;
+
+                      if (!response.ok) {
+                        throw new Error(
+                          data?.error || "Could not complete authentication.",
+                        );
+                      }
+
                       router.replace("/dashboard");
                       router.refresh();
                     })
