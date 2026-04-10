@@ -23,6 +23,10 @@ export const proxy = convexAuthNextjsMiddleware(async (request, { convexAuth }) 
   }
 
   return NextResponse.next();
+}, {
+  // Sign-in and sign-out are handled by src/app/api/auth/route.ts so we can
+  // recover from stale JWT cookies before calling Convex.
+  apiRoute: "/api/_convex-auth",
 });
 
 export const config = {

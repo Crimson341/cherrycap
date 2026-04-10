@@ -96,6 +96,43 @@ function getConvexOptions() {
   return {};
 }
 
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Authentication failed";
+}
+
+function isInvalidAuthHeaderError(error: unknown) {
+  const message = getErrorMessage(error);
+
+  if (message.includes("InvalidAuthHeader")) {
+    return true;
+  }
+
+  try {
+    const parsed = JSON.parse(message) as { code?: unknown; message?: unknown };
+    return (
+      parsed.code === "InvalidAuthHeader" ||
+      (typeof parsed.message === "string" &&
+        parsed.message.includes("Could not decode token"))
+    );
+  } catch {
+    return message.includes("Could not decode token");
+  }
+}
+
+async function fetchSignInAction(
+  args: Record<string, unknown>,
+  token: string | undefined,
+) {
+  return fetchAction(
+    "auth:signIn" as unknown as Parameters<typeof fetchAction>[0],
+    args as Parameters<typeof fetchAction>[1],
+    {
+      ...getConvexOptions(),
+      ...(token ? { token } : {}),
+    },
+  );
+}
+
 export async function POST(request: NextRequest) {
   const cookieConfig = { maxAge: null } satisfies CookieConfig;
   const host = request.headers.get("host");
@@ -128,12 +165,28 @@ export async function POST(request: NextRequest) {
 
   if (action === "auth:signIn") {
     try {
-      const result = await fetchAction(action, args, {
-        ...getConvexOptions(),
-        ...(args?.refreshToken !== undefined || args?.params?.code !== undefined
-          ? {}
-          : { token }),
-      });
+      const shouldAuthenticateRequest =
+        args?.refreshToken === undefined && args?.params?.code === undefined;
+
+      let result: Awaited<ReturnType<typeof fetchSignInAction>>;
+
+      try {
+        result = await fetchSignInAction(
+          args as Record<string, unknown>,
+          shouldAuthenticateRequest ? token : undefined,
+        );
+      } catch (error) {
+        // A stale or foreign JWT cookie should not block a fresh credentials login.
+        if (
+          shouldAuthenticateRequest &&
+          token &&
+          isInvalidAuthHeaderError(error)
+        ) {
+          result = await fetchSignInAction(args as Record<string, unknown>, undefined);
+        } else {
+          throw error;
+        }
+      }
 
       if (
         typeof result === "object" &&
@@ -174,7 +227,7 @@ export async function POST(request: NextRequest) {
     } catch (error) {
       const response = json(
         {
-          error: error instanceof Error ? error.message : "Authentication failed",
+          error: getErrorMessage(error),
         },
         400,
       );
