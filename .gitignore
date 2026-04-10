@@ -35,10 +35,14 @@ yarn-error.log*
 
 # vercel
 .vercel
+.codex
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
 
-# clerk configuration (can include secrets)
-/.clerk/
+# database
+/data/
+
+# opensrc - source code for packages
+opensrc/

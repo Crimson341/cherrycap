@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Cherry Capital Portfolio ✨
 
-## Getting Started
+Welcome to the source code for the Cherry Capital portfolio website. This project demonstrates modern web development skills and business expertise using cutting-edge tech that outperforms WordPress solutions. The site is designed to be fast, responsive, and professional.
 
-First, run the development server:
+[![Next.js](https://img.shields.io/badge/Next.js-v15-blue?style=flat-square)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-blue?style=flat-square)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-v4-purple?style=flat-square)](https://tailwindcss.com/)
+[![Vercel](https://img.shields.io/badge/Vercel-black?logo=vercel&logoColor=white&style=flat-square)](https://vercel.com/)
+
+**[Live Demo](https://cherrycapitalweb.com/)** <!-- TODO: Update with actual domain -->
+
+## Features 🚀
+
+- **Responsive Design:**  The portfolio adapts seamlessly to various screen sizes, ensuring a consistent user experience across desktops, tablets, and mobile devices.
+- **Dark Mode:**  Users can easily switch between light and dark themes to match their preferences.
+- **Interactive Profile:** A visually appealing profile section includes an image and animated text showcasing Cherry Capital's expertise and services.
+- **Experience & Projects:**  Collapsible accordions provide detailed information about Cherry Capital's experience building websites in the Beulah area and showcase projects that demonstrate superiority over WordPress solutions.
+- **Contact Form:** A user-friendly contact form allows potential clients to easily reach out for modern web development services.
+- **Social Links:**  Quick access to Cherry Capital's professional social media profiles and business pages.
+
+## Tech Stack 🛠️
+
+- **Framework:** Next.js 15
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS
+- **UI Components:** Shadcn UI, Radix UI
+- **Animations:** Framer Motion
+- **Form Handling:** React Hook Form, Zod
+- **Email:** Nodemailer
+- **Deployment:** Vercel
+
+## Installation & Setup 💻
+
+1. **Clone the repository:**
+```bash
+git clone https://github.com/taqui-786/Taqui.git
+```
+cd Taqui
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+2. **Install dependencies:**
+   ```bash
+npm install
+   ```
+
+3. **Set up environment variables:**
+   Create a `.env.local` file in the project root and add your SMTP credentials for the contact form:
+```env
+SMPT_HOST="your-smtp-host"
+SMPT_USER="your-smtp-user"
+SMPT_PASS="your-smtp-password"
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. **Run the development server:**
+```bash
+npm run dev
+   ```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Usage Examples 💡
 
-## Learn More
+The code utilizes several key libraries:
 
-To learn more about Next.js, take a look at the following resources:
+- **React Hook Form:**  Manages form state and validation in the Contact Me section (`src/components/sections/ContactMeSection.tsx`).
+- **Zod:** Provides schema validation for the contact form data.
+- **Next-Themes:** Enables the dark/light theme switching functionality (`src/components/ThemeProvider.tsx`).
+- **Nodemailer:** Handles sending emails from the contact form (`src/components/sections/ContactMeSection.tsx` and `src/lib/mailConfiguration.ts`).
+- **Shadcn UI:** Provides pre-built UI components for a consistent design.
+- **Framer Motion:**  Used for animations (e.g., the profile section's text flipper).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Contributing 🤝
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Contributions are welcome! Please open an issue or submit a pull request.
 
-## Deploy on Vercel
+1. Fork the repository.
+2. Create a new branch for your feature or bug fix.
+3. Make your changes and commit them with clear messages.
+4. Push your branch to your forked repository.
+5. Submit a pull request to the main repository.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## License 📄
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
