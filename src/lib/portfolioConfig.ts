@@ -2,12 +2,11 @@ export const portfolioConfig = {
   // Basic Information
   name: "Cherry Capital",
   title: "Cherry Capital",
-  description: "Cherry Capital builds custom websites that generate measurable business results. Specialized in building high-performance, conversion-focused digital solutions for ambitious local businesses. Former market analyst turned full-stack engineer. Enterprise-grade technology, boutique service.",
+  description: "Cherry Capital is a Beulah, Michigan web studio building fast custom websites for Northern Michigan businesses.",
   location: "Beulah, Michigan",
 
   // Contact Information
-  email: "hello@cherrycapitalweb.com",
-  phone: "+1 (616) 260-9863",
+  email: "scott@cherrycapitalweb.com",
 
   // Social Media Links
   socialLinks: {

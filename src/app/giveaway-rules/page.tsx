@@ -131,8 +131,7 @@ export default function GiveawayRulesPage() {
           <p>
             For questions about this giveaway, contact:<br />
             Cherry Capital<br />
-            Email: hello@cherrycapitalweb.com<br />
-            Phone: (616) 260-9863
+            Email: scott@cherrycapitalweb.com
           </p>
         </section>
       </div>

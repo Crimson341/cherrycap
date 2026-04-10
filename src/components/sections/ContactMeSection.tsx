@@ -116,7 +116,7 @@ function ContactMeSection() {
             </h2>
             <p className="text-sm text-muted-foreground font-mono text-center">
               Ready to discuss a website that actually converts?<br/>
-              Call <strong>(616) 260-9863</strong> or fill out the form below
+              Fill out the form below
             </p>
           </div>
           <div className="relative flex flex-col pb-4 items-center justify-center">

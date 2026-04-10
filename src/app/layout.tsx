@@ -1,3 +1,4 @@
+import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
@@ -6,10 +7,14 @@ import {
   IBM_Plex_Sans as FontSans,
 } from "next/font/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { ConvexClientProvider } from "@/components/ConvexClientProvider";
 import { portfolioConfig } from "@/lib/portfolioConfig";
 import { Analytics } from "@vercel/analytics/react";
 import { StructuredData } from "@/components/StructuredData";
+import { SiteAnalyticsTracker } from "@/components/analytics/SiteAnalyticsTracker";
 import { defaultOgImage, siteDescription, siteName, siteTitle } from "@/lib/seo";
+
+const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
 
  const fontSans = FontSans({
   weight: ["400", "500", "600"],
@@ -100,6 +105,19 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const appContent = (
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
+      <div className="relative z-10">
+        {children}
+      </div>
+    </ThemeProvider>
+  );
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -121,17 +139,15 @@ export default function RootLayout({
         className={`${fontSans.variable} ${fontMono.variable} relative`}
         suppressHydrationWarning
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <div className="relative z-10">
-          {children}
-          </div>
-        </ThemeProvider>
+        {convexUrl ? (
+          <ConvexAuthNextjsServerProvider>
+            <ConvexClientProvider>{appContent}</ConvexClientProvider>
+          </ConvexAuthNextjsServerProvider>
+        ) : (
+          appContent
+        )}
         <StructuredData />
+        <SiteAnalyticsTracker />
         <Analytics />
       </body>
     </html>

@@ -6,10 +6,9 @@ import { FlipSentences } from "../ui/FlipSentences";
 
 function ProfileSection() {
   const flipSentences = [
-    "Full stack developer crafting modern web applications.",
-    "Open source contributor building in public consistently.",
-    "Tech blogger sharing insights and tutorials regularly.",
-    "Creator of useful and exciting side projects.",
+    "I build custom websites for Northern Michigan businesses.",
+    "No handoff chain. No bloated agency process.",
+    "You work directly with me from first draft to launch.",
   ];
 
   return (

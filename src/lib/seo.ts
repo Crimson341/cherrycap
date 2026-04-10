@@ -8,7 +8,7 @@ export const defaultOgImage = {
   url: "/og-image.png",
   width: 1200,
   height: 630,
-  alt: "Cherry Capital builds high-performance websites for local businesses.",
+  alt: "Cherry Capital is a web studio building custom sites for local businesses.",
 };
 
 export function absoluteUrl(path = "/") {

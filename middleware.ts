@@ -9,7 +9,7 @@ const isSignInPage = createRouteMatcher(["/signin"]);
 const isDashboardRoute = createRouteMatcher(["/dashboard(.*)"]);
 const authConfigured = Boolean(process.env.NEXT_PUBLIC_CONVEX_URL);
 
-export const proxy = convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
+export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
   if (!authConfigured) {
     return NextResponse.next();
   }

@@ -12,7 +12,6 @@ export function StructuredData() {
     "logo": absoluteUrl("/myImage.png"),
     "image": absoluteUrl("/og-image.png"),
     "email": portfolioConfig.email,
-    "telephone": portfolioConfig.phone,
     "address": {
       "@type": "PostalAddress",
       "addressLocality": "Beulah",

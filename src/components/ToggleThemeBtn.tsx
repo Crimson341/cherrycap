@@ -1,6 +1,6 @@
 "use client";
 
-import { useTheme } from "next-themes";
+import { useTheme } from "@/components/ThemeProvider";
 import React from "react";
 import { Button } from "./ui/button";
 import { MoonAltToSunnyOutlineLoopTransitionIcon } from "./Icons";
@@ -8,7 +8,6 @@ import { MoonIcon } from "lucide-react";
 
 function ToggleThemeBtn() {
   const { setTheme, theme, systemTheme } = useTheme();
-  console.log(theme, systemTheme);
   const theTheme =
     theme === "system"
       ? systemTheme === "dark"
