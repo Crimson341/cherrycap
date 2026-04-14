@@ -67,7 +67,7 @@ function ContactMeSection() {
   }
 
   return (
-    <section className="relative h-fit border-x full-line-bottom px-11">
+    <section className="relative h-fit border-x full-line-bottom px-4 md:px-11">
       <div
         className={cn(
           "absolute top-0 left-0 flex h-full w-8 border-r border-edge",

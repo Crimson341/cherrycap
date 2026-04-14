@@ -10,7 +10,7 @@ import { BlogStructuredData } from "@/components/BlogStructuredData";
 import { NextjsSpecialPost } from "@/components";
 import { publishedBlogPosts } from "@/lib/blogPosts";
 import { portfolioConfig } from "@/lib/portfolioConfig";
-import { defaultOgImage } from "@/lib/seo";
+import { defaultOgImage, siteName } from "@/lib/seo";
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
@@ -193,10 +193,22 @@ export async function generateMetadata({
   return {
     title: post.title,
     description: post.excerpt,
-    keywords: [...post.tags, "Cherry Capital", "web development"],
+    keywords: [...new Set([...post.tags, siteName, "web development", post.category])],
     authors: portfolioConfig.seo.authors,
     alternates: {
       canonical: canonicalPath,
+      languages: { en: canonicalPath },
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
     },
     openGraph: {
       title: post.title,
@@ -214,7 +226,9 @@ export async function generateMetadata({
       card: "summary_large_image",
       title: post.title,
       description: post.excerpt,
-      images: [defaultOgImage.url],
+      images: [defaultOgImage],
+      creator: portfolioConfig.seo.twitterHandle,
+      site: portfolioConfig.seo.twitterHandle,
     },
   };
 }

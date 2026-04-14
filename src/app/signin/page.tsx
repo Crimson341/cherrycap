@@ -2,6 +2,40 @@ import { isAuthenticatedNextjs } from "@convex-dev/auth/nextjs/server";
 import { DashboardSignInForm } from "@/components/dashboard/DashboardSignInForm";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
+import { defaultOgImage, siteName } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  title: "Dashboard Sign-In",
+  description:
+    "Owner-only sign-in page for accessing Cherry Capital analytics and dashboard insights.",
+  alternates: {
+    canonical: "/signin",
+    languages: {
+      en: "/signin",
+    },
+  },
+  robots: {
+    index: false,
+    follow: false,
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "/signin",
+    title: `${siteName} Analytics Sign-In`,
+    description:
+      "Owner authentication portal for private Cherry Capital site analytics.",
+    images: [defaultOgImage],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${siteName} Analytics Sign-In`,
+    description:
+      "Owner-only sign-in page for Cherry Capital analytics dashboard access.",
+    images: [defaultOgImage.url],
+  },
+};
 
 export default async function SignInPage({
   searchParams,

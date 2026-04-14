@@ -18,12 +18,15 @@ function ProfileSection() {
           <Image
             className="size-32 rounded-full ring-1 ring-border ring-offset-2 ring-offset-background select-none sm:size-40"
             alt={`Cherry Capital avatar`}
-            src={MyImage.src}
+            src={MyImage}
             width={512}
             height={512}
-            quality={100}
+            quality={75}
             priority
-            unoptimized
+            placeholder="blur"
+            fetchPriority="high"
+            decoding="async"
+            sizes="(min-width: 768px) 160px, 128px"
           />
         </div>
       </div>

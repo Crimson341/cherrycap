@@ -27,6 +27,7 @@ function SocialLinks() {
           <a
             href={link.href}
             target="_blank"
+            rel="noopener noreferrer"
             className={cn(
               "flex p-4 group/link items-center gap-4 justify-start relative select-none transition-colors",
               index % 2 === 0 ? "full-line-top full-line-bottom" : "",
@@ -41,6 +42,9 @@ function SocialLinks() {
                 width={48}
                 height={48}
                 className="rounded-xl"
+                loading="lazy"
+                decoding="async"
+                sizes="48px"
               />
             </div>
             <div className="flex flex-col items-start grow justify-between">

@@ -3,34 +3,51 @@ import type { MetadataRoute } from "next";
 import { publishedBlogPosts } from "@/lib/blogPosts";
 import { portfolioConfig } from "@/lib/portfolioConfig";
 
+const baseUrl = portfolioConfig.seo.url.replace(/\/$/, "");
+const toAbsolute = (path: string) => `${baseUrl}${path.startsWith("/") ? path : `/${path}`}`;
+
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = portfolioConfig.seo.url;
-  const homepageLastModified =
-    publishedBlogPosts.length > 0
-      ? publishedBlogPosts[0].updatedAt ?? publishedBlogPosts[0].publishedAt
-      : new Date().toISOString();
+  const sitemapPosts = [...publishedBlogPosts].sort(
+    (left, right) =>
+      new Date(right.updatedAt ?? right.publishedAt).getTime() -
+      new Date(left.updatedAt ?? left.publishedAt).getTime()
+  );
+  const homepageLastModified = new Date(
+    sitemapPosts.length > 0
+      ? sitemapPosts[0].updatedAt ?? sitemapPosts[0].publishedAt
+      : new Date()
+  ).toISOString();
 
   return [
     {
-      url: baseUrl,
+      url: toAbsolute("/"),
       lastModified: homepageLastModified,
       changeFrequency: "weekly",
       priority: 1,
-      images: [`${baseUrl}/og-image.png`],
+      alternates: {
+        languages: { en: toAbsolute("/") },
+      },
+      images: [toAbsolute("/og-image.png")],
     },
     {
-      url: `${baseUrl}/blog`,
+      url: toAbsolute("/blog"),
       lastModified: homepageLastModified,
       changeFrequency: "weekly",
       priority: 0.8,
-      images: [`${baseUrl}/og-image.png`],
+      alternates: {
+        languages: { en: toAbsolute("/blog") },
+      },
+      images: [toAbsolute("/og-image.png")],
     },
-    ...publishedBlogPosts.map((post) => ({
-      url: `${baseUrl}/blog/${post.slug}`,
-      lastModified: post.updatedAt ?? post.publishedAt,
-      changeFrequency: "monthly" as const,
+    ...sitemapPosts.map((post) => ({
+      url: toAbsolute(`/blog/${post.slug}`),
+      lastModified: new Date(post.updatedAt ?? post.publishedAt).toISOString(),
+      changeFrequency: "monthly",
       priority: post.featured ? 0.8 : 0.7,
-      images: [`${baseUrl}/og-image.png`],
+      alternates: {
+        languages: { en: toAbsolute(`/blog/${post.slug}`) },
+      },
+      images: [toAbsolute("/og-image.png")],
     })),
   ];
 }

@@ -6,6 +6,40 @@ import {
   type DashboardRange,
 } from "@/lib/dashboard/types";
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
+import { defaultOgImage, siteName } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  title: "Analytics Dashboard",
+  description:
+    "Private analytics dashboard for tracking site traffic, click activity, and engagement at Cherry Capital.",
+  alternates: {
+    canonical: "/dashboard",
+    languages: {
+      en: "/dashboard",
+    },
+  },
+  robots: {
+    index: false,
+    follow: false,
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "/dashboard",
+    title: `${siteName} Analytics Dashboard`,
+    description:
+      "Private internal dashboard for Cherry Capital traffic and conversion analytics.",
+    images: [defaultOgImage],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${siteName} Analytics Dashboard`,
+    description:
+      "Private internal dashboard for Cherry Capital traffic and conversion analytics.",
+    images: [defaultOgImage.url],
+  },
+};
 
 function parseRange(input: string | string[] | undefined): DashboardRange {
   const value = Array.isArray(input) ? input[0] : input;

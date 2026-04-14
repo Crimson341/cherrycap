@@ -24,6 +24,7 @@ function ToggleThemeBtn() {
       variant={"outline"}
       size={"icon"}
       className="rounded-full cursor-pointer"
+      aria-label={theTheme === "sun" ? "Switch to dark mode" : "Switch to light mode"}
       onClick={changeTheme}
     >
       {theTheme === "sun" ? (

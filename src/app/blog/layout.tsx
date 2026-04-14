@@ -7,7 +7,8 @@ export const metadata: Metadata = {
     default: "Cherry Capital Web Blog",
     template: `%s | Cherry Capital Blog`,
   },
-  description: "Welcome to the Cherry Capital Web Blog. A home for web notes, launch stories, and practical ideas from Cherry Capital.",
+  description:
+    "Notes from modern web development, performance optimization, and local SEO practices for Northern Michigan businesses.",
   keywords: [
     "web development blog",
     "next.js tutorials",
@@ -22,21 +23,30 @@ export const metadata: Metadata = {
   authors: portfolioConfig.seo.authors,
   alternates: {
     canonical: "/blog",
+    languages: {
+      en: "/blog",
+    },
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
   openGraph: {
     type: "website",
     locale: "en_US",
     url: "/blog",
     title: "Cherry Capital Web Blog",
-    description: "Welcome to the Cherry Capital Web Blog. A home for web notes, launch stories, and practical ideas from Cherry Capital.",
+    description:
+      "Notes from modern web development, performance optimization, and local SEO practices for Northern Michigan businesses.",
     images: [defaultOgImage],
     siteName,
   },
   twitter: {
     card: "summary_large_image",
     title: "Cherry Capital Web Blog",
-    description: "Welcome to the Cherry Capital Web Blog. A home for web notes, launch stories, and practical ideas from Cherry Capital.",
-    images: [defaultOgImage.url],
+    description:
+      "Notes from modern web development, performance optimization, and local SEO practices for Northern Michigan businesses.",
+    images: [defaultOgImage],
     creator: portfolioConfig.seo.twitterHandle,
     site: portfolioConfig.seo.twitterHandle,
   },

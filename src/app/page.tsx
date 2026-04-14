@@ -11,6 +11,36 @@ import ExperienceSection from "@/components/sections/ExperienceSection";
 import ContactMeSection from "@/components/sections/ContactMeSection";
 import FooterSection from "@/components/sections/FooterSection";
 import LandingAnimationWrapper from "@/components/LandingAnimationWrapper";
+import type { Metadata } from "next";
+import { defaultOgImage, siteName } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  title: "Home",
+  description:
+    "Cherry Capital builds modern websites and conversion-focused web experiences for local businesses in Northern Michigan.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: `${siteName} | Northern Michigan Web Studio`,
+    description:
+      "Custom web design and SEO-focused development for small businesses in Michigan.",
+    type: "website",
+    locale: "en_US",
+    url: "/",
+    images: [defaultOgImage],
+    siteName,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${siteName} | Northern Michigan Web Studio`,
+    description:
+      "Custom web design and SEO-focused development for small businesses in Michigan.",
+    images: [defaultOgImage.url],
+    creator: "@cherrycapweb",
+    site: "@cherrycapweb",
+  },
+};
 
 export default function Home() {
   return (

@@ -80,6 +80,8 @@ function TechStackSection() {
                     fill
                     sizes="(min-width: 768px) 50vw, 100vw"
                     className={`transition-transform duration-300 group-hover:scale-[1.02] ${client.imageClassName}`}
+                    loading="lazy"
+                    decoding="async"
                   />
                 )}
               </div>

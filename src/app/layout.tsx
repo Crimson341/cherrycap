@@ -29,10 +29,11 @@ import { defaultOgImage, siteDescription, siteName, siteTitle } from "@/lib/seo"
 export const metadata: Metadata = {
   metadataBase: new URL(portfolioConfig.seo.url),
   title: {
-    default: siteName,
-    template: `%s | ${siteTitle}`,
+    default: `${siteName} | Northern Michigan Web Studio`,
+    template: `%s | ${siteTitle} | Northern Michigan`,
   },
-  description: siteDescription,
+  description:
+    "Cherry Capital is a Beulah, Michigan web studio building fast, secure, and conversion-focused websites for local businesses across Northern Michigan.",
   applicationName: siteName,
   keywords: portfolioConfig.seo.keywords,
   authors: portfolioConfig.seo.authors,
@@ -48,21 +49,26 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: "/",
+    languages: {
+      en: "/",
+    },
   },
   openGraph: {
     type: "website",
     locale: "en_US",
     url: "/",
-    title: siteName,
-    description: siteDescription,
+    title: `${siteName} | Northern Michigan Web Studio`,
+    description:
+      "Fast, SEO-friendly website design and development for local businesses in Northern Michigan.",
     images: [defaultOgImage],
     siteName,
   },
   twitter: {
     card: "summary_large_image",
-    title: siteName,
-    description: siteDescription,
-    images: [defaultOgImage.url],
+    title: `${siteName} | Northern Michigan Web Studio`,
+    description:
+      "Fast, SEO-friendly website design and development for local businesses in Northern Michigan.",
+    images: [defaultOgImage],
     creator: portfolioConfig.seo.twitterHandle,
     site: portfolioConfig.seo.twitterHandle,
   },
@@ -116,7 +122,7 @@ export default function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
+    <head>
         {/* DNS Prefetching for performance */}
         <link rel="dns-prefetch" href="//fonts.googleapis.com" />
         <link rel="dns-prefetch" href="//api.web3forms.com" />
@@ -125,7 +131,6 @@ export default function RootLayout({
         
         {/* Preload critical resources */}
         <link rel="preload" href="/myImage.png" as="image" type="image/png" />
-        <link rel="preload" href="/og-image.png" as="image" type="image/png" />
         
         {/* Preconnect to external domains */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />

@@ -96,10 +96,11 @@ export const Header = ({ transition }: { transition: boolean }) => {
         >
              <div className="flex gap-3 items-center justify-center">
 
-         <PortfolioInfoDialog/>
+         <PortfolioInfoDialog />
           <Link
             href={"https://github.com/thuggys"}
             target="_blank"
+            aria-label="Open GitHub profile in a new tab"
             className={cn(
               buttonVariants({ variant: "outline", size: "icon" }),
               "rounded-full"

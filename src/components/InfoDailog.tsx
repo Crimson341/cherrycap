@@ -16,7 +16,12 @@ export default function PortfolioInfoDialog() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon" className="rounded-full">
+        <Button
+          variant="outline"
+          size="icon"
+          className="rounded-full"
+          aria-label="Open portfolio info"
+        >
           <Info className="h-4 w-4" />
         </Button>
       </DialogTrigger>

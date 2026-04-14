@@ -1,6 +1,24 @@
 import { portfolioConfig } from "@/lib/portfolioConfig";
 import { absoluteUrl, safeJsonLd, siteDescription, siteName } from "@/lib/seo";
 
+const serviceCatalog = [
+  {
+    name: "Custom Website Development",
+    description: "High-performance custom websites built for lead generation and local visibility.",
+    url: "https://www.cherrycapitalweb.com/#contact",
+  },
+  {
+    name: "Website Redesign",
+    description: "Conversion-focused redesigns for slow, outdated, or underperforming websites.",
+    url: "https://www.cherrycapitalweb.com/#contact",
+  },
+  {
+    name: "Local SEO",
+    description: "Technical SEO and local search optimization for Northern Michigan businesses.",
+    url: "https://www.cherrycapitalweb.com/#contact",
+  },
+];
+
 export function StructuredData() {
   const organizationSchema = {
     "@context": "https://schema.org",
@@ -9,14 +27,37 @@ export function StructuredData() {
     "name": siteName,
     "description": siteDescription,
     "url": portfolioConfig.seo.url,
-    "logo": absoluteUrl("/myImage.png"),
+    "logo": {
+      "@type": "ImageObject",
+      "url": absoluteUrl("/myImage.png"),
+      "width": 720,
+      "height": 733,
+    },
     "image": absoluteUrl("/og-image.png"),
     "email": portfolioConfig.email,
+    "contactPoint": [
+      {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "email": portfolioConfig.email,
+        "areaServed": "US",
+        "availableLanguage": ["en"],
+        "contactOption": "TollFree",
+      },
+    ],
     "address": {
       "@type": "PostalAddress",
       "addressLocality": "Beulah",
       "addressRegion": "MI",
       "addressCountry": "US"
+    },
+    "areaServed": {
+      "@type": "AdministrativeArea",
+      "name": "Northern Michigan",
+      "containedInPlace": {
+        "@type": "Country",
+        "name": "US",
+      },
     },
     "sameAs": Object.values(portfolioConfig.socialLinks).filter(Boolean)
   };
@@ -32,46 +73,45 @@ export function StructuredData() {
     "provider": {
       "@id": absoluteUrl("/#organization")
     },
+    "logo": absoluteUrl("/myImage.png"),
     "areaServed": {
       "@type": "AdministrativeArea",
       "name": "Michigan"
     },
-    "serviceType": [
-      "Custom website development",
-      "Next.js development",
-      "Website redesign",
-      "Local SEO"
-    ],
+    "serviceType": serviceCatalog.map((service) => service.name),
     "hasOfferCatalog": {
       "@type": "OfferCatalog",
       "name": "Cherry Capital Services",
-      "itemListElement": [
-        {
-          "@type": "Offer",
-          "itemOffered": {
-            "@type": "Service",
-            "name": "Custom Website Development",
-            "description": "High-performance custom websites built for lead generation and local visibility."
-          }
+      "numberOfItems": serviceCatalog.length,
+      "itemListElement": serviceCatalog.map((service) => ({
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": service.name,
+          "description": service.description,
         },
-        {
-          "@type": "Offer",
-          "itemOffered": {
-            "@type": "Service",
-            "name": "Website Redesign",
-            "description": "Conversion-focused redesigns for slow, outdated, or underperforming websites."
-          }
-        },
-        {
-          "@type": "Offer",
-          "itemOffered": {
-            "@type": "Service",
-            "name": "Local SEO",
-            "description": "Technical SEO and local search optimization for Northern Michigan businesses."
-          }
-        }
-      ]
-    }
+        "url": service.url,
+      })),
+    },
+    "sameAs": Object.values(portfolioConfig.socialLinks).filter(Boolean)
+  };
+
+  const serviceListingSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "@id": absoluteUrl("/#service-list"),
+    "name": "Cherry Capital Service Listings",
+    "numberOfItems": serviceCatalog.length,
+    "itemListElement": serviceCatalog.map((service, index) => ({
+      "@type": "ListItem",
+      "position": index + 1,
+      "item": {
+        "@type": "Service",
+        "name": service.name,
+        "description": service.description,
+        "url": service.url,
+      },
+    })),
   };
 
   const websiteSchema = {
@@ -84,26 +124,50 @@ export function StructuredData() {
     "publisher": {
       "@id": absoluteUrl("/#organization")
     },
-    "inLanguage": "en-US"
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": `${portfolioConfig.seo.url}/blog?query={search_term_string}`,
+      },
+      "query-input": "required name=search_term_string",
+    },
+    "inLanguage": "en-US",
+    "about": {
+      "@id": absoluteUrl("/#organization"),
+    },
   };
 
-  return (
-    <>
-      <script
-        id="organization-schema"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: safeJsonLd(organizationSchema) }}
-      />
-      <script
-        id="service-schema"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: safeJsonLd(serviceSchema) }}
-      />
-      <script
-        id="website-schema"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: safeJsonLd(websiteSchema) }}
-      />
-    </>
-  );
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "@id": absoluteUrl("/#homepage-breadcrumb"),
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": portfolioConfig.seo.url,
+      },
+    ],
+  };
+
+  const schemaScripts = [
+    organizationSchema,
+    serviceSchema,
+    serviceListingSchema,
+    websiteSchema,
+    breadcrumbSchema,
+  ];
+
+  const organizationSchemaDupFilter = schemaScripts.map((schema, index) => (
+    <script
+      key={`${schema["@type"]}-${schema["@id"]}-${index}`}
+      id={`${String(schema["@type"]).toLowerCase()}-${index}`}
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
+    />
+  ));
+
+  return <>{organizationSchemaDupFilter}</>;
 }

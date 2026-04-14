@@ -6,8 +6,8 @@ export const siteTitle = portfolioConfig.title;
 export const siteDescription = portfolioConfig.description;
 export const defaultOgImage = {
   url: "/og-image.png",
-  width: 1200,
-  height: 630,
+  width: 768,
+  height: 352,
   alt: "Cherry Capital is a web studio building custom sites for local businesses.",
 };
 

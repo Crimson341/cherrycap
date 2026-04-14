@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import type { Metadata } from "next";
 import {
   ArrowLeft,
   ArrowRight,
@@ -21,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { publishedBlogPosts } from "@/lib/blogPosts";
+import { defaultOgImage, siteName } from "@/lib/seo";
 
 const topicCloud = [
   "UX Design",
@@ -37,6 +39,44 @@ const footerLinks = [
   { label: "Blog", href: "/blog" },
   { label: "Contact", href: "/#contact" },
 ];
+
+const sectionAnchors = [
+  { id: "latest-release", label: "Latest release" },
+  { id: "archive", label: "Archive" },
+  { id: "popular-topics", label: "Popular topics" },
+];
+
+export const metadata: Metadata = {
+  title: "Blog",
+  description:
+    "A practical journal of web development, local SEO, and growth-focused design for Northern Michigan businesses.",
+  alternates: {
+    canonical: "/blog",
+    languages: {
+      en: "/blog",
+    },
+  },
+  keywords: ["web development", "local SEO", "Next.js", "Northern Michigan", "blog"],
+  openGraph: {
+    title: "Cherry Capital Web Blog",
+    description:
+      "A practical journal of web development, local SEO, and growth-focused design for Northern Michigan businesses.",
+    type: "website",
+    locale: "en_US",
+    url: "/blog",
+    images: [defaultOgImage],
+    siteName,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Cherry Capital Web Blog",
+    description:
+      "A practical journal of web development, local SEO, and growth-focused design for Northern Michigan businesses.",
+    images: [defaultOgImage.url],
+    creator: "@cherrycapweb",
+    site: "@cherrycapweb",
+  },
+};
 
 export default function BlogPage() {
   const posts = [...publishedBlogPosts].sort(
@@ -130,15 +170,34 @@ export default function BlogPage() {
               <span className="font-mono italic text-primary">one pixel</span> at a time.
             </h1>
 
-            <p className="mx-auto max-w-2xl text-lg leading-relaxed text-muted-foreground">
+              <p className="mx-auto max-w-2xl text-lg leading-relaxed text-muted-foreground">
               Welcome to the Cherry Capital Web Blog. A notebook of field notes on
               design, local growth, and high-performance web engineering.
             </p>
 
+            <nav
+              aria-label="Blog page sections"
+              className="mt-10 flex flex-wrap justify-center gap-2 text-xs font-mono"
+            >
+              {sectionAnchors.map((anchor) => (
+                <a
+                  key={anchor.id}
+                  href={`#${anchor.id}`}
+                  className="rounded-full border border-border px-3 py-2 uppercase tracking-[0.18em] hover:bg-secondary"
+                >
+                  {anchor.label}
+                </a>
+              ))}
+            </nav>
+
             <div className="mt-10 flex flex-col items-center justify-center gap-4">
               <div className="relative w-full max-w-sm">
                 <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <label htmlFor="blog-search" className="sr-only">
+                  Search articles
+                </label>
                 <Input
+                  id="blog-search"
                   type="text"
                   placeholder="Search articles..."
                   className="h-11 rounded-full border-border/70 bg-background/70 pl-10 pr-4 shadow-sm backdrop-blur-sm"
@@ -190,7 +249,10 @@ export default function BlogPage() {
           <div className="grid grid-cols-1 gap-12 lg:grid-cols-12">
             <div className="lg:col-span-8">
               <div className="mb-8 flex items-center justify-between">
-                <h2 className="flex items-center gap-2 text-2xl font-semibold tracking-tight">
+                <h2
+                  id="latest-release"
+                  className="flex items-center gap-2 text-2xl font-semibold tracking-tight"
+                >
                   <BookOpen className="size-5 text-primary" />
                   Latest Release
                 </h2>
@@ -198,68 +260,66 @@ export default function BlogPage() {
               </div>
 
               {latestPost ? (
-                <Link href={`/blog/${latestPost.slug}`} className="group block">
-                  <article>
-                    <Card className="overflow-hidden border-0 bg-transparent py-0 shadow-none">
-                      <div className="relative mb-6 aspect-[16/9] overflow-hidden rounded-2xl border border-border/70 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--color-secondary)_38%,transparent),color-mix(in_srgb,var(--color-card)_92%,transparent))]">
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--color-primary)_16%,transparent),transparent_34%)]" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/15 to-transparent" />
-                        <div className="flex h-full w-full items-center justify-center">
-                          <FileText className="size-16 text-foreground/15" />
-                        </div>
-                        <Badge className="absolute left-4 top-4 rounded-full font-mono text-[10px] uppercase tracking-[0.22em]">
-                          Featured
-                        </Badge>
+              <article>
+                <Card className="overflow-hidden border-0 bg-transparent py-0 shadow-none">
+                  <div className="relative mb-6 aspect-[16/9] overflow-hidden rounded-2xl border border-border/70 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--color-secondary)_38%,transparent),color-mix(in_srgb,var(--color-card)_92%,transparent))]">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--color-primary)_16%,transparent),transparent_34%)]" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/15 to-transparent" />
+                    <div className="flex h-full w-full items-center justify-center">
+                      <FileText className="size-16 text-foreground/15" />
+                    </div>
+                    <Badge className="absolute left-4 top-4 rounded-full font-mono text-[10px] uppercase tracking-[0.22em]">
+                      Featured
+                    </Badge>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                      <span className="flex items-center gap-1 font-mono">
+                        <Calendar className="size-3" />
+                        {new Date(latestPost.publishedAt).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </span>
+                      <span className="flex items-center gap-1 font-mono">
+                        <Clock className="size-3" />
+                        {latestPost.readTime}
+                      </span>
+                    </div>
+
+                    <h3 className="text-3xl font-semibold tracking-[-0.04em] transition-colors group-hover:text-primary md:text-4xl">
+                      {latestPost.title}
+                    </h3>
+
+                    <p className="max-w-3xl text-lg leading-relaxed text-muted-foreground">
+                      {latestPost.excerpt}
+                    </p>
+
+                    <div className="flex flex-col gap-4 pt-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex flex-wrap gap-x-3 gap-y-2">
+                        {latestPost.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="inline-flex items-center text-xs font-mono text-muted-foreground"
+                          >
+                            <Hash className="mr-0.5 size-3" />
+                            {tag}
+                          </span>
+                        ))}
                       </div>
 
-                      <div className="space-y-4">
-                        <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                          <span className="flex items-center gap-1 font-mono">
-                            <Calendar className="size-3" />
-                            {new Date(latestPost.publishedAt).toLocaleDateString("en-US", {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            })}
-                          </span>
-                          <span className="flex items-center gap-1 font-mono">
-                            <Clock className="size-3" />
-                            {latestPost.readTime}
-                          </span>
-                        </div>
-
-                        <h3 className="text-3xl font-semibold tracking-[-0.04em] transition-colors group-hover:text-primary md:text-4xl">
-                          {latestPost.title}
-                        </h3>
-
-                        <p className="max-w-3xl text-lg leading-relaxed text-muted-foreground">
-                          {latestPost.excerpt}
-                        </p>
-
-                        <div className="flex flex-col gap-4 pt-4 sm:flex-row sm:items-center sm:justify-between">
-                          <div className="flex flex-wrap gap-x-3 gap-y-2">
-                            {latestPost.tags.map((tag) => (
-                              <span
-                                key={tag}
-                                className="inline-flex items-center text-xs font-mono text-muted-foreground"
-                              >
-                                <Hash className="mr-0.5 size-3" />
-                                {tag}
-                              </span>
-                            ))}
-                          </div>
-
-                          <Button className="rounded-full font-mono" asChild>
-                            <span>
-                              Read Story
-                              <ArrowRight className="size-4" />
-                            </span>
-                          </Button>
-                        </div>
-                      </div>
-                    </Card>
-                  </article>
-                </Link>
+                      <Button className="rounded-full font-mono" asChild>
+                        <Link href={`/blog/${latestPost.slug}`}>
+                          Read Story
+                          <ArrowRight className="size-4" />
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              </article>
               ) : (
                 <div className="flex h-64 items-center justify-center rounded-2xl border-2 border-dashed border-border text-muted-foreground">
                   No posts found. Starting the engine...
@@ -267,12 +327,15 @@ export default function BlogPage() {
               )}
             </div>
 
-            <aside className="space-y-12 lg:col-span-4">
-              <div>
-                <h2 className="mb-6 flex items-center gap-2 text-xl font-semibold">
-                  <FolderOpenDot className="size-5 text-primary" />
-                  Archive
-                </h2>
+              <aside className="space-y-12 lg:col-span-4">
+                <div>
+                  <h2
+                    id="archive"
+                    className="mb-6 flex items-center gap-2 text-xl font-semibold"
+                  >
+                    <FolderOpenDot className="size-5 text-primary" />
+                    Archive
+                  </h2>
 
                 <div className="space-y-6">
                   {archivedPosts.map((post) => (
@@ -324,10 +387,13 @@ export default function BlogPage() {
                 </Button>
               </Card>
 
-              <div>
-                <h3 className="mb-4 text-sm font-mono font-bold uppercase tracking-[0.3em]">
-                  Popular Topics
-                </h3>
+                <div>
+                  <h3
+                    id="popular-topics"
+                    className="mb-4 text-sm font-mono font-bold uppercase tracking-[0.3em]"
+                  >
+                    Popular Topics
+                  </h3>
                 <div className="flex flex-wrap gap-2">
                   {topicCloud.map((topic) => (
                     <Badge

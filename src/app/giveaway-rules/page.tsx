@@ -1,10 +1,40 @@
 import type { Metadata } from "next";
+import { defaultOgImage, siteName } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Giveaway Rules",
-  description: "Official giveaway rules and terms for Cherry Capital promotions.",
+  title: "Giveaway Rules | Cherry Capital Promotion",
+  description:
+    "Read the complete official giveaway rules for Cherry Capital promotions, including eligibility, entry, timeline, winner selection, and legal notices.",
   alternates: {
     canonical: "/giveaway-rules",
+    languages: {
+      en: "/giveaway-rules",
+    },
+  },
+  keywords: [
+    "Cherry Capital giveaway rules",
+    "contest terms",
+    "website giveaway eligibility",
+    "local business promotion rules",
+  ],
+  openGraph: {
+    type: "article",
+    locale: "en_US",
+    url: "/giveaway-rules",
+    title: `${siteName} Giveaway Rules`,
+    description:
+      "Complete official giveaway rules for Cherry Capital promotions, including legal terms and winner process.",
+    images: [defaultOgImage],
+    siteName,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${siteName} Giveaway Rules`,
+    description:
+      "Official rule summary for the Cherry Capital giveaway, including eligibility and winner selection.",
+    images: [defaultOgImage.url],
+    creator: "@cherrycapweb",
+    site: "@cherrycapweb",
   },
   robots: {
     index: false,
@@ -14,25 +44,69 @@ export const metadata: Metadata = {
 
 export default function GiveawayRulesPage() {
   return (
-    <div className="min-h-screen px-4 py-12 max-w-4xl mx-auto">
+    <main className="min-h-screen px-4 py-12 max-w-4xl mx-auto">
       <h1 className="text-4xl font-bold mb-8">Official Giveaway Rules</h1>
-      
+      <nav
+        aria-label="Giveaway section links"
+        className="mb-6 flex flex-wrap gap-2 text-sm"
+      >
+        <a href="#sponsor" className="underline underline-offset-4">
+          1. Sponsor
+        </a>
+        <a href="#purchase" className="underline underline-offset-4">
+          2. No Purchase Necessary
+        </a>
+        <a href="#eligibility" className="underline underline-offset-4">
+          3. Eligibility
+        </a>
+        <a href="#period" className="underline underline-offset-4">
+          4. Entry Period
+        </a>
+        <a href="#entry" className="underline underline-offset-4">
+          5. How to Enter
+        </a>
+        <a href="#selection" className="underline underline-offset-4">
+          6. Winner Selection
+        </a>
+        <a href="#prize" className="underline underline-offset-4">
+          7. Prize
+        </a>
+        <a href="#notification" className="underline underline-offset-4">
+          8. Winner Notification
+        </a>
+        <a href="#privacy" className="underline underline-offset-4">
+          9. Privacy
+        </a>
+        <a href="#liability" className="underline underline-offset-4">
+          10. Limitation of Liability
+        </a>
+        <a href="#conditions" className="underline underline-offset-4">
+          11. General Conditions
+        </a>
+        <a href="#law" className="underline underline-offset-4">
+          12. Governing Law
+        </a>
+        <a href="#contact" className="underline underline-offset-4">
+          13. Contact Information
+        </a>
+      </nav>
+
       <div className="space-y-6 text-sm leading-relaxed">
-        <section>
+        <section id="sponsor">
           <h2 className="text-xl font-bold mb-2">1. Sponsor</h2>
           <p>
             This giveaway is sponsored by Cherry Capital, located in Michigan, United States.
           </p>
         </section>
 
-        <section>
+        <section id="purchase">
           <h2 className="text-xl font-bold mb-2">2. No Purchase Necessary</h2>
           <p>
             No purchase or payment is necessary to enter or win. A purchase will not improve your chances of winning.
           </p>
         </section>
 
-        <section>
+        <section id="eligibility">
           <h2 className="text-xl font-bold mb-2">3. Eligibility</h2>
           <p>
             Open to legal residents of the United States who are 18 years of age or older at the time of entry. 
@@ -40,7 +114,7 @@ export default function GiveawayRulesPage() {
           </p>
         </section>
 
-        <section>
+        <section id="period">
           <h2 className="text-xl font-bold mb-2">4. Entry Period</h2>
           <p>
             Entries will be accepted from the date this giveaway is announced through October 31, 2025 at 11:59 PM EST. 
@@ -48,7 +122,7 @@ export default function GiveawayRulesPage() {
           </p>
         </section>
 
-        <section>
+        <section id="entry">
           <h2 className="text-xl font-bold mb-2">5. How to Enter</h2>
           <p>
             To enter, complete the entry form on our website at cherrycapitalweb.com. Provide your name, email, 
@@ -57,7 +131,7 @@ export default function GiveawayRulesPage() {
           </p>
         </section>
 
-        <section>
+        <section id="selection">
           <h2 className="text-xl font-bold mb-2">6. Winner Selection</h2>
           <p>
             One (1) winner will be selected via random drawing from all eligible entries received. The drawing 
@@ -65,7 +139,7 @@ export default function GiveawayRulesPage() {
           </p>
         </section>
 
-        <section>
+        <section id="prize">
           <h2 className="text-xl font-bold mb-2">7. Prize</h2>
           <p>One (1) prize will be awarded consisting of:</p>
           <ul className="list-disc ml-6 mt-2 space-y-1">
@@ -83,7 +157,7 @@ export default function GiveawayRulesPage() {
           </p>
         </section>
 
-        <section>
+        <section id="notification">
           <h2 className="text-xl font-bold mb-2">8. Winner Notification</h2>
           <p>
             The winner will be notified by email within 7 days of the drawing. If the winner does not respond 
@@ -91,7 +165,7 @@ export default function GiveawayRulesPage() {
           </p>
         </section>
 
-        <section>
+        <section id="privacy">
           <h2 className="text-xl font-bold mb-2">9. Privacy</h2>
           <p>
             Information collected from entrants will be used solely for the purpose of administering this giveaway 
@@ -100,7 +174,7 @@ export default function GiveawayRulesPage() {
           </p>
         </section>
 
-        <section>
+        <section id="liability">
           <h2 className="text-xl font-bold mb-2">10. Limitation of Liability</h2>
           <p>
             By entering, participants agree to release and hold harmless Cherry Capital, its owners, employees, 
@@ -109,7 +183,7 @@ export default function GiveawayRulesPage() {
           </p>
         </section>
 
-        <section>
+        <section id="conditions">
           <h2 className="text-xl font-bold mb-2">11. General Conditions</h2>
           <p>
             Sponsor reserves the right to cancel, suspend, or modify the giveaway if fraud, technical failures, 
@@ -119,14 +193,14 @@ export default function GiveawayRulesPage() {
           </p>
         </section>
 
-        <section>
+        <section id="law">
           <h2 className="text-xl font-bold mb-2">12. Governing Law</h2>
           <p>
             This giveaway is governed by the laws of the State of Michigan, without regard to conflicts of law principles.
           </p>
         </section>
 
-        <section>
+        <section id="contact">
           <h2 className="text-xl font-bold mb-2">13. Contact Information</h2>
           <p>
             For questions about this giveaway, contact:<br />
@@ -141,6 +215,6 @@ export default function GiveawayRulesPage() {
           Last updated: October 18, 2025
         </p>
       </div>
-    </div>
+    </main>
   );
 }
