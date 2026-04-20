@@ -20,14 +20,14 @@ const featuredClients: Array<ImageClient | WordmarkClient> = [
   {
     name: "Hill Top Soda Shoppe",
     href: "https://www.hilltopsodashoppe.com/",
-    imageSrc: "/client-logos/hill-top.png",
+    imageSrc: "/client-logos/hill-top.webp",
     imageAlt: "Hill Top Soda Shoppe brand image",
     imageClassName: "object-cover object-top",
   },
   {
     name: "Lynn & Perin",
     href: "https://www.lynnandperin.com/",
-    imageSrc: "/client-logos/lynn-perin.png",
+    imageSrc: "/client-logos/lynn-perin.webp",
     imageAlt: "Lynn & Perin logo",
     imageClassName: "object-contain p-6",
   },
@@ -39,7 +39,7 @@ const featuredClients: Array<ImageClient | WordmarkClient> = [
   {
     name: "Victoria's Floral Weddings",
     href: "https://www.victoriasfloralweddings.com/",
-    imageSrc: "/client-logos/victorias-floral-weddings.png",
+    imageSrc: "/client-logos/victorias-floral-weddings.webp",
     imageAlt: "Victoria's Floral Weddings logo",
     imageClassName: "object-cover",
   },

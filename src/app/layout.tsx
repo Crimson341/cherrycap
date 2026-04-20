@@ -129,7 +129,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="//linkedin.com" />
         
         {/* Preload critical resources */}
-        <link rel="preload" href="/myImage.png" as="image" type="image/png" />
+        <link rel="preload" href="/myImage.webp" as="image" type="image/webp" />
         
         {/* Preconnect to external domains */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />

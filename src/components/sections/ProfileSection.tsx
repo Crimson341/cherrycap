@@ -1,6 +1,6 @@
 import Image from "next/image";
 import React from "react";
-import MyImage from "../../../public/myImage.png";
+import MyImage from "../../../public/myImage.webp";
 import { VerifiedFilledIcon } from "../Icons";
 import { FlipSentences } from "../ui/FlipSentences";
 
