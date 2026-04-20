@@ -38,14 +38,14 @@ export const Logo = ({
 }) => {
   return (
     <div className={cn("relative font-bold", containerClassName)}>
-      <motion.h1
+      <motion.p
         initial={draw ? "hidden" : undefined}
         animate={draw ? "visible" : undefined}
         variants={draw ? textVariants : undefined}
         className={cn(" font-mono text-muted-foreground font-medium", sizes[size], className)}
       >
         Welcome!
-      </motion.h1>
+      </motion.p>
     </div>
   );
 };

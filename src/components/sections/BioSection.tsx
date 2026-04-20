@@ -26,9 +26,9 @@ function BioSection() {
             <a
               target="_blank"
               href={
-                item.title.includes("cherrycapitalweb.com")
-                  ? `https://${item.title}`
-                  : `mailto:${item.title}`
+                item.title.includes("@")
+                  ? `mailto:${item.title}`
+                  : `https://${item.title}`
               }
               className="text-balance  hover:underline"
             >

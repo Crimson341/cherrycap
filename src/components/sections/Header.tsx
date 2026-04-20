@@ -94,11 +94,21 @@ export const Header = ({ transition }: { transition: boolean }) => {
           transition={{ type: 'spring', stiffness: 200, damping: 30 }}
           className="absolute z-110 flex items-center gap-x-4"
         >
-             <div className="flex gap-3 items-center justify-center">
+             <nav aria-label="Primary" className="flex gap-3 items-center justify-center">
 
          <PortfolioInfoDialog />
           <Link
-            href={"https://github.com/thuggys"}
+            href="/blog"
+            aria-label="Read the blog"
+            className={cn(
+              buttonVariants({ variant: "outline", size: isMobile ? "sm" : "default" }),
+              "rounded-full font-mono text-xs"
+            )}
+          >
+            Blog
+          </Link>
+          <Link
+            href={"https://github.com/thugbunny"}
             target="_blank"
             aria-label="Open GitHub profile in a new tab"
             className={cn(
@@ -109,7 +119,7 @@ export const Header = ({ transition }: { transition: boolean }) => {
             <ExternalLinkIcon />
           </Link>
           <ToggleThemeBtn />
-        </div>
+        </nav>
 
         </motion.div>
       </div>

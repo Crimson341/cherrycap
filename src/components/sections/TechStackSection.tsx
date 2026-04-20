@@ -77,9 +77,10 @@ function TechStackSection() {
                   <Image
                     src={client.imageSrc}
                     alt={client.imageAlt}
-                    fill
+                    width={800}
+                    height={450}
                     sizes="(min-width: 768px) 50vw, 100vw"
-                    className={`transition-transform duration-300 group-hover:scale-[1.02] ${client.imageClassName}`}
+                    className={`h-full w-full transition-transform duration-300 group-hover:scale-[1.02] ${client.imageClassName}`}
                     loading="lazy"
                     decoding="async"
                   />

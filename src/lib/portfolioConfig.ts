@@ -14,7 +14,7 @@ export const portfolioConfig = {
     twitter: "https://twitter.com/cherrycapweb",
     linkedin: "https://www.linkedin.com/company/cherry-capital/",
     external: "https://www.cherrycapitalweb.com",
-    github: "https://github.com/thuggys",
+    github: "https://github.com/thugbunny",
   },
 
   // SEO Information

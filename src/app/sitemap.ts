@@ -39,7 +39,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       },
       images: [toAbsolute("/og-image.png")],
     },
-    ...sitemapPosts.map((post) => ({
+    ...sitemapPosts.map((post): MetadataRoute.Sitemap[number] => ({
       url: toAbsolute(`/blog/${post.slug}`),
       lastModified: new Date(post.updatedAt ?? post.publishedAt).toISOString(),
       changeFrequency: "monthly",

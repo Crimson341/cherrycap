@@ -67,7 +67,7 @@ function ContactMeSection() {
   }
 
   return (
-    <section className="relative h-fit border-x full-line-bottom px-4 md:px-11">
+    <section id="contact" className="relative h-fit border-x full-line-bottom px-4 md:px-11">
       <div
         className={cn(
           "absolute top-0 left-0 flex h-full w-8 border-r border-edge",
@@ -129,6 +129,7 @@ function ContactMeSection() {
                       <FormControl>
                         <div className="relative">
                           <Input
+                            aria-label="Name"
                             className="peer ps-9 pe-9 font-mono"
                             placeholder="Your name"
                             type="text"
@@ -152,6 +153,7 @@ function ContactMeSection() {
                       <FormControl>
                         <div className="relative">
                           <Input
+                            aria-label="Email"
                             className="peer ps-9 pe-9 font-mono"
                             placeholder="your@email.com"
                             type="email"
@@ -175,6 +177,7 @@ function ContactMeSection() {
                       <FormControl>
                         <div className="relative">
                           <Textarea
+                            aria-label="Message"
                             className="peer font-mono"
                             placeholder="Tell me about your business and current website frustrations..."
                             {...field}

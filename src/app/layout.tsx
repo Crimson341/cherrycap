@@ -10,7 +10,7 @@ import { portfolioConfig } from "@/lib/portfolioConfig";
 import { Analytics } from "@vercel/analytics/react";
 import { StructuredData } from "@/components/StructuredData";
 import { SiteAnalyticsTracker } from "@/components/analytics/SiteAnalyticsTracker";
-import { defaultOgImage, siteDescription, siteName, siteTitle } from "@/lib/seo";
+import { defaultOgImage, siteName, siteTitle } from "@/lib/seo";
 
  const fontSans = FontSans({
   weight: ["400", "500", "600"],
@@ -29,13 +29,12 @@ import { defaultOgImage, siteDescription, siteName, siteTitle } from "@/lib/seo"
 export const metadata: Metadata = {
   metadataBase: new URL(portfolioConfig.seo.url),
   title: {
-    default: `${siteName} | Northern Michigan Web Studio`,
+    default: `${siteName} — Northern Michigan Web Design & SEO Studio`,
     template: `%s | ${siteTitle} | Northern Michigan`,
   },
   description:
-    "Cherry Capital is a Beulah, Michigan web studio building fast, secure, and conversion-focused websites for local businesses across Northern Michigan.",
+    "Beulah, Michigan web studio building fast, SEO-friendly websites and AI chatbots for restaurants, contractors, and service businesses across Northern Michigan.",
   applicationName: siteName,
-  keywords: portfolioConfig.seo.keywords,
   authors: portfolioConfig.seo.authors,
   creator: siteName,
   publisher: siteName,
@@ -140,6 +139,12 @@ export default function RootLayout({
         className={`${fontSans.variable} ${fontMono.variable} relative`}
         suppressHydrationWarning
       >
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] focus:rounded-md focus:border focus:border-border focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:shadow-lg"
+        >
+          Skip to main content
+        </a>
         {appContent}
         <StructuredData />
         <SiteAnalyticsTracker />
