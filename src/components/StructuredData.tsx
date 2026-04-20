@@ -74,6 +74,12 @@ export function StructuredData() {
       "@id": absoluteUrl("/#organization")
     },
     "logo": absoluteUrl("/myImage.png"),
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Beulah",
+      "addressRegion": "MI",
+      "addressCountry": "US",
+    },
     "areaServed": {
       "@type": "AdministrativeArea",
       "name": "Michigan"
