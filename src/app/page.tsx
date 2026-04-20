@@ -7,8 +7,6 @@ import AboutSection from "@/components/sections/AboutSection";
 import TopSection from "@/components/sections/TopSection";
 import TechStackSection from "@/components/sections/TechStackSection";
 import ProjectsSection from "@/components/sections/ProjectsSection";
-import ServicesSection from "@/components/sections/ServicesSection";
-import CarePlansSection from "@/components/sections/CarePlansSection";
 import ExperienceSection from "@/components/sections/ExperienceSection";
 import ContactMeSection from "@/components/sections/ContactMeSection";
 import FooterSection from "@/components/sections/FooterSection";
@@ -61,10 +59,6 @@ export default function Home() {
       <TechStackSection />
       <SectionSeparator className="full-line-bottom" />
       <ProjectsSection />
-      <SectionSeparator className="full-line-bottom" />
-      <ServicesSection />
-      <SectionSeparator className="full-line-bottom" />
-      <CarePlansSection />
       <SectionSeparator className="full-line-bottom" />
       <ExperienceSection />
       <SectionSeparator className="full-line-bottom" />
