@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { publishedBlogPosts } from "@/lib/blogPosts";
+import { localServiceAreas } from "@/lib/localSeo";
 import { portfolioConfig } from "@/lib/portfolioConfig";
 
 const baseUrl = portfolioConfig.seo.url.replace(/\/$/, "");
@@ -39,6 +40,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
       },
       images: [toAbsolute("/og-image.png")],
     },
+    {
+      url: toAbsolute("/tools/seo-checker"),
+      lastModified: homepageLastModified,
+      changeFrequency: "monthly",
+      priority: 0.7,
+      alternates: { languages: { en: toAbsolute("/tools/seo-checker") } },
+    },
+    ...localServiceAreas.map((area): MetadataRoute.Sitemap[number] => ({
+      url: toAbsolute(`/${area.slug}`),
+      lastModified: homepageLastModified,
+      changeFrequency: "weekly",
+      priority: area.priority,
+      alternates: {
+        languages: { en: toAbsolute(`/${area.slug}`) },
+      },
+      images: [toAbsolute("/og-image.png")],
+    })),
     ...sitemapPosts.map((post): MetadataRoute.Sitemap[number] => ({
       url: toAbsolute(`/blog/${post.slug}`),
       lastModified: new Date(post.updatedAt ?? post.publishedAt).toISOString(),

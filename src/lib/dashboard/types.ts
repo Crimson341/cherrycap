@@ -74,12 +74,46 @@ export type DashboardPayload = {
     responseTimeMs: number | null;
     lastCheckedAt: number | null;
   };
+  seoAudits: {
+    isLive: boolean;
+    total: number;
+    uniqueSessions: number;
+    errorCount: number;
+    averagePercentage: number | null;
+    lastAuditAt: number | null;
+    gradeCounts: {
+      A: number;
+      B: number;
+      C: number;
+      D: number;
+      F: number;
+    };
+    items: Array<{
+      id: string;
+      createdAt: number;
+      status: "success" | "error";
+      requestedUrl: string;
+      finalUrl: string | null;
+      grade: "A" | "B" | "C" | "D" | "F" | null;
+      overallScore: number | null;
+      maxScore: number | null;
+      percentage: number | null;
+      durationMs: number | null;
+      errorMessage: string | null;
+      sessionId: string | null;
+      country: string | null;
+      city: string | null;
+      userAgent: string | null;
+      referrerPath: string | null;
+    }>;
+  };
   dataFreshness: {
     trafficCapturedAt: number | null;
     clickCapturedAt: number | null;
     leadCapturedAt: number | null;
     emailCapturedAt: number | null;
     uptimeCapturedAt: number | null;
+    seoAuditCapturedAt: number | null;
     notes: string[];
   };
 };

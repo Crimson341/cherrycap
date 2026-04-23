@@ -11,6 +11,7 @@ import ExperienceSection from "@/components/sections/ExperienceSection";
 import ContactMeSection from "@/components/sections/ContactMeSection";
 import FooterSection from "@/components/sections/FooterSection";
 import LandingAnimationWrapper from "@/components/LandingAnimationWrapper";
+import { LocalServiceAreasSection } from "@/components/LocalServiceAreasSection";
 import type { Metadata } from "next";
 import { defaultOgImage, siteName } from "@/lib/seo";
 
@@ -55,6 +56,8 @@ export default function Home() {
       <BioSection />
       <SectionSeparator className="full-line-bottom" />
       <AboutSection />
+      <SectionSeparator className="full-line-bottom" />
+      <LocalServiceAreasSection />
       <SectionSeparator className="full-line-bottom" />
       <TechStackSection />
       <SectionSeparator className="full-line-bottom" />

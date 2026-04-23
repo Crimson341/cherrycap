@@ -147,6 +147,217 @@ function BreakdownList({
   );
 }
 
+const gradeToneClass: Record<"A" | "B" | "C" | "D" | "F", string> = {
+  A: "bg-emerald-500",
+  B: "bg-emerald-400",
+  C: "bg-amber-500",
+  D: "bg-orange-500",
+  F: "bg-destructive",
+};
+
+function GradeBadge({
+  grade,
+}: {
+  grade: "A" | "B" | "C" | "D" | "F" | null;
+}) {
+  if (!grade) {
+    return (
+      <span className="inline-flex size-8 items-center justify-center rounded-full border border-dashed border-border font-mono text-xs text-muted-foreground">
+        —
+      </span>
+    );
+  }
+  return (
+    <span
+      className={`inline-flex size-8 items-center justify-center rounded-full font-mono text-sm font-semibold text-white ${gradeToneClass[grade]}`}
+    >
+      {grade}
+    </span>
+  );
+}
+
+function SeoAuditTracker({
+  payload,
+}: {
+  payload: DashboardPayload["seoAudits"];
+}) {
+  const totalGraded =
+    payload.gradeCounts.A +
+    payload.gradeCounts.B +
+    payload.gradeCounts.C +
+    payload.gradeCounts.D +
+    payload.gradeCounts.F;
+
+  const grades: ("A" | "B" | "C" | "D" | "F")[] = ["A", "B", "C", "D", "F"];
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="rounded-md border p-3">
+          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+            Total runs
+          </p>
+          <p className="mt-1 text-xl font-semibold">
+            {numberFormatter.format(payload.total)}
+          </p>
+        </div>
+        <div className="rounded-md border p-3">
+          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+            Unique users
+          </p>
+          <p className="mt-1 text-xl font-semibold">
+            {numberFormatter.format(payload.uniqueSessions)}
+          </p>
+        </div>
+        <div className="rounded-md border p-3">
+          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+            Avg score
+          </p>
+          <p className="mt-1 text-xl font-semibold">
+            {payload.averagePercentage === null
+              ? "—"
+              : `${payload.averagePercentage}%`}
+          </p>
+        </div>
+        <div className="rounded-md border p-3">
+          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+            Errors
+          </p>
+          <p className="mt-1 text-xl font-semibold">
+            {numberFormatter.format(payload.errorCount)}
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+          Grade distribution
+        </p>
+        {totalGraded === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No graded audits in this window yet.
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {grades.map((grade) => {
+              const count = payload.gradeCounts[grade];
+              const pct = totalGraded > 0 ? (count / totalGraded) * 100 : 0;
+              return (
+                <div key={grade} className="flex items-center gap-3">
+                  <GradeBadge grade={grade} />
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="font-mono text-xs text-muted-foreground">
+                        {count} {count === 1 ? "audit" : "audits"}
+                      </span>
+                      <span className="font-mono text-xs text-muted-foreground">
+                        {percentFormatter.format(pct)}%
+                      </span>
+                    </div>
+                    <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-muted">
+                      <div
+                        className={`h-full ${gradeToneClass[grade]}`}
+                        style={{ width: `${Math.max(pct, 2)}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <div>
+        <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+          Recent audits
+        </p>
+        {payload.items.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No audits have been run yet. The first free SEO check will show up
+            here with its grade and site details.
+          </p>
+        ) : (
+          <ul className="divide-y">
+            {payload.items.map((audit) => {
+              const displayUrl = audit.finalUrl ?? audit.requestedUrl;
+              const visitor = [
+                audit.city,
+                audit.country,
+              ]
+                .filter(Boolean)
+                .join(", ");
+              return (
+                <li key={audit.id} className="flex items-start gap-3 py-3">
+                  <GradeBadge grade={audit.grade} />
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <a
+                        href={displayUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="truncate font-mono text-sm hover:underline"
+                        title={displayUrl}
+                      >
+                        {displayUrl}
+                      </a>
+                      <span className="shrink-0 text-xs text-muted-foreground">
+                        {formatTimestamp(audit.createdAt)}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                      {audit.status === "error" ? (
+                        <Badge
+                          variant="outline"
+                          className="border-destructive/50 text-destructive"
+                        >
+                          Error
+                        </Badge>
+                      ) : (
+                        audit.percentage !== null && (
+                          <span>Score {audit.percentage}%</span>
+                        )
+                      )}
+                      {audit.overallScore !== null &&
+                        audit.maxScore !== null && (
+                          <span className="font-mono">
+                            {audit.overallScore.toFixed(1)} / {audit.maxScore}
+                          </span>
+                        )}
+                      {audit.durationMs !== null && (
+                        <span className="font-mono">
+                          {(audit.durationMs / 1000).toFixed(1)}s
+                        </span>
+                      )}
+                      {visitor && <span>{visitor}</span>}
+                      {audit.sessionId && (
+                        <span className="font-mono">
+                          ses ·{" "}
+                          {audit.sessionId.slice(0, 6)}
+                        </span>
+                      )}
+                      {audit.referrerPath && (
+                        <span className="font-mono truncate">
+                          via {audit.referrerPath}
+                        </span>
+                      )}
+                    </div>
+                    {audit.errorMessage && (
+                      <p className="font-mono text-xs text-destructive">
+                        {audit.errorMessage}
+                      </p>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function ClickList({
   items,
   emptyMessage,
@@ -428,6 +639,32 @@ export function DashboardOverview({
       </section>
 
       <section className="border-t px-4 py-8 md:px-8">
+        <div className="mx-auto max-w-6xl">
+          <Card className="rounded-none">
+            <CardHeader>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <CardDescription className="font-mono uppercase tracking-[0.2em]">
+                    Free SEO audit usage
+                  </CardDescription>
+                  <CardTitle>Who is running the checker</CardTitle>
+                </div>
+                <Badge variant={payload.seoAudits.isLive ? "secondary" : "outline"}>
+                  {payload.seoAudits.isLive ? "Live" : "No audits yet"}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <SeoAuditTracker payload={payload.seoAudits} />
+            </CardContent>
+            <CardFooter className="text-sm text-muted-foreground">
+              Last audit: {formatTimestamp(payload.seoAudits.lastAuditAt)}
+            </CardFooter>
+          </Card>
+        </div>
+      </section>
+
+      <section className="border-t px-4 py-8 md:px-8">
         <div className="mx-auto grid max-w-6xl gap-4 xl:grid-cols-[1.15fr_0.85fr_0.85fr]">
           <Card className="rounded-none">
             <CardHeader>
@@ -519,6 +756,10 @@ export function DashboardOverview({
               <div className="flex items-start justify-between gap-3">
                 <span className="text-muted-foreground">Uptime</span>
                 <span>{formatTimestamp(payload.dataFreshness.uptimeCapturedAt)}</span>
+              </div>
+              <div className="flex items-start justify-between gap-3">
+                <span className="text-muted-foreground">SEO audits</span>
+                <span>{formatTimestamp(payload.dataFreshness.seoAuditCapturedAt)}</span>
               </div>
               <div className="border-t pt-4 text-muted-foreground">
                 Uptime status: {formatStatus(payload.uptimeSummary.status)}

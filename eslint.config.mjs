@@ -5,7 +5,7 @@ import nextTypescript from "eslint-config-next/typescript";
 export default defineConfig([
   ...nextVitals,
   ...nextTypescript,
-  globalIgnores([".next/**", "node_modules/**", "coverage/**", "dist/**", "build/**", "opensrc/**", "convex/_generated/**"]),
+  globalIgnores([".next/**", "node_modules/**", "coverage/**", "dist/**", "build/**", "opensrc/**", "convex/_generated/**", ".claude/**", "video-seo-showcase/**"]),
   {
     rules: {
       "react/no-unescaped-entities": "off",

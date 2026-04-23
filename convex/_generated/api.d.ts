@@ -11,6 +11,9 @@
 import type * as auth from "../auth.js";
 import type * as dashboard from "../dashboard.js";
 import type * as http from "../http.js";
+import type * as seoAuditJobs from "../seoAuditJobs.js";
+import type * as seoAuditWorker from "../seoAuditWorker.js";
+import type * as seoAuditWorkerState from "../seoAuditWorkerState.js";
 import type * as users from "../users.js";
 
 import type {
@@ -23,6 +26,9 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   dashboard: typeof dashboard;
   http: typeof http;
+  seoAuditJobs: typeof seoAuditJobs;
+  seoAuditWorker: typeof seoAuditWorker;
+  seoAuditWorkerState: typeof seoAuditWorkerState;
   users: typeof users;
 }>;
 

@@ -1,4 +1,5 @@
 import { portfolioConfig } from "@/lib/portfolioConfig";
+import { localSeoKeywords, localServiceAreas, localServiceAreaUrl } from "@/lib/localSeo";
 import { absoluteUrl, safeJsonLd, siteDescription, siteName } from "@/lib/seo";
 
 const serviceCatalog = [
@@ -17,6 +18,16 @@ const serviceCatalog = [
     description: "Technical SEO and local search optimization for Northern Michigan businesses.",
     url: "https://www.cherrycapitalweb.com/#contact",
   },
+];
+
+const areaServed = [
+  { "@type": "City", "name": "Beulah", "addressRegion": "MI" },
+  { "@type": "City", "name": "Frankfort", "addressRegion": "MI" },
+  { "@type": "City", "name": "Traverse City", "addressRegion": "MI" },
+  { "@type": "City", "name": "Benzonia", "addressRegion": "MI" },
+  { "@type": "City", "name": "Honor", "addressRegion": "MI" },
+  { "@type": "AdministrativeArea", "name": "Benzie County", "addressRegion": "MI" },
+  { "@type": "AdministrativeArea", "name": "Northern Michigan", "addressRegion": "MI" },
 ];
 
 export function StructuredData() {
@@ -59,6 +70,7 @@ export function StructuredData() {
         "name": "US",
       },
     },
+    "knowsAbout": localSeoKeywords,
     "sameAs": Object.values(portfolioConfig.socialLinks).filter(Boolean)
   };
 
@@ -80,16 +92,15 @@ export function StructuredData() {
       "addressRegion": "MI",
       "addressCountry": "US",
     },
-    "areaServed": {
-      "@type": "AdministrativeArea",
-      "name": "Michigan"
-    },
+    "areaServed": areaServed,
     "serviceType": serviceCatalog.map((service) => service.name),
+    "knowsAbout": localSeoKeywords,
     "hasOfferCatalog": {
       "@type": "OfferCatalog",
       "name": "Cherry Capital Services",
-      "numberOfItems": serviceCatalog.length,
-      "itemListElement": serviceCatalog.map((service) => ({
+      "numberOfItems": serviceCatalog.length + localServiceAreas.length,
+      "itemListElement": [
+        ...serviceCatalog.map((service) => ({
         "@type": "Offer",
         "itemOffered": {
           "@type": "Service",
@@ -97,7 +108,22 @@ export function StructuredData() {
           "description": service.description,
         },
         "url": service.url,
-      })),
+        })),
+        ...localServiceAreas.map((area) => ({
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": area.title,
+            "description": area.description,
+            "areaServed": {
+              "@type": area.city.includes("County") ? "AdministrativeArea" : "City",
+              "name": area.city,
+              "addressRegion": area.region,
+            },
+          },
+          "url": localServiceAreaUrl(area),
+        })),
+      ],
     },
     "sameAs": Object.values(portfolioConfig.socialLinks).filter(Boolean)
   };

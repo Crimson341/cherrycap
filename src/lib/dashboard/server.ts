@@ -48,15 +48,27 @@ function createFallbackDashboard(range: DashboardRange): DashboardPayload {
       responseTimeMs: null,
       lastCheckedAt: null,
     },
+    seoAudits: {
+      isLive: false,
+      total: 0,
+      uniqueSessions: 0,
+      errorCount: 0,
+      averagePercentage: null,
+      lastAuditAt: null,
+      gradeCounts: { A: 0, B: 0, C: 0, D: 0, F: 0 },
+      items: [],
+    },
     dataFreshness: {
       trafficCapturedAt: null,
       clickCapturedAt: null,
       leadCapturedAt: null,
       emailCapturedAt: null,
       uptimeCapturedAt: null,
+      seoAuditCapturedAt: null,
       notes: [
         "Traffic, clicks, regions, and source breakdowns will appear once live analytics events arrive.",
         "Captured contact emails will appear once submissions are relayed through the app.",
+        "Free SEO audit usage will appear once the first audit is run.",
         "Uptime remains placeholder until a monitor is connected.",
       ],
     },
@@ -74,11 +86,14 @@ export async function getDashboardPayload(range: DashboardRange) {
       return createFallbackDashboard(range);
     }
 
-    return await fetchQuery(
+    const response = await fetchQuery(
       api.dashboard.getDashboard,
       { range },
       { token, url: convexUrl },
     );
+
+    const fallback = createFallbackDashboard(range);
+    return { ...fallback, ...response } as DashboardPayload;
   } catch {
     return createFallbackDashboard(range);
   }

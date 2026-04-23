@@ -1,5 +1,7 @@
 import { cn } from '@/lib/utils'
+import Link from 'next/link'
 import React from 'react'
+import { localServiceAreas } from '@/lib/localSeo'
 
 function FooterSection() {
   return (
@@ -20,7 +22,18 @@ function FooterSection() {
                   "before:bg-size-[10px_10px] before:[--pattern-foreground:var(--color-edge)]/56"
                 )}
               />
-        <p className="text-center font-mono text-sm text-balance text-muted-foreground">Built by <a className="font-semibold underline" href="https://cherrycapitalweb.com/" target="_blank" rel="noopener">Cherry Capital</a>.</p>
+        <div className="space-y-3 text-center font-mono text-sm text-balance text-muted-foreground">
+          <p>
+            Built by <a className="font-semibold underline" href="https://cherrycapitalweb.com/" target="_blank" rel="noopener">Cherry Capital</a>.
+          </p>
+          <nav aria-label="Local web design service areas" className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs">
+            {localServiceAreas.map((area) => (
+              <Link key={area.slug} href={`/${area.slug}`} className="underline underline-offset-4 hover:text-foreground">
+                {area.title}
+              </Link>
+            ))}
+          </nav>
+        </div>
     </footer>
   )
 }

@@ -381,6 +381,42 @@ export const ingestClickEvents = mutation({
   },
 });
 
+export const ingestSeoAuditEvent = mutation({
+  args: {
+    status: v.union(v.literal("success"), v.literal("error")),
+    requestedUrl: v.string(),
+    finalUrl: v.optional(v.string()),
+    grade: v.optional(
+      v.union(
+        v.literal("A"),
+        v.literal("B"),
+        v.literal("C"),
+        v.literal("D"),
+        v.literal("F"),
+      ),
+    ),
+    overallScore: v.optional(v.number()),
+    maxScore: v.optional(v.number()),
+    percentage: v.optional(v.number()),
+    durationMs: v.optional(v.number()),
+    errorMessage: v.optional(v.string()),
+    sessionId: v.optional(v.string()),
+    country: v.optional(v.string()),
+    city: v.optional(v.string()),
+    userAgent: v.optional(v.string()),
+    referrerPath: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const id = await ctx.db.insert("seoAuditEvents", {
+      site: SITE,
+      createdAt: Date.now(),
+      ...args,
+    });
+
+    return { id };
+  },
+});
+
 export const captureOutgoingEmail = mutation({
   args: {
     name: v.string(),
@@ -467,6 +503,46 @@ export const getDashboard = query({
       ? Math.round((successfulChecks / recentChecks.length) * 1000) / 10
       : null;
 
+    const periodStart = Date.now() - RANGE_CONFIG[args.range].durationMs;
+    const auditEvents = await ctx.db
+      .query("seoAuditEvents")
+      .withIndex("by_site_createdAt", (q) =>
+        q.eq("site", SITE).gte("createdAt", periodStart),
+      )
+      .order("desc")
+      .collect();
+
+    const recentAudits = auditEvents.slice(0, 20);
+    const gradeCounts: Record<"A" | "B" | "C" | "D" | "F", number> = {
+      A: 0,
+      B: 0,
+      C: 0,
+      D: 0,
+      F: 0,
+    };
+    let scoreSum = 0;
+    let scoreCount = 0;
+    const uniqueSessions = new Set<string>();
+    for (const audit of auditEvents) {
+      if (audit.sessionId) {
+        uniqueSessions.add(audit.sessionId);
+      }
+      if (audit.grade) {
+        gradeCounts[audit.grade] += 1;
+      }
+      if (typeof audit.percentage === "number") {
+        scoreSum += audit.percentage;
+        scoreCount += 1;
+      }
+    }
+    const averagePercentage = scoreCount > 0
+      ? Math.round((scoreSum / scoreCount) * 10) / 10
+      : null;
+    const lastAuditAt = auditEvents[0]?.createdAt ?? null;
+    const errorCount = auditEvents.filter(
+      (audit) => audit.status === "error",
+    ).length;
+
     return {
       siteName: "Cherry Capital",
       siteSlug: SITE,
@@ -523,12 +599,40 @@ export const getDashboard = query({
         responseTimeMs: latestCheck?.responseTimeMs ?? null,
         lastCheckedAt: latestCheck?.checkedAt ?? null,
       },
+      seoAudits: {
+        isLive: auditEvents.length > 0,
+        total: auditEvents.length,
+        uniqueSessions: uniqueSessions.size,
+        errorCount,
+        averagePercentage,
+        lastAuditAt,
+        gradeCounts,
+        items: recentAudits.map((audit) => ({
+          id: audit._id,
+          createdAt: audit.createdAt,
+          status: audit.status,
+          requestedUrl: audit.requestedUrl,
+          finalUrl: audit.finalUrl ?? null,
+          grade: audit.grade ?? null,
+          overallScore: audit.overallScore ?? null,
+          maxScore: audit.maxScore ?? null,
+          percentage: audit.percentage ?? null,
+          durationMs: audit.durationMs ?? null,
+          errorMessage: audit.errorMessage ?? null,
+          sessionId: audit.sessionId ?? null,
+          country: audit.country ?? null,
+          city: audit.city ?? null,
+          userAgent: audit.userAgent ?? null,
+          referrerPath: audit.referrerPath ?? null,
+        })),
+      },
       dataFreshness: {
         trafficCapturedAt: snapshot?.capturedAt ?? null,
         clickCapturedAt: snapshot?.capturedAt ?? null,
         leadCapturedAt: recentLeads[0]?.createdAt ?? null,
         emailCapturedAt: recentEmails[0]?.createdAt ?? null,
         uptimeCapturedAt: latestCheck?.checkedAt ?? null,
+        seoAuditCapturedAt: lastAuditAt,
         notes: [
           snapshot?.isLive
             ? "Traffic, regions, referrers, devices, browsers, and click activity are updating from live events."
@@ -536,6 +640,9 @@ export const getDashboard = query({
           recentEmails.length > 0
             ? "Contact emails are being captured after a successful Web3Forms send."
             : "No contact emails have been captured yet.",
+          auditEvents.length > 0
+            ? `Free SEO audit usage is being tracked (${auditEvents.length} in this window).`
+            : "Free SEO audit usage will appear once the first audit is run.",
           "Uptime remains placeholder until a monitor is connected.",
         ],
       },

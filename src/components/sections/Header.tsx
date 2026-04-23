@@ -98,6 +98,16 @@ export const Header = ({ transition }: { transition: boolean }) => {
 
          <PortfolioInfoDialog />
           <Link
+            href="/tools/seo-checker"
+            aria-label="Run a free SEO check"
+            className={cn(
+              buttonVariants({ variant: "outline", size: isMobile ? "sm" : "default" }),
+              "rounded-full font-mono text-xs"
+            )}
+          >
+            Free SEO Check
+          </Link>
+          <Link
             href="/blog"
             aria-label="Read the blog"
             className={cn(
