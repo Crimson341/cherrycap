@@ -23,6 +23,40 @@ type ThemeContextValue = {
 
 const ThemeContext = React.createContext<ThemeContextValue | undefined>(undefined);
 
+const THEME_CHANGE_EVENT = "themechange";
+
+function subscribeSystemTheme(callback: () => void) {
+  const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+  mediaQuery.addEventListener("change", callback);
+  return () => mediaQuery.removeEventListener("change", callback);
+}
+
+function getSystemTheme(): ResolvedTheme {
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+function subscribeStoredTheme(storageKey: string, callback: () => void) {
+  const onStorage = (event: StorageEvent) => {
+    if (event.key === storageKey) callback();
+  };
+  window.addEventListener("storage", onStorage);
+  window.addEventListener(THEME_CHANGE_EVENT, callback);
+  return () => {
+    window.removeEventListener("storage", onStorage);
+    window.removeEventListener(THEME_CHANGE_EVENT, callback);
+  };
+}
+
+function readStoredTheme(storageKey: string, fallback: Theme): Theme {
+  try {
+    const stored = window.localStorage.getItem(storageKey);
+    if (stored === "light" || stored === "dark" || stored === "system") {
+      return stored;
+    }
+  } catch {}
+  return fallback;
+}
+
 function withoutTransitions(callback: () => void) {
   const style = document.createElement("style");
   style.appendChild(
@@ -46,34 +80,23 @@ export function ThemeProvider({
   disableTransitionOnChange = false,
   storageKey = "theme",
 }: ThemeProviderProps) {
-  const [theme, setThemeState] = React.useState<Theme>(defaultTheme);
-  const [systemTheme, setSystemTheme] = React.useState<ResolvedTheme>("light");
+  const systemTheme = React.useSyncExternalStore(
+    subscribeSystemTheme,
+    getSystemTheme,
+    () => "light" as const,
+  );
 
-  React.useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const syncSystemTheme = () => {
-      setSystemTheme(mediaQuery.matches ? "dark" : "light");
-    };
-
-    syncSystemTheme();
-    mediaQuery.addEventListener("change", syncSystemTheme);
-    return () => mediaQuery.removeEventListener("change", syncSystemTheme);
-  }, []);
-
-  React.useEffect(() => {
-    try {
-      const storedTheme = window.localStorage.getItem(storageKey);
-      if (
-        storedTheme === "light" ||
-        storedTheme === "dark" ||
-        storedTheme === "system"
-      ) {
-        setThemeState(storedTheme);
-      }
-    } catch {
-      setThemeState(defaultTheme);
-    }
-  }, [defaultTheme, storageKey]);
+  const theme = React.useSyncExternalStore(
+    React.useCallback(
+      (callback: () => void) => subscribeStoredTheme(storageKey, callback),
+      [storageKey],
+    ),
+    React.useCallback(
+      () => readStoredTheme(storageKey, defaultTheme),
+      [storageKey, defaultTheme],
+    ),
+    React.useCallback(() => defaultTheme, [defaultTheme]),
+  );
 
   const resolvedTheme = theme === "system" && enableSystem
     ? systemTheme
@@ -99,10 +122,10 @@ export function ThemeProvider({
   }, [attribute, disableTransitionOnChange, resolvedTheme]);
 
   const setTheme = React.useCallback((nextTheme: Theme) => {
-    setThemeState(nextTheme);
     try {
       window.localStorage.setItem(storageKey, nextTheme);
     } catch {}
+    window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
   }, [storageKey]);
 
   const value = React.useMemo<ThemeContextValue>(() => ({
