@@ -671,6 +671,9 @@ export default function SeoCheckerClient() {
   useEffect(() => {
     const activeJob = readActiveJob();
     if (!activeJob) return;
+    // loadJob only updates state after an awaited fetch, so there is no
+    // synchronous cascading render here.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadJob(activeJob).catch((err) => {
       setError(err instanceof Error ? err.message : "Could not restore audit.");
       storeActiveJob(null);

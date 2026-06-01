@@ -8,4 +8,8 @@ export default defineConfig({
       "@": path.resolve(__dirname, "src"),
     },
   },
+  test: {
+    include: ["src/**/*.{test,spec}.{ts,tsx}", "convex/**/*.{test,spec}.{ts,tsx}"],
+    exclude: ["node_modules", "opensrc", "video-seo-showcase", ".next"],
+  },
 });

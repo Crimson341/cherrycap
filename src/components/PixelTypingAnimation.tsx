@@ -1,5 +1,5 @@
 "use client";
-import React, { ReactNode, useEffect, useMemo, useState } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 type LetterPattern = number[][];
 type LetterPatterns = {
@@ -229,10 +229,9 @@ function PixelTypingText({
     TypingDirection.Forward
   );
 
-  const [isComplete, setIsComplete] = useState(false);
-
   const letters = useMemo(() => text.split(""), [text]);
   const total = letters.length;
+  const isComplete = index === total && !repeat;
 
   // Main typing effect
   useEffect(() => {
@@ -276,13 +275,12 @@ function PixelTypingText({
     return () => clearTimeout(timeout);
   }, [index, total, repeat, waitTime, direction]);
 
-  // Handle completion
+  // Fire the completion callback once typing finishes
   useEffect(() => {
-    if (index === total && !repeat) {
-      setIsComplete(true);
+    if (isComplete) {
       onComplete?.();
     }
-  }, [index, total, repeat, onComplete]);
+  }, [isComplete, onComplete]);
 
   const showCursor = cursor && (!hideCursorOnComplete || !isComplete);
 
