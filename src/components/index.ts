@@ -26,4 +26,5 @@ export {
 export { ExamplePost } from './blog-posts/ExamplePost';
 export { ModernWebAppsPost } from './blog-posts/ModernWebAppsPost';
 export { AdvancedExamplePost } from './blog-posts/AdvancedExamplePost';
-export { NextjsSpecialPost } from './blog-posts/NextjsSpecialPost'; 
+export { NextjsSpecialPost } from './blog-posts/NextjsSpecialPost';
+export { WelcomePost } from './blog-posts/WelcomePost';

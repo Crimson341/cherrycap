@@ -15,6 +15,21 @@ export interface BlogPost {
 
 export const blogPosts: BlogPost[] = [
   {
+    id: 0,
+    title: "Welcome to the Cherry Capital Blog",
+    slug: "welcome-to-the-cherry-capital-blog",
+    excerpt:
+      "I build cool things and needed a place to put my thoughts down — so I made this. Here's what Cherry Capital is about, and why working with a solo developer means you talk straight to the person building your project.",
+    content: "Welcome Content",
+    publishedAt: "2026-06-08",
+    updatedAt: "2026-06-08",
+    readTime: "2 min read",
+    category: "Welcome",
+    tags: ["Welcome", "Cherry Capital", "Northern Michigan", "Web Studio"],
+    featured: true,
+    published: true,
+  },
+  {
     id: 1,
     title: "What Makes Next.js Special: Why Enterprise Companies Choose It Over Everything Else",
     slug: "what-makes-nextjs-special",

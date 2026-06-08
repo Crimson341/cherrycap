@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
@@ -12,6 +12,7 @@ export function FlipSentences({
   className?: string;
   sentences: string[];
 }) {
+  const shouldReduceMotion = useReducedMotion();
   const [currentSentence, setCurrentSentence] = useState(0);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -23,6 +24,7 @@ export function FlipSentences({
   };
 
   useEffect(() => {
+    if (shouldReduceMotion) return;
     startAnimation();
 
     const abortController = new AbortController();

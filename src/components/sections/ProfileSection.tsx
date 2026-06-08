@@ -29,7 +29,10 @@ function ProfileSection() {
       </div>
       <div className="flex flex-1 flex-col">
         <div className="flex justify-between grow items-end pb-1 px-4 lining-tilt-background">
-          <span className="line-clamp-1 font-mono text-xs text-zinc-300 select-none dark:text-zinc-800 tracking-wider">
+          <span
+            className="line-clamp-1 font-mono text-xs text-zinc-300 select-none dark:text-zinc-800 tracking-wider"
+            aria-hidden="true"
+          >
             Last updated 2 days ago
           </span>
           

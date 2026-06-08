@@ -25,6 +25,7 @@ function ToggleThemeBtn() {
       size={"icon"}
       className="rounded-full cursor-pointer"
       onClick={changeTheme}
+      aria-label={theTheme === "sun" ? "Switch to light theme" : "Switch to dark theme"}
     >
       {theTheme === "sun" ? (
         <MoonAltToSunnyOutlineLoopTransitionIcon />

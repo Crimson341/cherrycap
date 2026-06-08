@@ -27,6 +27,8 @@ function SocialLinks() {
           <a
             href={link.href}
             target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`${link.name} — ${link.username} (opens in new tab)`}
             className={cn(
               "flex p-4 group/link items-center gap-4 justify-start relative select-none transition-colors",
               index % 2 === 0 ? "full-line-top full-line-bottom" : "",

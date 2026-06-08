@@ -100,6 +100,8 @@ export const Header = ({ transition }: { transition: boolean }) => {
           <Link
             href={"https://github.com/thuggys"}
             target="_blank"
+            rel="noopener noreferrer"
+            aria-label="View GitHub profile (opens in new tab)"
             className={cn(
               buttonVariants({ variant: "outline", size: "icon" }),
               "rounded-full"

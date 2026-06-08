@@ -34,6 +34,7 @@ const FormSchema = z.object({
 
 function ContactMeSection() {
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState(false);
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -44,6 +45,7 @@ function ContactMeSection() {
   });
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
+    setSubmitError(false);
     try {
       // Submit to Web3Forms
       const formData = new FormData();
@@ -63,11 +65,11 @@ function ContactMeSection() {
         form.reset();
       } else {
         console.error("Form submission failed");
-        // TODO: Add error handling/toast notification
+        setSubmitError(true);
       }
     } catch (error) {
       console.error("Error submitting form:", error);
-      // TODO: Add error handling/toast notification
+      setSubmitError(true);
     }
   }
 
@@ -90,7 +92,7 @@ function ContactMeSection() {
         )}
       />
       {submitted ? (
-        <div className="w-full flex py-4 items-center justify-center">
+        <div className="w-full flex py-4 items-center justify-center" role="status">
           <div className="h-fit w-fit flex items-center justify-center gap-4">
             <div
               className="flex size-12 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground"
@@ -199,6 +201,12 @@ function ContactMeSection() {
                     </>
                   )}
                 </Button>
+                {submitError && (
+                  <p role="alert" className="text-sm font-mono text-destructive">
+                    Something went wrong sending your message. Please try again,
+                    or email scott@cherrycapitalweb.com directly.
+                  </p>
+                )}
               </form>
             </Form>
           </div>

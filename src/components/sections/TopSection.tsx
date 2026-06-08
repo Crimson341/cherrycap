@@ -5,7 +5,7 @@ import PixelTypingDemo from '../PixelTypingAnimation'
 function TopSection() {
   return (
       <div className="relative full-line-bottom">
-        <div className="aspect-2/1 relative select-none  md:aspect-3/1 border-x">
+        <div className="aspect-2/1 relative select-none  md:aspect-3/1 border-x" aria-hidden="true">
           <FlickeringGrid
             className="relative inset-0 z-0 [mask-image:radial-gradient(450px_circle_at_center,white,transparent)]"
             squareSize={4}

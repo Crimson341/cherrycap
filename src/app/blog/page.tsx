@@ -8,35 +8,53 @@ import {
   Calendar,
   ChevronRight,
   Clock,
-  FileText,
   FolderOpenDot,
   Hash,
-  Search,
-  Sparkles,
 } from "lucide-react";
 
+import { cn } from "@/lib/utils";
 import { BlogStructuredData } from "@/components/BlogStructuredData";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { FlickeringGrid } from "@/components/ui/FlickingGridBG";
+import { BlogPostArt } from "@/components/ui/BlogPostArt";
 import { publishedBlogPosts } from "@/lib/blogPosts";
 
-const topicCloud = [
-  "UX Design",
-  "React",
-  "Serverless",
-  "Local SEO",
-  "Optimization",
-  "Branding",
+const welcomePanels = [
+  {
+    number: "01",
+    title: "Real projects, written down.",
+    description:
+      "Most of what I post comes straight from stuff I'm actually building — what worked, what broke, and what I'd do differently.",
+  },
+  {
+    number: "02",
+    title: "Not just websites.",
+    description:
+      "Websites, apps, tools — if it can be built, I'm probably interested in figuring it out and writing about it.",
+  },
+  {
+    number: "03",
+    title: "One person behind it.",
+    description:
+      "It's just me. So when you read something here, you're hearing it straight from the person who'd actually build your project.",
+  },
 ];
 
 const footerLinks = [
   { label: "Work", href: "/#projects" },
-  { label: "Services", href: "/#about" },
+  { label: "About", href: "/#about" },
   { label: "Blog", href: "/blog" },
   { label: "Contact", href: "/#contact" },
 ];
+
+function formatDate(value: string) {
+  return new Date(value).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
 
 export default function BlogPage() {
   const posts = [...publishedBlogPosts].sort(
@@ -46,349 +64,248 @@ export default function BlogPage() {
 
   const latestPost = posts[0];
   const archivedPosts = posts.slice(1);
-  const categories = [...new Set(posts.map((post) => post.category))];
-
-  const welcomePanels = [
-    {
-      number: "01",
-      title: "Field notes, not filler.",
-      description:
-        "Posts here feel useful, sharp, and honest instead of padded for SEO.",
-    },
-    {
-      number: "02",
-      title: "Built for real business.",
-      description:
-        "Covering launches, growth, and the work behind modern web projects.",
-    },
-    {
-      number: "03",
-      title: "Archive focus.",
-      description:
-        "A growing library of technical insights and creative breakthroughs.",
-    },
-  ];
 
   return (
     <>
       <BlogStructuredData />
-      <div className="min-h-screen bg-background text-foreground selection:bg-primary/20">
-        <nav className="sticky top-0 z-50 w-full border-b border-border/70 bg-background/85 backdrop-blur-md">
-          <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4">
-            <div className="flex items-center gap-3">
-              <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
-                <Sparkles className="size-4" />
-              </div>
-              <div className="hidden sm:block">
-                <div className="text-sm font-semibold tracking-tight">
-                  Cherry Capital Web
-                </div>
-                <div className="text-[10px] font-mono uppercase tracking-[0.26em] text-muted-foreground">
-                  Blog
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                asChild
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <Link href="/">
-                  <ArrowLeft className="size-4" />
-                  Back
-                </Link>
-              </Button>
-              <div className="hidden h-4 w-px bg-border sm:block" />
-              <Button
-                variant="outline"
-                asChild
-                className="rounded-full border-border/70 bg-card/80"
-              >
-                <Link href="/#contact">Subscribe</Link>
-              </Button>
-            </div>
-          </div>
-        </nav>
-
-        <header className="relative overflow-hidden border-b border-border/70 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-secondary)_34%,transparent),transparent_62%)] py-16 md:py-24">
-          <div className="absolute inset-0 -z-10 bg-[radial-gradient(color-mix(in_srgb,var(--color-border)_72%,transparent)_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-35" />
-          <div className="absolute inset-x-0 top-0 h-24 bg-[radial-gradient(circle_at_top,color-mix(in_srgb,var(--color-primary)_20%,transparent),transparent_60%)]" />
-
-          <div className="mx-auto max-w-6xl px-4 text-center">
-            <Badge
-              variant="secondary"
-              className="mb-6 rounded-full border border-primary/15 px-4 py-1 font-mono text-[10px] uppercase tracking-[0.3em]"
-            >
-              Journal &amp; Insights
-            </Badge>
-
-            <h1 className="mx-auto mb-6 max-w-4xl text-4xl font-semibold tracking-[-0.05em] sm:text-6xl lg:text-7xl">
-              Refining the digital craft,
-              <br />
-              <span className="font-mono italic text-primary">one pixel</span> at a time.
-            </h1>
-
-            <p className="mx-auto max-w-2xl text-lg leading-relaxed text-muted-foreground">
-              Welcome to the Cherry Capital Web Blog. A notebook of field notes on
-              design, local growth, and high-performance web engineering.
-            </p>
-
-            <div className="mt-10 flex flex-col items-center justify-center gap-4">
-              <div className="relative w-full max-w-sm">
-                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="Search articles..."
-                  className="h-11 rounded-full border-border/70 bg-background/70 pl-10 pr-4 shadow-sm backdrop-blur-sm"
-                />
-              </div>
-
-              <div className="flex flex-wrap items-center justify-center gap-2">
-                {categories.map((category) => (
-                  <Badge
-                    key={category}
-                    variant="outline"
-                    className="cursor-default rounded-full border-border/70 bg-card/75 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.22em] hover:bg-secondary"
-                  >
-                    {category}
-                  </Badge>
-                ))}
+      <div className="min-h-screen bg-background">
+        <main className="relative mx-auto w-full max-w-full overflow-x-hidden px-2 pt-12 sm:overflow-x-visible md:max-w-3xl md:px-0">
+          {/* Hero */}
+          <div className="relative full-line-bottom">
+            <div className="relative select-none border-x py-16 md:py-24">
+              <FlickeringGrid
+                className="absolute inset-0 z-0 [mask-image:radial-gradient(350px_circle_at_center,white,transparent)]"
+                squareSize={4}
+                gridGap={6}
+                color="#999"
+                maxOpacity={0.2}
+                flickerChance={0.1}
+                height={600}
+                width={800}
+              />
+              <div className="relative z-10 mx-auto max-w-2xl space-y-6 px-8 text-center">
+                <Badge
+                  variant="secondary"
+                  className="font-mono text-[10px] uppercase tracking-[0.3em]"
+                >
+                  Journal &amp; Insights
+                </Badge>
+                <h1 className="font-mono text-3xl font-bold leading-tight md:text-5xl">
+                  Welcome to the Blog
+                </h1>
+                <p className="mx-auto max-w-xl font-mono text-sm leading-relaxed text-muted-foreground md:text-base">
+                  Field notes on design, local growth, and high-performance web
+                  engineering — written the same way I build: small, sharp, and honest.
+                </p>
               </div>
             </div>
           </div>
-        </header>
 
-        <section className="border-b border-border/70 py-12">
-          <div className="mx-auto max-w-6xl px-4">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          {/* Welcome intro */}
+          <section className="relative border-x px-4 full-line-bottom">
+            <h2 className="relative full-line-bottom text-3xl font-semibold">
+              Why this blog exists
+            </h2>
+            <div className="grid grid-cols-1 gap-px py-4 sm:grid-cols-3">
               {welcomePanels.map((panel) => (
                 <div
                   key={panel.number}
-                  className="group relative rounded-2xl border border-border/70 bg-card/82 p-6 transition-all duration-300 hover:-translate-y-1 hover:bg-secondary/45 hover:shadow-[0_18px_50px_-40px_color-mix(in_srgb,var(--color-foreground)_55%,transparent)]"
+                  className="group relative flex flex-col gap-2 rounded-md border bg-muted/30 p-5 transition-colors hover:border-primary/50"
                 >
-                  <span className="mb-2 block font-mono text-xs font-bold tracking-[0.24em] text-primary/55">
+                  <span className="font-mono text-xs font-bold tracking-[0.24em] text-primary/60">
                     {panel.number}
                   </span>
-                  <h3 className="mb-2 text-xl font-semibold tracking-tight transition-colors group-hover:text-primary">
+                  <h3 className="font-mono text-base font-semibold transition-colors group-hover:text-primary">
                     {panel.title}
                   </h3>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
+                  <p className="font-mono text-xs leading-relaxed text-muted-foreground">
                     {panel.description}
                   </p>
-                  <div className="absolute bottom-4 right-4 opacity-0 transition-opacity group-hover:opacity-100">
-                    <ArrowUpRight className="size-4 text-primary" />
-                  </div>
+                  <ArrowUpRight className="absolute bottom-4 right-4 size-4 text-primary opacity-0 transition-opacity group-hover:opacity-100" />
                 </div>
               ))}
             </div>
-          </div>
-        </section>
+          </section>
 
-        <main className="mx-auto max-w-6xl px-4 py-16">
-          <div className="grid grid-cols-1 gap-12 lg:grid-cols-12">
-            <div className="lg:col-span-8">
-              <div className="mb-8 flex items-center justify-between">
-                <h2 className="flex items-center gap-2 text-2xl font-semibold tracking-tight">
-                  <BookOpen className="size-5 text-primary" />
-                  Latest Release
-                </h2>
-                <div className="mx-4 h-px flex-1 bg-border" />
-              </div>
+          {/* Latest post */}
+          <section className="relative border-x px-4 full-line-bottom">
+            <h2 className="relative flex items-center gap-2 full-line-bottom text-3xl font-semibold">
+              <BookOpen className="size-6 text-primary" />
+              Latest
+            </h2>
 
+            <div className="py-4">
               {latestPost ? (
                 <Link href={`/blog/${latestPost.slug}`} className="group block">
-                  <article>
-                    <Card className="overflow-hidden border-0 bg-transparent py-0 shadow-none">
-                      <div className="relative mb-6 aspect-[16/9] overflow-hidden rounded-2xl border border-border/70 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--color-secondary)_38%,transparent),color-mix(in_srgb,var(--color-card)_92%,transparent))]">
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--color-primary)_16%,transparent),transparent_34%)]" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/15 to-transparent" />
-                        <div className="flex h-full w-full items-center justify-center">
-                          <FileText className="size-16 text-foreground/15" />
-                        </div>
-                        <Badge className="absolute left-4 top-4 rounded-full font-mono text-[10px] uppercase tracking-[0.22em]">
-                          Featured
-                        </Badge>
+                  <article className="overflow-hidden rounded-lg border bg-muted/30 transition-colors hover:border-primary/50">
+                    <div className="relative aspect-[16/9] select-none overflow-hidden border-b lining-tilt-background">
+                      <BlogPostArt className="absolute inset-0" />
+                      <Badge className="absolute left-4 top-4 font-mono text-[10px] uppercase tracking-[0.22em]">
+                        {latestPost.featured ? "Featured" : latestPost.category}
+                      </Badge>
+                    </div>
+
+                    <div className="space-y-4 p-6">
+                      <div className="flex flex-wrap items-center gap-4 font-mono text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="size-3" />
+                          {formatDate(latestPost.publishedAt)}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="size-3" />
+                          {latestPost.readTime}
+                        </span>
                       </div>
 
-                      <div className="space-y-4">
-                        <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                          <span className="flex items-center gap-1 font-mono">
-                            <Calendar className="size-3" />
-                            {new Date(latestPost.publishedAt).toLocaleDateString("en-US", {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            })}
-                          </span>
-                          <span className="flex items-center gap-1 font-mono">
-                            <Clock className="size-3" />
-                            {latestPost.readTime}
-                          </span>
-                        </div>
+                      <h3 className="font-mono text-2xl font-semibold leading-tight transition-colors group-hover:text-primary md:text-3xl">
+                        {latestPost.title}
+                      </h3>
 
-                        <h3 className="text-3xl font-semibold tracking-[-0.04em] transition-colors group-hover:text-primary md:text-4xl">
-                          {latestPost.title}
-                        </h3>
+                      <p className="font-mono text-sm leading-relaxed text-muted-foreground">
+                        {latestPost.excerpt}
+                      </p>
 
-                        <p className="max-w-3xl text-lg leading-relaxed text-muted-foreground">
-                          {latestPost.excerpt}
-                        </p>
-
-                        <div className="flex flex-col gap-4 pt-4 sm:flex-row sm:items-center sm:justify-between">
-                          <div className="flex flex-wrap gap-x-3 gap-y-2">
-                            {latestPost.tags.map((tag) => (
-                              <span
-                                key={tag}
-                                className="inline-flex items-center text-xs font-mono text-muted-foreground"
-                              >
-                                <Hash className="mr-0.5 size-3" />
-                                {tag}
-                              </span>
-                            ))}
-                          </div>
-
-                          <Button className="rounded-full font-mono" asChild>
-                            <span>
-                              Read Story
-                              <ArrowRight className="size-4" />
+                      <div className="flex flex-col gap-4 pt-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex flex-wrap gap-x-3 gap-y-2">
+                          {latestPost.tags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="inline-flex items-center font-mono text-xs text-muted-foreground"
+                            >
+                              <Hash className="mr-0.5 size-3" />
+                              {tag}
                             </span>
-                          </Button>
+                          ))}
                         </div>
+                        <Button className="font-mono" asChild>
+                          <span>
+                            Read Story
+                            <ArrowRight className="size-4" />
+                          </span>
+                        </Button>
                       </div>
-                    </Card>
+                    </div>
                   </article>
                 </Link>
               ) : (
-                <div className="flex h-64 items-center justify-center rounded-2xl border-2 border-dashed border-border text-muted-foreground">
-                  No posts found. Starting the engine...
+                <div className="flex h-48 items-center justify-center rounded-lg border border-dashed font-mono text-sm text-muted-foreground">
+                  No posts yet. Starting the engine...
                 </div>
               )}
             </div>
+          </section>
 
-            <aside className="space-y-12 lg:col-span-4">
-              <div>
-                <h2 className="mb-6 flex items-center gap-2 text-xl font-semibold">
-                  <FolderOpenDot className="size-5 text-primary" />
-                  Archive
-                </h2>
-
-                <div className="space-y-6">
-                  {archivedPosts.map((post) => (
-                    <Link
-                      key={post.id}
-                      href={`/blog/${post.slug}`}
-                      className="group flex flex-col gap-2 border-b border-border/70 pb-6 last:border-0"
-                    >
-                      <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.26em] text-primary">
-                        {post.category}
-                      </div>
-                      <h4 className="text-lg font-semibold leading-tight transition-colors group-hover:text-primary">
-                        {post.title}
-                      </h4>
-                      <div className="flex items-center gap-3 text-xs font-mono text-muted-foreground">
-                        <span>
-                          {new Date(post.publishedAt).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })}
-                        </span>
-                        <div className="size-1 rounded-full bg-border" />
-                        <span>{post.readTime}</span>
-                        <ChevronRight className="ml-auto size-3 opacity-0 transition-opacity group-hover:opacity-100" />
-                      </div>
-                    </Link>
-                  ))}
-                </div>
+          {/* Archive */}
+          {archivedPosts.length > 0 && (
+            <section className="relative border-x px-4 full-line-bottom">
+              <h2 className="relative flex items-center gap-2 full-line-bottom text-3xl font-semibold">
+                <FolderOpenDot className="size-6 text-primary" />
+                Archive
+              </h2>
+              <div className="py-4">
+                {archivedPosts.map((post) => (
+                  <Link
+                    key={post.id}
+                    href={`/blog/${post.slug}`}
+                    className="group flex flex-col gap-2 border-b py-5 last:border-0"
+                  >
+                    <span className="font-mono text-[10px] uppercase tracking-[0.26em] text-primary">
+                      {post.category}
+                    </span>
+                    <h3 className="font-mono text-lg font-semibold leading-tight transition-colors group-hover:text-primary">
+                      {post.title}
+                    </h3>
+                    <p className="font-mono text-sm leading-relaxed text-muted-foreground">
+                      {post.excerpt}
+                    </p>
+                    <div className="flex items-center gap-3 font-mono text-xs text-muted-foreground">
+                      <span>{formatDate(post.publishedAt)}</span>
+                      <div className="size-1 rounded-full bg-border" />
+                      <span>{post.readTime}</span>
+                      <ChevronRight className="ml-auto size-4 opacity-0 transition-opacity group-hover:opacity-100" />
+                    </div>
+                  </Link>
+                ))}
               </div>
+            </section>
+          )}
 
-              <Card className="group relative overflow-hidden rounded-2xl border-0 bg-primary p-6 text-primary-foreground shadow-[0_24px_60px_-38px_color-mix(in_srgb,var(--color-primary)_80%,transparent)]">
-                <div className="absolute right-0 top-0 p-4 opacity-10 transition-transform group-hover:scale-110">
-                  <Sparkles className="size-24" />
-                </div>
-                <h3 className="mb-2 text-xl font-semibold">
-                  Need a high-performance site?
-                </h3>
-                <p className="mb-6 text-sm leading-relaxed text-primary-foreground/80">
-                  We build fast, secure, and beautiful digital experiences for local
-                  brands.
-                </p>
-                <Button
-                  variant="secondary"
-                  asChild
-                  className="w-full rounded-full font-mono"
-                >
+          {/* CTA */}
+          <section className="relative border-x px-4 full-line-bottom">
+            <div className="space-y-4 py-8 text-center">
+              <h2 className="font-mono text-2xl font-semibold">
+                Need a high-performance site?
+              </h2>
+              <p className="mx-auto max-w-md font-mono text-sm text-muted-foreground">
+                I build fast, secure, and genuinely personal websites for local brands
+                in Northern Michigan. No agency chain — just me.
+              </p>
+              <div className="flex flex-wrap justify-center gap-3">
+                <Button asChild>
                   <Link href="/#contact">Get a Quote</Link>
                 </Button>
-              </Card>
-
-              <div>
-                <h3 className="mb-4 text-sm font-mono font-bold uppercase tracking-[0.3em]">
-                  Popular Topics
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {topicCloud.map((topic) => (
-                    <Badge
-                      key={topic}
-                      variant="outline"
-                      className="cursor-default rounded-full border-border/70 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.22em] hover:border-primary/50"
-                    >
-                      {topic}
-                    </Badge>
-                  ))}
-                </div>
+                <Button variant="outline" asChild>
+                  <Link href="/">View Portfolio</Link>
+                </Button>
               </div>
-            </aside>
-          </div>
-        </main>
+            </div>
+          </section>
 
-        <footer className="border-t border-border/70 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-secondary)_28%,transparent),transparent)] py-12">
-          <div className="mx-auto max-w-6xl px-4">
-            <div className="flex flex-col items-center justify-between gap-8 text-center md:flex-row md:text-left">
-              <div>
-                <div className="mb-2 flex items-center justify-center gap-2 md:justify-start">
-                  <Sparkles className="size-4 text-primary" />
-                  <span className="font-semibold">Cherry Capital Web</span>
-                </div>
-                <p className="max-w-xs text-sm text-muted-foreground">
-                  Modern web studio specializing in speed, design, and regional
-                  growth.
-                </p>
-              </div>
-
-              <div className="flex flex-wrap items-center justify-center gap-6 text-sm font-medium">
+          {/* Footer */}
+          <section className="relative h-fit border-x p-4 full-line-bottom">
+            <div
+              className={cn(
+                "absolute top-0 left-0 flex h-full w-8 border-r border-edge",
+                "before:absolute before:inset-0 before:-z-1",
+                "before:bg-[repeating-linear-gradient(45deg,var(--pattern-foreground)_0,var(--pattern-foreground)_1px,transparent_0,transparent_50%)]",
+                "before:bg-size-[10px_10px] before:[--pattern-foreground:var(--color-edge)]/56"
+              )}
+            />
+            <div
+              className={cn(
+                "absolute top-0 right-0 flex h-full w-8 border-l border-edge",
+                "before:absolute before:inset-0 before:-z-1",
+                "before:bg-[repeating-linear-gradient(45deg,var(--pattern-foreground)_0,var(--pattern-foreground)_1px,transparent_0,transparent_50%)]",
+                "before:bg-size-[10px_10px] before:[--pattern-foreground:var(--color-edge)]/56"
+              )}
+            />
+            <div className="flex flex-col items-center gap-5 px-8">
+              <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 font-mono text-sm">
                 {footerLinks.map((link) => (
                   <Link
                     key={link.label}
                     href={link.href}
-                    className="transition-colors hover:text-primary"
+                    className="text-muted-foreground transition-colors hover:text-primary"
                   >
                     {link.label}
                   </Link>
                 ))}
               </div>
-
-              <div className="flex gap-4">
-                <Button variant="outline" asChild className="h-9 px-3">
-                  <Link href="/">
-                    <ArrowLeft className="size-4" />
-                  </Link>
-                </Button>
-                <Button variant="outline" asChild className="h-9 px-3">
-                  <Link href={latestPost ? `/blog/${latestPost.slug}` : "/blog"}>
-                    <ArrowRight className="size-4" />
-                  </Link>
-                </Button>
-              </div>
+              <p className="text-center font-mono text-sm text-balance text-muted-foreground">
+                Built by{" "}
+                <a
+                  className="font-semibold underline"
+                  href="https://cherrycapitalweb.com/"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  Cherry Capital
+                </a>
+                . Traverse City, MI.
+              </p>
+              <Button
+                variant="ghost"
+                asChild
+                className="font-mono text-muted-foreground hover:text-foreground"
+              >
+                <Link href="/">
+                  <ArrowLeft className="size-4" />
+                  Back to site
+                </Link>
+              </Button>
             </div>
-
-            <div className="mt-12 border-t border-border/70 pt-8 text-center text-xs font-mono text-muted-foreground">
-              &copy; {new Date().getFullYear()} Cherry Capital Web. Traverse City, MI.
-            </div>
-          </div>
-        </footer>
+          </section>
+        </main>
       </div>
     </>
   );

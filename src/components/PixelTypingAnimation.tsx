@@ -1,6 +1,6 @@
 "use client";
 import React, { ReactNode, useEffect, useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 type LetterPattern = number[][];
 type LetterPatterns = {
   [key: string]: LetterPattern;
@@ -160,13 +160,32 @@ function PixelCursor() {
 const PixelLetter = ({
   letter,
   isVisible = true,
+  animate = true,
 }: {
   letter: string;
   isVisible: boolean;
+  animate?: boolean;
 }) => {
   const pattern = letterPatterns[letter.toUpperCase() as string];
 
   if (!pattern) return null;
+
+  if (!animate) {
+    return (
+      <div className="grid grid-cols-4 gap-0">
+        {pattern.map((row, rowIndex) =>
+          row.map((pixel, pixelIndex) => (
+            <div
+              key={`${rowIndex}-${pixelIndex}`}
+              className={`size-2 ${
+                pixel && isVisible ? "bg-[#333] dark:bg-white" : "bg-transparent"
+              }`}
+            />
+          ))
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-4 gap-0">
@@ -325,22 +344,34 @@ function PixelTypingText({
 
 // Demo component with multiple words
 export default function PixelTypingDemo() {
+  const shouldReduceMotion = useReducedMotion();
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const words = ["I AM","A DEV", "SHIPS", "IDEAS"];
    const [showText, setShowText] = useState(false);
   // Start after 3 seconds
   useEffect(() => {
+    if (shouldReduceMotion) return;
     const timer = setTimeout(() => {
       setShowText(true);
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [shouldReduceMotion]);
   const handleComplete = () => {
     setTimeout(() => {
       setCurrentWordIndex((prev) => (prev + 1) % words.length);
     }, 2000);
   };
+
+  if (shouldReduceMotion) {
+    return (
+      <div className="flex gap-4 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-mono">
+        {words[0].split("").map((letter, i) => (
+          <PixelLetter key={i} letter={letter} isVisible animate={false} />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="flex  absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">

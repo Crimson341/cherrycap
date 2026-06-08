@@ -6,8 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { FlickeringGrid } from "@/components/ui/FlickingGridBG";
+import { BlogPostArt } from "@/components/ui/BlogPostArt";
 import { BlogStructuredData } from "@/components/BlogStructuredData";
-import { NextjsSpecialPost } from "@/components";
+import { NextjsSpecialPost, WelcomePost } from "@/components";
 import { publishedBlogPosts } from "@/lib/blogPosts";
 import { portfolioConfig } from "@/lib/portfolioConfig";
 import { defaultOgImage } from "@/lib/seo";
@@ -88,10 +89,21 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           </div>
         </section>
 
+        {/* Featured Image */}
+        <section className="px-4 border-x full-line-bottom relative">
+          <div className="py-4">
+            <div className="relative aspect-[16/9] select-none overflow-hidden rounded-lg border lining-tilt-background">
+              <BlogPostArt className="absolute inset-0" />
+            </div>
+          </div>
+        </section>
+
         {/* Article Content */}
         <article className="border-x full-line-bottom relative">
           <div className="px-4 py-8 max-w-4xl mx-auto">
-            {post.slug === 'what-makes-nextjs-special' ? (
+            {post.slug === 'welcome-to-the-cherry-capital-blog' ? (
+              <WelcomePost />
+            ) : post.slug === 'what-makes-nextjs-special' ? (
               <NextjsSpecialPost />
             ) : (
               <div className="prose prose-lg max-w-none font-mono leading-relaxed">
