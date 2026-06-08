@@ -96,6 +96,16 @@ export const Header = ({ transition }: { transition: boolean }) => {
         >
              <div className="flex gap-3 items-center justify-center">
 
+          <Link
+            href="/blog"
+            aria-label="Read the blog"
+            className={cn(
+              buttonVariants({ variant: "ghost", size: "sm" }),
+              "rounded-full font-mono"
+            )}
+          >
+            Blog
+          </Link>
          <PortfolioInfoDialog/>
           <Link
             href={"https://github.com/thuggys"}

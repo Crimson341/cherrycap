@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils'
+import Link from 'next/link'
 import React from 'react'
 
 function FooterSection() {
@@ -20,7 +21,15 @@ function FooterSection() {
                   "before:bg-size-[10px_10px] before:[--pattern-foreground:var(--color-edge)]/56"
                 )}
               />
-        <p className="text-center font-mono text-sm text-balance text-muted-foreground">Built by <a className="font-semibold underline" href="https://cherrycapitalweb.com/" target="_blank" rel="noopener">Cherry Capital</a>.</p>
+        <div className="flex flex-col items-center gap-3">
+          <Link
+            href="/blog"
+            className="font-mono text-sm font-semibold underline underline-offset-4 transition-colors hover:text-primary"
+          >
+            Read the blog →
+          </Link>
+          <p className="text-center font-mono text-sm text-balance text-muted-foreground">Built by <a className="font-semibold underline" href="https://cherrycapitalweb.com/" target="_blank" rel="noopener">Cherry Capital</a>.</p>
+        </div>
     </section>
   )
 }
