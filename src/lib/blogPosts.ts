@@ -9,6 +9,8 @@ export interface BlogPost {
   readTime: string;
   category: string;
   tags: string[];
+  heroImage?: string;
+  heroAlt?: string;
   featured: boolean;
   published: boolean;
 }
@@ -31,15 +33,17 @@ export const blogPosts: BlogPost[] = [
   },
   {
     id: 1,
-    title: "What Makes Next.js Special: Why Enterprise Companies Choose It Over Everything Else",
+    title: "Why I Build with Next.js and Cloudflare Now",
     slug: "what-makes-nextjs-special",
-    excerpt: "Nike, Spotify, OpenAI, and Netflix all run on Next.js. Here's exactly why this framework dominates the modern web and what it means for your business website.",
+    excerpt: "The framework is only half the story. Here is why I pair Next.js with Cloudflare—and what that combination actually changes for the businesses I build for.",
     content: "Next.js Special Content", // This will be handled by the component
     publishedAt: "2025-01-18",
-    updatedAt: "2025-01-18",
-    readTime: "9 min read",
+    updatedAt: "2026-07-13",
+    readTime: "6 min read",
     category: "Technology",
-    tags: ["Next.js", "Performance", "Enterprise", "Modern Web", "Framework"],
+    tags: ["Next.js", "Cloudflare", "Performance", "Modern Web"],
+    heroImage: "/blog/nextjs-cloudflare-edge.jpg",
+    heroAlt: "A laptop in a Northern Michigan studio with subtle illuminated network paths stretching across the scene",
     featured: true,
     published: true,
   },

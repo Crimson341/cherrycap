@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Clock } from "lucide-react";
@@ -43,13 +44,30 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           </div>
         </header>
 
-        <section className="cc-article-art" aria-hidden="true">
-          <div className="cc-article-art-orbit" />
-          <span className="cc-article-art-label">Cherry Capital · Field Notes</span>
-          <strong>Think.<br /><em>Make.</em><br />Refine.</strong>
-          <span className="cc-article-art-number">{String(post.id + 1).padStart(2, "0")}</span>
-          <div className="cc-article-art-cherry" />
-        </section>
+        {post.heroImage ? (
+          <figure className="cc-article-photo">
+            <Image
+              src={post.heroImage}
+              alt={post.heroAlt ?? ""}
+              width={1672}
+              height={941}
+              priority
+              sizes="100vw"
+            />
+            <figcaption>
+              <span>Cherry Capital · Field Notes</span>
+              <span>{String(post.id + 1).padStart(2, "0")}</span>
+            </figcaption>
+          </figure>
+        ) : (
+          <section className="cc-article-art" aria-hidden="true">
+            <div className="cc-article-art-orbit" />
+            <span className="cc-article-art-label">Cherry Capital · Field Notes</span>
+            <strong>Think.<br /><em>Make.</em><br />Refine.</strong>
+            <span className="cc-article-art-number">{String(post.id + 1).padStart(2, "0")}</span>
+            <div className="cc-article-art-cherry" />
+          </section>
+        )}
 
         <article className="cc-article-shell">
           <aside className="cc-article-aside">
@@ -114,8 +132,12 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
     openGraph: {
       title: post.title, description: post.excerpt, type: "article", url: canonicalPath,
       publishedTime: post.publishedAt, modifiedTime: post.updatedAt ?? post.publishedAt,
-      authors: [portfolioConfig.name], tags: post.tags, section: post.category, images: [defaultOgImage],
+      authors: [portfolioConfig.name], tags: post.tags, section: post.category,
+      images: post.heroImage ? [post.heroImage] : [defaultOgImage],
     },
-    twitter: { card: "summary_large_image", title: post.title, description: post.excerpt, images: [defaultOgImage.url] },
+    twitter: {
+      card: "summary_large_image", title: post.title, description: post.excerpt,
+      images: [post.heroImage ?? defaultOgImage.url],
+    },
   };
 }
