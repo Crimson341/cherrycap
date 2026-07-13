@@ -2,6 +2,7 @@ import { convexAuthNextjsToken } from "@convex-dev/auth/nextjs/server";
 import { api } from "@/convex/_generated/api";
 import type { DashboardPayload, DashboardRange } from "@/lib/dashboard/types";
 import { fetchQuery } from "convex/nextjs";
+import { getLeadDashboardData } from "@/lib/leads/db";
 
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
 
@@ -31,9 +32,11 @@ function createFallbackDashboard(range: DashboardRange): DashboardPayload {
     leadSummary: {
       isLive: false,
       total: 0,
-      note: "Placeholder until lead events are persisted.",
+      note: "Cloudflare D1 is not connected in this environment.",
       lastCapturedAt: null,
+      byStatus: {},
     },
+    leads: [],
     uptimeSummary: {
       isLive: false,
       status: "pending",
@@ -56,23 +59,56 @@ function createFallbackDashboard(range: DashboardRange): DashboardPayload {
   };
 }
 
+async function attachD1Leads(payload: DashboardPayload): Promise<DashboardPayload> {
+  const leadData = await getLeadDashboardData();
+  const liveLeadNote = leadData.total === 0
+    ? "D1 is live and ready for the first website inquiry."
+    : `${leadData.total} lead${leadData.total === 1 ? "" : "s"} stored in Cloudflare D1.`;
+
+  return {
+    ...payload,
+    leadSummary: {
+      isLive: leadData.isLive,
+      total: leadData.total,
+      note: leadData.isLive
+        ? liveLeadNote
+        : "Cloudflare D1 is not connected in this environment.",
+      lastCapturedAt: leadData.lastCapturedAt,
+      byStatus: leadData.byStatus,
+    },
+    leads: leadData.leads,
+    dataFreshness: {
+      ...payload.dataFreshness,
+      leadCapturedAt: leadData.lastCapturedAt,
+      notes: payload.dataFreshness.notes.map((note) =>
+        note.startsWith("Leads ")
+          ? leadData.isLive
+            ? "Lead submissions are stored in Cloudflare D1 and available in the pipeline below."
+            : "Lead storage is waiting for the Cloudflare D1 binding."
+          : note,
+      ),
+    },
+  };
+}
+
 export async function getDashboardPayload(range: DashboardRange) {
   if (!convexUrl) {
-    return createFallbackDashboard(range);
+    return await attachD1Leads(createFallbackDashboard(range));
   }
 
   try {
     const token = await convexAuthNextjsToken();
     if (!token) {
-      return createFallbackDashboard(range);
+      return await attachD1Leads(createFallbackDashboard(range));
     }
 
-    return await fetchQuery(
+    const payload = await fetchQuery(
       api.dashboard.getDashboard,
       { range },
       { token, url: convexUrl },
     );
+    return await attachD1Leads(payload);
   } catch {
-    return createFallbackDashboard(range);
+    return await attachD1Leads(createFallbackDashboard(range));
   }
 }

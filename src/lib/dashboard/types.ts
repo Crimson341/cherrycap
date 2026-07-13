@@ -1,3 +1,5 @@
+import type { DashboardLead, LeadStatus } from "@/lib/leads/types";
+
 export const dashboardRanges = ["24h", "7d", "30d"] as const;
 
 export type DashboardRange = (typeof dashboardRanges)[number];
@@ -49,7 +51,9 @@ export type DashboardPayload = {
     total: number;
     note: string;
     lastCapturedAt: number | null;
+    byStatus: Partial<Record<LeadStatus, number>>;
   };
+  leads: DashboardLead[];
   uptimeSummary: {
     isLive: boolean;
     status: string;

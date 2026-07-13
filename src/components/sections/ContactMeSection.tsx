@@ -14,7 +14,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Forward, Mail, MailCheck, UserRound } from "lucide-react";
+import {
+  Building2,
+  Forward,
+  Mail,
+  MailCheck,
+  Phone,
+  UserRound,
+} from "lucide-react";
 import { Textarea } from "../ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -27,9 +34,12 @@ const FormSchema = z.object({
       error: "Email is required.",
     })
     .email("Please enter a valid email address."),
+  phone: z.string().max(40, "Phone number is too long.").optional(),
+  company: z.string().max(120, "Business name is too long.").optional(),
   message: z.string().min(2, {
     message: "Message is required and must be at least 2 characters.",
-  }),
+  }).max(4000, "Message must be 4,000 characters or fewer."),
+  website: z.string().optional(),
 });
 
 function ContactMeSection() {
@@ -40,31 +50,26 @@ function ContactMeSection() {
     defaultValues: {
       name: "",
       email: "",
+      phone: "",
+      company: "",
       message: "",
+      website: "",
     },
   });
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     setSubmitError(false);
     try {
-      // Submit to Web3Forms
-      const formData = new FormData();
-      formData.append("access_key", "c2147bbb-80e5-4247-be9b-59b36f804b59");
-      formData.append("name", data.name);
-      formData.append("email", data.email);
-      formData.append("message", data.message);
-      formData.append("subject", `Portfolio Contact: ${data.name}`);
-
-      const response = await fetch("https://api.web3forms.com/submit", {
+      const response = await fetch("/api/leads", {
         method: "POST",
-        body: formData,
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(data),
       });
 
       if (response.ok) {
         setSubmitted(true);
         form.reset();
       } else {
-        console.error("Form submission failed");
         setSubmitError(true);
       }
     } catch (error) {
@@ -127,6 +132,20 @@ function ContactMeSection() {
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="w-full md:w-2/3 space-y-4"
               >
+                <div className="sr-only" aria-hidden="true">
+                  <FormField
+                    control={form.control}
+                    name="website"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Website</FormLabel>
+                        <FormControl>
+                          <Input tabIndex={-1} autoComplete="off" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 <FormField
                   control={form.control}
                   name="name"
@@ -173,6 +192,56 @@ function ContactMeSection() {
                     </FormItem>
                   )}
                 />
+                <div className="grid gap-4 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone (optional)</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Input
+                              className="peer ps-9 font-mono"
+                              placeholder="(231) 555-0123"
+                              type="tel"
+                              autoComplete="tel"
+                              {...field}
+                            />
+                            <div className="text-muted-foreground/80 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3">
+                              <Phone size={16} />
+                            </div>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="company"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Business (optional)</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Input
+                              className="peer ps-9 font-mono"
+                              placeholder="Business name"
+                              type="text"
+                              autoComplete="organization"
+                              {...field}
+                            />
+                            <div className="text-muted-foreground/80 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3">
+                              <Building2 size={16} />
+                            </div>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 <FormField
                   control={form.control}
                   name="message"

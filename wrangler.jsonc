@@ -1,0 +1,31 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cherrycap",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-07-13",
+  "compatibility_flags": [
+    "nodejs_compat",
+    "global_fetch_strictly_public"
+  ],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "cherrycap"
+    }
+  ],
+  "images": {
+    "binding": "IMAGES"
+  },
+  "d1_databases": [
+    {
+      "binding": "LEADS_DB",
+      "database_name": "cherrycapital-leads",
+      "database_id": "da8e21f9-f37d-4383-9f0f-e7107e81cd7e",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

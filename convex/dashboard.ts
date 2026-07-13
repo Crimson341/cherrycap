@@ -433,7 +433,9 @@ export const getDashboard = query({
         total: recentLeads.length,
         note: "Placeholder until Web3Forms submissions are stored in Convex.",
         lastCapturedAt: recentLeads[0]?.createdAt ?? null,
+        byStatus: {},
       },
+      leads: [],
       uptimeSummary: {
         isLive: false,
         status: latestCheck?.status ?? "pending",

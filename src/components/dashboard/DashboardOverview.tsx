@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -11,6 +12,8 @@ import {
 import { DashboardSignOutButton } from "@/components/dashboard/DashboardSignOutButton";
 import type { DashboardPayload, DashboardRange } from "@/lib/dashboard/types";
 import { dashboardRanges } from "@/lib/dashboard/types";
+import { updateLeadAction } from "@/app/dashboard/actions";
+import { leadStatuses, type LeadStatus } from "@/lib/leads/types";
 
 const numberFormatter = new Intl.NumberFormat("en-US");
 const percentFormatter = new Intl.NumberFormat("en-US", {
@@ -41,6 +44,10 @@ function formatDelta(delta: number | null) {
 
 function formatStatus(status: string) {
   return status.replace(/_/g, " ");
+}
+
+function leadStatusLabel(status: LeadStatus) {
+  return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
 function formatPercent(value: number) {
@@ -221,6 +228,12 @@ export function DashboardOverview({
       detail: payload.uptimeSummary.note,
       live: payload.uptimeSummary.isLive,
     },
+    {
+      label: "Leads",
+      value: payload.leadSummary.total,
+      detail: payload.leadSummary.note,
+      live: payload.leadSummary.isLive,
+    },
   ];
 
   return (
@@ -243,8 +256,8 @@ export function DashboardOverview({
             </h1>
             <p className="max-w-2xl text-base text-muted-foreground md:text-lg">
               This dashboard now tracks page traffic, click activity, regions,
-              referrers, devices, and browsers from live site interactions. Leads
-              and uptime remain visible, but still use placeholder data.
+              referrers, devices, and browsers from live site interactions. The
+              D1 lead pipeline keeps every website inquiry organized in one place.
             </p>
           </div>
 
@@ -419,6 +432,111 @@ export function DashboardOverview({
               </div>
             </CardContent>
           </Card>
+        </div>
+      </section>
+
+      <section className="border-t px-4 py-8 md:px-8">
+        <div className="mx-auto max-w-6xl space-y-4">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="space-y-2">
+              <Badge variant={payload.leadSummary.isLive ? "secondary" : "outline"}>
+                {payload.leadSummary.isLive ? "D1 live" : "D1 unavailable"}
+              </Badge>
+              <h2 className="text-3xl font-semibold tracking-tight">Lead pipeline</h2>
+              <p className="max-w-2xl text-sm text-muted-foreground">
+                Website inquiries are saved here. Update each lead as the
+                conversation progresses and keep private follow-up notes.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {leadStatuses.map((status) => (
+                <Badge key={status} variant="outline">
+                  {leadStatusLabel(status)} {payload.leadSummary.byStatus[status] ?? 0}
+                </Badge>
+              ))}
+            </div>
+          </div>
+
+          {payload.leads.length === 0 ? (
+            <Card className="rounded-none border-dashed">
+              <CardContent className="py-10 text-center text-sm text-muted-foreground">
+                {payload.leadSummary.isLive
+                  ? "The pipeline is ready. New contact-form submissions will appear here automatically."
+                  : "Connect the LEADS_DB binding to activate the lead pipeline."}
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4 lg:grid-cols-2">
+              {payload.leads.map((lead) => (
+                <Card key={lead.id} className="rounded-none">
+                  <CardHeader>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <CardTitle className="truncate">{lead.name}</CardTitle>
+                        <CardDescription className="mt-1">
+                          {lead.company || "No business name provided"}
+                        </CardDescription>
+                      </div>
+                      <Badge variant={lead.status === "new" ? "secondary" : "outline"}>
+                        {leadStatusLabel(lead.status)}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-5">
+                    <div className="space-y-1 text-sm">
+                      <a className="block underline-offset-4 hover:underline" href={`mailto:${lead.email}`}>
+                        {lead.email}
+                      </a>
+                      {lead.phone ? (
+                        <a className="block underline-offset-4 hover:underline" href={`tel:${lead.phone}`}>
+                          {lead.phone}
+                        </a>
+                      ) : null}
+                      <p className="text-xs text-muted-foreground">
+                        Received {formatTimestamp(lead.createdAt)} · Notification {lead.notificationStatus}
+                      </p>
+                    </div>
+
+                    <div className="rounded-md border bg-muted/30 p-4 text-sm whitespace-pre-wrap">
+                      {lead.message}
+                    </div>
+
+                    <form action={updateLeadAction} className="space-y-3 border-t pt-4">
+                      <input type="hidden" name="id" value={lead.id} />
+                      <div className="grid gap-3 sm:grid-cols-[180px_1fr]">
+                        <label className="space-y-1 text-sm">
+                          <span className="text-muted-foreground">Status</span>
+                          <select
+                            name="status"
+                            defaultValue={lead.status}
+                            className="h-10 w-full rounded-md border bg-background px-3"
+                          >
+                            {leadStatuses.map((status) => (
+                              <option key={status} value={status}>
+                                {leadStatusLabel(status)}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <label className="space-y-1 text-sm">
+                          <span className="text-muted-foreground">Private notes</span>
+                          <textarea
+                            name="notes"
+                            defaultValue={lead.notes}
+                            maxLength={2000}
+                            rows={3}
+                            placeholder="Follow-up details, proposal notes, next step..."
+                            className="w-full rounded-md border bg-background px-3 py-2"
+                          />
+                        </label>
+                      </div>
+                      <Button type="submit" size="sm">Save lead</Button>
+                    </form>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
