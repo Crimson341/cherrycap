@@ -6,10 +6,14 @@ type IncomingAnalyticsEvent = Record<string, unknown>;
 
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
 const drainSecret = process.env.VERCEL_ANALYTICS_DRAIN_SECRET;
+const ingestSecret = process.env.ANALYTICS_INGEST_SECRET;
+const MAX_BODY_BYTES = 256_000;
+const MAX_EVENTS_PER_REQUEST = 500;
 
 function verifySignature(rawBody: string, signature: string | null) {
+  // Fail closed in production when drain secret is missing
   if (!drainSecret) {
-    return true;
+    return process.env.NODE_ENV !== "production";
   }
 
   if (!signature) {
@@ -22,10 +26,14 @@ function verifySignature(rawBody: string, signature: string | null) {
     .digest("hex");
 
   const normalizedHeader = signature.replace(/^sha1=/, "");
-  return crypto.timingSafeEqual(
-    Buffer.from(digest),
-    Buffer.from(normalizedHeader),
-  );
+  const digestBuffer = Buffer.from(digest);
+  const headerBuffer = Buffer.from(normalizedHeader);
+
+  if (digestBuffer.length !== headerBuffer.length) {
+    return false;
+  }
+
+  return crypto.timingSafeEqual(digestBuffer, headerBuffer);
 }
 
 function parsePayload(rawBody: string): IncomingAnalyticsEvent[] {
@@ -146,16 +154,28 @@ function normalizeEvents(events: IncomingAnalyticsEvent[]) {
 }
 
 export async function POST(request: Request) {
+  const contentLength = Number(request.headers.get("content-length") ?? "0");
+  if (contentLength > MAX_BODY_BYTES) {
+    return Response.json({ error: "Payload too large" }, { status: 413 });
+  }
+
   const rawBody = await request.text();
+  if (rawBody.length > MAX_BODY_BYTES) {
+    return Response.json({ error: "Payload too large" }, { status: 413 });
+  }
+
   const signature = request.headers.get("x-vercel-signature");
 
   if (!verifySignature(rawBody, signature)) {
     return Response.json({ error: "Invalid signature" }, { status: 401 });
   }
 
-  const normalizedEvents = normalizeEvents(parsePayload(rawBody));
+  const normalizedEvents = normalizeEvents(parsePayload(rawBody)).slice(
+    0,
+    MAX_EVENTS_PER_REQUEST,
+  );
 
-  if (!convexUrl || normalizedEvents.length === 0) {
+  if (!convexUrl || !ingestSecret || normalizedEvents.length === 0) {
     return Response.json({
       received: normalizedEvents.length,
       stored: 0,
@@ -166,6 +186,7 @@ export async function POST(request: Request) {
   try {
     const client = new ConvexHttpClient(convexUrl, { logger: false });
     await client.mutation(api.dashboard.ingestTrafficEvents, {
+      ingestSecret,
       events: normalizedEvents,
     });
 
@@ -174,12 +195,9 @@ export async function POST(request: Request) {
       stored: normalizedEvents.length,
       skipped: false,
     });
-  } catch (error) {
+  } catch {
     return Response.json(
-      {
-        error: "Failed to persist analytics events",
-        detail: error instanceof Error ? error.message : "Unknown error",
-      },
+      { error: "Failed to persist analytics events" },
       { status: 500 },
     );
   }

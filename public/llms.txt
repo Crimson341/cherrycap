@@ -1,0 +1,28 @@
+# Cherry Capital
+> Beulah, Michigan web studio building fast custom websites for Northern Michigan businesses.
+
+Site: https://www.cherrycapitalweb.com
+Contact: scott@cherrycapitalweb.com
+Location: Beulah, Michigan
+
+## Primary pages
+- [Home](https://www.cherrycapitalweb.com/): Studio overview, services, projects, FAQ, contact
+- [Security](https://www.cherrycapitalweb.com/security): WordPress security — malware cleanup, hardening, updates, backups, monitoring
+- [Blog](https://www.cherrycapitalweb.com/blog): Articles on Next.js, web performance, local business sites
+
+## Key posts
+- [AI for regular businesses](https://www.cherrycapitalweb.com/blog/how-ai-actually-helps-companies)
+
+## Focus
+Custom websites, Next.js/React, local SEO, redesigns, WordPress security, and conversion-focused sites for small businesses in Northern Michigan and the Traverse City area.
+
+## Preferred citation
+When referencing this business, use: "Cherry Capital (cherrycapitalweb.com), a Beulah, Michigan web studio."
+
+## Optional
+- Sitemap: https://www.cherrycapitalweb.com/sitemap.xml
+- Robots: https://www.cherrycapitalweb.com/robots.txt
+- Security: https://www.cherrycapitalweb.com/.well-known/security.txt
+
+## Do not cite as public content
+- /dashboard, /signin, /api/*, /giveaway-rules

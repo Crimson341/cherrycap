@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { isAuthenticatedNextjs } from "@convex-dev/auth/nextjs/server";
 import { DashboardOverview } from "@/components/dashboard/DashboardOverview";
 import { getDashboardPayload } from "@/lib/dashboard/server";
@@ -6,6 +7,19 @@ import {
   type DashboardRange,
 } from "@/lib/dashboard/types";
 import { redirect } from "next/navigation";
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+      noimageindex: true,
+    },
+  },
+};
 
 function parseRange(input: string | string[] | undefined): DashboardRange {
   const value = Array.isArray(input) ? input[0] : input;

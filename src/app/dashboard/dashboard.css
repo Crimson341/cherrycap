@@ -1,0 +1,50 @@
+.dashboard-shell {
+  --dash-bg: #07070c;
+  --dash-surface: #12121c;
+  --dash-border: rgb(255 255 255 / 6%);
+  --dash-border-strong: rgb(255 255 255 / 12%);
+  --dash-text: #f4f4f8;
+  --dash-text-muted: #9292a8;
+  --dash-text-dim: #66667c;
+
+  min-height: 100dvh;
+  background: var(--dash-bg);
+  color: var(--dash-text);
+  font-feature-settings: "ss01" on, "cv11" on;
+}
+
+.dashboard-shell * {
+  border-color: var(--dash-border);
+}
+
+.dashboard-shell .dash-card {
+  border: 1px solid var(--dash-border);
+  border-radius: 1rem;
+  background: linear-gradient(165deg, rgb(255 255 255 / 3.5%), rgb(255 255 255 / 1%));
+}
+
+.dashboard-shell .dash-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--dash-border);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 3%);
+  padding: 0.4rem 0.75rem;
+  color: var(--dash-text-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: border-color 150ms ease, background 150ms ease, color 150ms ease;
+}
+
+.dashboard-shell .dash-pill:hover {
+  border-color: var(--dash-border-strong);
+  background: rgb(255 255 255 / 6%);
+  color: var(--dash-text);
+}
+
+.dashboard-shell .dash-pill[data-active="true"] {
+  border-color: rgb(167 139 250 / 35%);
+  background: rgb(167 139 250 / 15%);
+  color: #ddd6fe;
+}

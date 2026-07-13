@@ -1,0 +1,15 @@
+/* TEAM */
+Studio: Cherry Capital
+Contact: scott@cherrycapitalweb.com
+Location: Beulah, Michigan, USA
+Service area: Traverse City, Benzie County, Northern Michigan
+
+/* SITE */
+Standards: HTML5, CSS, modern JavaScript
+Stack: Next.js, React, TypeScript, Tailwind CSS
+Hosting: Vercel
+Last update: 2026
+
+/* CONTACT */
+Site: https://www.cherrycapitalweb.com/
+Blog: https://www.cherrycapitalweb.com/blog

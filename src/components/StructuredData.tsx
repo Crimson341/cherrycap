@@ -2,89 +2,161 @@ import { portfolioConfig } from "@/lib/portfolioConfig";
 import { absoluteUrl, safeJsonLd, siteDescription, siteName } from "@/lib/seo";
 
 export function StructuredData() {
+  const { nap } = portfolioConfig;
+  const organizationId = absoluteUrl("/#organization");
+  const localBusinessId = absoluteUrl("/#localbusiness");
+  const websiteId = absoluteUrl("/#website");
+
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    "@id": absoluteUrl("/#organization"),
-    "name": siteName,
-    "description": siteDescription,
-    "url": portfolioConfig.seo.url,
-    "logo": absoluteUrl("/myImage.png"),
-    "image": absoluteUrl("/og-image.png"),
-    "email": portfolioConfig.email,
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": "Beulah",
-      "addressRegion": "MI",
-      "addressCountry": "US"
+    "@id": organizationId,
+    name: siteName,
+    alternateName: "Cherry Capital Web",
+    description: siteDescription,
+    url: portfolioConfig.seo.url,
+    email: portfolioConfig.email,
+    logo: {
+      "@type": "ImageObject",
+      url: absoluteUrl("/avatar.webp"),
+      width: 320,
+      height: 320,
     },
-    "sameAs": Object.values(portfolioConfig.socialLinks).filter(Boolean)
+    image: {
+      "@type": "ImageObject",
+      url: absoluteUrl("/og-image.webp"),
+      width: 1200,
+      height: 630,
+    },
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: nap.addressLocality,
+      addressRegion: nap.addressRegion,
+      postalCode: nap.postalCode,
+      addressCountry: nap.addressCountry,
+    },
+    areaServed: nap.areaServed.map((name) => ({
+      "@type": name.includes("Northern") ? "AdministrativeArea" : "City",
+      name: name.replace(", MI", ""),
+    })),
+    knowsAbout: [
+      "Custom website development",
+      "Next.js",
+      "Local SEO",
+      "Website redesign",
+      "WordPress security",
+      "WordPress malware cleanup",
+      "Northern Michigan small business websites",
+    ],
+    sameAs: Object.values(portfolioConfig.socialLinks).filter(Boolean),
   };
 
-  const serviceSchema = {
+  const localBusinessSchema = {
     "@context": "https://schema.org",
-    "@type": "ProfessionalService",
-    "@id": absoluteUrl("/#service"),
-    "name": siteName,
-    "description": siteDescription,
-    "url": portfolioConfig.seo.url,
-    "image": absoluteUrl("/og-image.png"),
-    "provider": {
-      "@id": absoluteUrl("/#organization")
+    "@type": ["ProfessionalService", "LocalBusiness"],
+    "@id": localBusinessId,
+    name: siteName,
+    description: siteDescription,
+    url: portfolioConfig.seo.url,
+    email: portfolioConfig.email,
+    image: absoluteUrl("/og-image.webp"),
+    priceRange: nap.priceRange,
+    parentOrganization: { "@id": organizationId },
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: nap.addressLocality,
+      addressRegion: nap.addressRegion,
+      postalCode: nap.postalCode,
+      addressCountry: nap.addressCountry,
     },
-    "areaServed": {
-      "@type": "AdministrativeArea",
-      "name": "Michigan"
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: nap.geo.latitude,
+      longitude: nap.geo.longitude,
     },
-    "serviceType": [
+    areaServed: [
+      {
+        "@type": "City",
+        name: "Beulah",
+        containedInPlace: { "@type": "State", name: "Michigan" },
+      },
+      {
+        "@type": "City",
+        name: "Traverse City",
+        containedInPlace: { "@type": "State", name: "Michigan" },
+      },
+      {
+        "@type": "AdministrativeArea",
+        name: "Northern Michigan",
+      },
+    ],
+    serviceType: [
       "Custom website development",
       "Next.js development",
       "Website redesign",
-      "Local SEO"
+      "Local SEO",
     ],
-    "hasOfferCatalog": {
+    hasOfferCatalog: {
       "@type": "OfferCatalog",
-      "name": "Cherry Capital Services",
-      "itemListElement": [
+      name: "Cherry Capital Services",
+      itemListElement: [
         {
           "@type": "Offer",
-          "itemOffered": {
+          itemOffered: {
             "@type": "Service",
-            "name": "Custom Website Development",
-            "description": "High-performance custom websites built for lead generation and local visibility."
-          }
+            "@id": absoluteUrl("/#service-custom-websites"),
+            name: "Custom Website Development",
+            description:
+              "High-performance custom websites built for lead generation and local visibility.",
+          },
         },
         {
           "@type": "Offer",
-          "itemOffered": {
+          itemOffered: {
             "@type": "Service",
-            "name": "Website Redesign",
-            "description": "Conversion-focused redesigns for slow, outdated, or underperforming websites."
-          }
+            "@id": absoluteUrl("/#service-redesign"),
+            name: "Website Redesign",
+            description:
+              "Conversion-focused redesigns for slow, outdated, or underperforming websites.",
+          },
         },
         {
           "@type": "Offer",
-          "itemOffered": {
+          itemOffered: {
             "@type": "Service",
-            "name": "Local SEO",
-            "description": "Technical SEO and local search optimization for Northern Michigan businesses."
-          }
-        }
-      ]
-    }
+            "@id": absoluteUrl("/#service-local-seo"),
+            name: "Local SEO",
+            description:
+              "Technical SEO and local search optimization for Northern Michigan businesses.",
+          },
+        },
+      ],
+    },
   };
 
   const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "@id": absoluteUrl("/#website"),
-    "url": portfolioConfig.seo.url,
-    "name": siteName,
-    "description": siteDescription,
-    "publisher": {
-      "@id": absoluteUrl("/#organization")
-    },
-    "inLanguage": "en-US"
+    "@id": websiteId,
+    url: portfolioConfig.seo.url,
+    name: siteName,
+    description: siteDescription,
+    publisher: { "@id": organizationId },
+    inLanguage: "en-US",
+  };
+
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "@id": absoluteUrl("/#faq"),
+    mainEntity: portfolioConfig.faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
+      },
+    })),
   };
 
   return (
@@ -95,14 +167,19 @@ export function StructuredData() {
         dangerouslySetInnerHTML={{ __html: safeJsonLd(organizationSchema) }}
       />
       <script
-        id="service-schema"
+        id="localbusiness-schema"
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: safeJsonLd(serviceSchema) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(localBusinessSchema) }}
       />
       <script
         id="website-schema"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(websiteSchema) }}
+      />
+      <script
+        id="faq-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }}
       />
     </>
   );

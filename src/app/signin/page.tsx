@@ -1,7 +1,24 @@
+import type { Metadata } from "next";
 import { isAuthenticatedNextjs } from "@convex-dev/auth/nextjs/server";
 import { DashboardSignInForm } from "@/components/dashboard/DashboardSignInForm";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+
+export const metadata: Metadata = {
+  title: "Sign In",
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+      noimageindex: true,
+    },
+  },
+  alternates: {
+    canonical: "/signin",
+  },
+};
 
 export default async function SignInPage({
   searchParams,

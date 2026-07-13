@@ -12,41 +12,48 @@ export function BlogStructuredData({ post }: BlogStructuredDataProps) {
       "@context": "https://schema.org",
       "@type": "Blog",
       "@id": absoluteUrl("/blog#blog"),
-      "url": absoluteUrl("/blog"),
-      "name": "Cherry Capital Blog",
-      "description": "Insights on modern web development, performance, and local SEO for local businesses.",
-      "publisher": {
+      url: absoluteUrl("/blog"),
+      name: "Cherry Capital Blog",
+      description:
+        "Notes from building websites for Northern Michigan businesses.",
+      inLanguage: "en-US",
+      publisher: {
         "@type": "Organization",
-        "@id": absoluteUrl("/#organization")
+        "@id": absoluteUrl("/#organization"),
+        name: portfolioConfig.name,
       },
-      "blogPost": publishedBlogPosts.map((entry) => ({
+      blogPost: publishedBlogPosts.map((entry) => ({
         "@type": "BlogPosting",
         "@id": absoluteUrl(`/blog/${entry.slug}#article`),
-        "headline": entry.title,
-        "url": absoluteUrl(`/blog/${entry.slug}`),
-        "datePublished": entry.publishedAt,
-        "dateModified": entry.updatedAt ?? entry.publishedAt,
-        "description": entry.excerpt
-      }))
+        headline: entry.title,
+        url: absoluteUrl(`/blog/${entry.slug}`),
+        datePublished: entry.publishedAt,
+        dateModified: entry.updatedAt ?? entry.publishedAt,
+        description: entry.excerpt,
+        articleSection: entry.category,
+        keywords: entry.tags.join(", "),
+        inLanguage: "en-US",
+        isAccessibleForFree: true,
+      })),
     };
 
     const breadcrumbData = {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
-      "itemListElement": [
+      itemListElement: [
         {
           "@type": "ListItem",
-          "position": 1,
-          "name": "Home",
-          "item": portfolioConfig.seo.url
+          position: 1,
+          name: "Home",
+          item: portfolioConfig.seo.url,
         },
         {
           "@type": "ListItem",
-          "position": 2,
-          "name": "Blog",
-          "item": absoluteUrl("/blog")
-        }
-      ]
+          position: 2,
+          name: "Blog",
+          item: absoluteUrl("/blog"),
+        },
+      ],
     };
 
     return (
@@ -71,60 +78,88 @@ export function BlogStructuredData({ post }: BlogStructuredDataProps) {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
     "@id": absoluteUrl(`/blog/${post.slug}#article`),
-    "mainEntityOfPage": {
+    mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": absoluteUrl(`/blog/${post.slug}`)
+      "@id": absoluteUrl(`/blog/${post.slug}`),
     },
-    "headline": post.title,
-    "description": post.excerpt,
-    "image": absoluteUrl("/og-image.png"),
-    "datePublished": post.publishedAt,
-    "dateModified": post.updatedAt ?? post.publishedAt,
-    "articleSection": post.category,
-    "keywords": post.tags.join(", "),
-    "author": {
-      "@type": "Organization",
-      "name": portfolioConfig.name,
-      "url": portfolioConfig.seo.url
-    },
-    "publisher": {
+    headline: post.title,
+    description: post.excerpt,
+    url: absoluteUrl(`/blog/${post.slug}`),
+    image: [
+      {
+        "@type": "ImageObject",
+        url: absoluteUrl("/og-image.webp"),
+        width: 1200,
+        height: 630,
+        caption: post.title,
+      },
+    ],
+    datePublished: post.publishedAt,
+    dateModified: post.updatedAt ?? post.publishedAt,
+    articleSection: post.category,
+    keywords: post.tags.join(", "),
+    inLanguage: "en-US",
+    isAccessibleForFree: true,
+    author: {
       "@type": "Organization",
       "@id": absoluteUrl("/#organization"),
-      "name": portfolioConfig.name,
-      "logo": {
-        "@type": "ImageObject",
-        "url": absoluteUrl("/myImage.png")
-      }
+      name: portfolioConfig.name,
+      url: portfolioConfig.seo.url,
     },
-    "isPartOf": {
+    publisher: {
+      "@type": "Organization",
+      "@id": absoluteUrl("/#organization"),
+      name: portfolioConfig.name,
+      logo: {
+        "@type": "ImageObject",
+        url: absoluteUrl("/avatar.webp"),
+        width: 320,
+        height: 320,
+      },
+    },
+    isPartOf: {
       "@type": "Blog",
-      "@id": absoluteUrl("/blog#blog")
-    }
+      "@id": absoluteUrl("/blog#blog"),
+      name: "Cherry Capital Blog",
+    },
+    about: [
+      { "@type": "Thing", name: "Web development" },
+      { "@type": "Thing", name: post.category },
+      { "@type": "Place", name: "Northern Michigan" },
+      ...post.tags.slice(0, 4).map((tag) => ({
+        "@type": "Thing" as const,
+        name: tag,
+      })),
+    ],
+    speakable: {
+      "@type": "SpeakableSpecification",
+      cssSelector: ["article h1", "article p"],
+    },
   };
 
   const breadcrumbData = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    "itemListElement": [
+    itemListElement: [
       {
         "@type": "ListItem",
-        "position": 1,
-        "name": "Home",
-        "item": portfolioConfig.seo.url
+        position: 1,
+        name: "Home",
+        item: portfolioConfig.seo.url,
       },
       {
         "@type": "ListItem",
-        "position": 2,
-        "name": "Blog",
-        "item": absoluteUrl("/blog")
+        position: 2,
+        name: "Blog",
+        item: absoluteUrl("/blog"),
       },
       {
         "@type": "ListItem",
-        "position": 3,
-        "name": post.title,
-        "item": absoluteUrl(`/blog/${post.slug}`)
-      }
-    ]
+        position: 3,
+        name: post.title,
+        item: absoluteUrl(`/blog/${post.slug}`),
+      },
+    ],
   };
 
   return (

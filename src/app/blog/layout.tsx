@@ -2,24 +2,27 @@ import type { Metadata } from "next";
 import { portfolioConfig } from "@/lib/portfolioConfig";
 import { defaultOgImage, siteName } from "@/lib/seo";
 
+const blogTitle = "Blog";
+const blogDescription =
+  "Notes from building websites for Northern Michigan businesses. Real talk on the web, tools, and what actually helps.";
+
 export const metadata: Metadata = {
   title: {
-    default: "Cherry Capital Web Blog",
-    template: `%s | Cherry Capital Blog`,
+    default: blogTitle,
+    template: `%s | Cherry Capital`,
   },
-  description: "Welcome to the Cherry Capital Web Blog. A home for web notes, launch stories, and practical ideas from Cherry Capital.",
+  description: blogDescription,
   keywords: [
-    "web development blog",
-    "next.js tutorials",
-    "local business websites",
-    "wordpress alternatives",
-    "michigan web developer",
-    "modern web development",
-    "seo tips",
-    "web performance",
-    "cherry capital blog",
+    "Cherry Capital blog",
+    "Northern Michigan web design",
+    "Beulah web developer",
+    "small business websites",
+    "AI for small business",
   ],
   authors: portfolioConfig.seo.authors,
+  creator: siteName,
+  publisher: siteName,
+  category: "technology",
   alternates: {
     canonical: "/blog",
   },
@@ -27,18 +30,29 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "/blog",
-    title: "Cherry Capital Web Blog",
-    description: "Welcome to the Cherry Capital Web Blog. A home for web notes, launch stories, and practical ideas from Cherry Capital.",
+    title: blogTitle,
+    description: blogDescription,
     images: [defaultOgImage],
     siteName,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Cherry Capital Web Blog",
-    description: "Welcome to the Cherry Capital Web Blog. A home for web notes, launch stories, and practical ideas from Cherry Capital.",
+    title: blogTitle,
+    description: blogDescription,
     images: [defaultOgImage.url],
     creator: portfolioConfig.seo.twitterHandle,
     site: portfolioConfig.seo.twitterHandle,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
 };
 
@@ -47,9 +61,5 @@ export default function BlogLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <>
-      {children}
-    </>
-  );
+  return <>{children}</>;
 }

@@ -1,7 +1,7 @@
-import React from 'react';
+import type { ReactNode } from "react";
 
 interface BlogContentProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export function BlogContent({ children }: BlogContentProps) {
@@ -13,7 +13,7 @@ export function BlogContent({ children }: BlogContentProps) {
 }
 
 // Helper components for blog content
-export function BlogHeading({ children }: { children: React.ReactNode }) {
+export function BlogHeading({ children }: { children: ReactNode }) {
   return (
     <h2 className="text-2xl font-semibold mt-8 mb-4 text-foreground">
       {children}
@@ -21,7 +21,7 @@ export function BlogHeading({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function BlogParagraph({ children }: { children: React.ReactNode }) {
+export function BlogParagraph({ children }: { children: ReactNode }) {
   return (
     <p className="mb-6 tracking-wide text-foreground leading-relaxed">
       {children}
@@ -29,7 +29,7 @@ export function BlogParagraph({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function BlogList({ children }: { children: React.ReactNode }) {
+export function BlogList({ children }: { children: ReactNode }) {
   return (
     <ul className="space-y-2 mb-6">
       {children}
@@ -37,7 +37,7 @@ export function BlogList({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function BlogListItem({ children }: { children: React.ReactNode }) {
+export function BlogListItem({ children }: { children: ReactNode }) {
   return (
     <li className="flex items-start gap-2">
       <span className="text-primary mt-2">•</span>
@@ -45,19 +45,3 @@ export function BlogListItem({ children }: { children: React.ReactNode }) {
     </li>
   );
 }
-
-export function BlogOrderedList({ children }: { children: React.ReactNode }) {
-  return (
-    <ol className="space-y-2 mb-6 list-decimal list-inside">
-      {children}
-    </ol>
-  );
-}
-
-export function BlogOrderedListItem({ children }: { children: React.ReactNode }) {
-  return (
-    <li className="text-foreground">
-      {children}
-    </li>
-  );
-} 

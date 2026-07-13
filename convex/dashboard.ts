@@ -279,8 +279,16 @@ async function recomputeSnapshots(
   }
 }
 
+function assertIngestAuthorized(ingestSecret: string | undefined) {
+  const expected = process.env.ANALYTICS_INGEST_SECRET;
+  if (!expected || !ingestSecret || ingestSecret !== expected) {
+    throw new Error("Unauthorized");
+  }
+}
+
 export const ingestTrafficEvents = mutation({
   args: {
+    ingestSecret: v.string(),
     events: v.array(
       v.object({
         path: v.string(),
@@ -297,6 +305,8 @@ export const ingestTrafficEvents = mutation({
     ),
   },
   handler: async (ctx, args) => {
+    assertIngestAuthorized(args.ingestSecret);
+
     if (args.events.length === 0) {
       return { inserted: 0, snapshotsUpdated: 0 };
     }
@@ -329,6 +339,7 @@ export const ingestTrafficEvents = mutation({
 
 export const ingestClickEvents = mutation({
   args: {
+    ingestSecret: v.string(),
     events: v.array(
       v.object({
         path: v.string(),
@@ -342,6 +353,8 @@ export const ingestClickEvents = mutation({
     ),
   },
   handler: async (ctx, args) => {
+    assertIngestAuthorized(args.ingestSecret);
+
     if (args.events.length === 0) {
       return { inserted: 0, snapshotsUpdated: 0 };
     }
@@ -398,10 +411,12 @@ export const getDashboard = query({
       .order("desc")
       .take(20);
 
-    const latestCheck = recentChecks[0] ?? null;
-    const successfulChecks = recentChecks.filter((check) => check.status === "up").length;
-    const uptimePercentage = recentChecks.length > 0
-      ? Math.round((successfulChecks / recentChecks.length) * 1000) / 10
+    const liveLeads = recentLeads.filter((lead) => lead.source === "web3forms");
+    const monitoredChecks = recentChecks.filter((check) => check.source === "monitor");
+    const latestCheck = monitoredChecks[0] ?? null;
+    const successfulChecks = monitoredChecks.filter((check) => check.status === "up").length;
+    const uptimePercentage = monitoredChecks.length > 0
+      ? Math.round((successfulChecks / monitoredChecks.length) * 1000) / 10
       : null;
 
     return {
@@ -429,15 +444,19 @@ export const getDashboard = query({
       },
       topPages: snapshot?.topPages ?? [],
       leadSummary: {
-        isLive: false,
-        total: recentLeads.length,
-        note: "Placeholder until Web3Forms submissions are stored in Convex.",
-        lastCapturedAt: recentLeads[0]?.createdAt ?? null,
+        isLive: liveLeads.length > 0,
+        total: liveLeads.length,
+        note: liveLeads.length > 0
+          ? "Recent Web3Forms lead events."
+          : "Lead event persistence is not connected.",
+        lastCapturedAt: liveLeads[0]?.createdAt ?? null,
       },
       uptimeSummary: {
-        isLive: false,
+        isLive: monitoredChecks.length > 0,
         status: latestCheck?.status ?? "pending",
-        note: "Placeholder until uptime checks are wired into a monitor.",
+        note: monitoredChecks.length > 0
+          ? "Recent monitor checks."
+          : "No uptime monitor is connected.",
         uptimePercentage,
         responseTimeMs: latestCheck?.responseTimeMs ?? null,
         lastCheckedAt: latestCheck?.checkedAt ?? null,
@@ -445,14 +464,18 @@ export const getDashboard = query({
       dataFreshness: {
         trafficCapturedAt: snapshot?.capturedAt ?? null,
         clickCapturedAt: snapshot?.capturedAt ?? null,
-        leadCapturedAt: recentLeads[0]?.createdAt ?? null,
+        leadCapturedAt: liveLeads[0]?.createdAt ?? null,
         uptimeCapturedAt: latestCheck?.checkedAt ?? null,
         notes: [
           snapshot?.isLive
             ? "Traffic, regions, referrers, devices, browsers, and click activity are updating from live events."
             : "No live analytics data has been received yet.",
-          "Leads remain placeholder until contact submissions are persisted.",
-          "Uptime remains placeholder until a monitor is connected.",
+          liveLeads.length > 0
+            ? "Lead events are being stored from Web3Forms."
+            : "Lead event persistence is not connected.",
+          monitoredChecks.length > 0
+            ? "Uptime checks are being recorded."
+            : "Uptime monitoring is not connected.",
         ],
       },
     };

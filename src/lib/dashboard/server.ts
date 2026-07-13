@@ -31,13 +31,13 @@ function createFallbackDashboard(range: DashboardRange): DashboardPayload {
     leadSummary: {
       isLive: false,
       total: 0,
-      note: "Placeholder until lead events are persisted.",
+      note: "Lead event persistence is not connected.",
       lastCapturedAt: null,
     },
     uptimeSummary: {
       isLive: false,
       status: "pending",
-      note: "Placeholder until uptime checks are wired into a monitor.",
+      note: "No uptime monitor is connected.",
       uptimePercentage: null,
       responseTimeMs: null,
       lastCheckedAt: null,
@@ -49,8 +49,8 @@ function createFallbackDashboard(range: DashboardRange): DashboardPayload {
       uptimeCapturedAt: null,
       notes: [
         "Traffic, clicks, regions, and source breakdowns will appear once live analytics events arrive.",
-        "Leads remain placeholder until contact submissions are persisted.",
-        "Uptime remains placeholder until a monitor is connected.",
+        "Lead event persistence is not connected.",
+        "Uptime monitoring is not connected.",
       ],
     },
   };

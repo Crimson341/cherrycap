@@ -12,11 +12,48 @@ type IncomingClickEvent = {
 };
 
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+const ingestSecret = process.env.ANALYTICS_INGEST_SECRET;
+const MAX_BODY_BYTES = 16_384;
+const MAX_EVENTS_PER_REQUEST = 25;
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX = 60;
+
+const rateLimitBuckets = new Map<string, { count: number; resetAt: number }>();
+
+function getClientKey(request: Request) {
+  return (
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+    || request.headers.get("x-real-ip")
+    || "unknown"
+  );
+}
+
+function isRateLimited(key: string) {
+  const now = Date.now();
+  const bucket = rateLimitBuckets.get(key);
+
+  if (!bucket || now >= bucket.resetAt) {
+    rateLimitBuckets.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+
+  bucket.count += 1;
+  return bucket.count > RATE_LIMIT_MAX;
+}
 
 function isSameOrigin(request: Request) {
   const origin = request.headers.get("origin");
   if (!origin) {
-    return true;
+    // Prefer Origin; allow same-site no-cors/beacon without Origin only on same host
+    const referer = request.headers.get("referer");
+    if (!referer) return false;
+    try {
+      const refererUrl = new URL(referer);
+      const requestUrl = new URL(request.url);
+      return refererUrl.host === requestUrl.host && refererUrl.protocol === requestUrl.protocol;
+    } catch {
+      return false;
+    }
   }
 
   const originUrl = new URL(origin);
@@ -66,10 +103,26 @@ export async function POST(request: Request) {
     return Response.json({ error: "Invalid origin" }, { status: 403 });
   }
 
-  const rawBody = await request.text();
-  const normalizedEvents = normalizePayload(parsePayload(rawBody));
+  if (isRateLimited(getClientKey(request))) {
+    return Response.json({ error: "Too many requests" }, { status: 429 });
+  }
 
-  if (!convexUrl || normalizedEvents.length === 0) {
+  const contentLength = Number(request.headers.get("content-length") ?? "0");
+  if (contentLength > MAX_BODY_BYTES) {
+    return Response.json({ error: "Payload too large" }, { status: 413 });
+  }
+
+  const rawBody = await request.text();
+  if (rawBody.length > MAX_BODY_BYTES) {
+    return Response.json({ error: "Payload too large" }, { status: 413 });
+  }
+
+  const normalizedEvents = normalizePayload(parsePayload(rawBody)).slice(
+    0,
+    MAX_EVENTS_PER_REQUEST,
+  );
+
+  if (!convexUrl || !ingestSecret || normalizedEvents.length === 0) {
     return Response.json({
       received: normalizedEvents.length,
       stored: 0,
@@ -80,6 +133,7 @@ export async function POST(request: Request) {
   try {
     const client = new ConvexHttpClient(convexUrl, { logger: false });
     await client.mutation(api.dashboard.ingestClickEvents, {
+      ingestSecret,
       events: normalizedEvents,
     });
 
@@ -88,12 +142,9 @@ export async function POST(request: Request) {
       stored: normalizedEvents.length,
       skipped: false,
     });
-  } catch (error) {
+  } catch {
     return Response.json(
-      {
-        error: "Failed to persist click analytics",
-        detail: error instanceof Error ? error.message : "Unknown error",
-      },
+      { error: "Failed to persist click analytics" },
       { status: 500 },
     );
   }

@@ -1,20 +1,70 @@
 import type { Metadata } from "next";
 import React from "react";
 import { notFound } from "next/navigation";
-import { Calendar, ArrowLeft } from "lucide-react";
+import { ArrowLeft, Calendar, ChevronRight, Clock } from "lucide-react";
+import Link from "next/link";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { FlickeringGrid } from "@/components/ui/FlickingGridBG";
 import { BlogPostArt } from "@/components/ui/BlogPostArt";
 import { BlogStructuredData } from "@/components/BlogStructuredData";
-import { NextjsSpecialPost, WelcomePost } from "@/components";
-import { publishedBlogPosts } from "@/lib/blogPosts";
+import { SiteChrome } from "@/components/SiteChrome";
+import FooterSection from "@/components/sections/FooterSection";
+import SectionSeparator from "@/components/ui/SectionSeperator";
+import { AiHelpsCompaniesPost } from "@/components/blog-posts/AiHelpsCompaniesPost";
+import {
+  publishedBlogPosts,
+  type BlogPost,
+} from "@/lib/blogPosts";
 import { portfolioConfig } from "@/lib/portfolioConfig";
-import { defaultOgImage } from "@/lib/seo";
+import { defaultOgImage, siteName } from "@/lib/seo";
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
+}
+
+function getRelatedPosts(current: BlogPost, limit = 3): BlogPost[] {
+  return publishedBlogPosts
+    .filter((entry) => entry.slug !== current.slug)
+    .map((entry) => {
+      const sharedTags = entry.tags.filter((tag) =>
+        current.tags.includes(tag),
+      ).length;
+      const sameCategory = entry.category === current.category ? 1 : 0;
+      return {
+        entry,
+        score: sharedTags * 2 + sameCategory,
+        publishedAt: new Date(entry.publishedAt).getTime(),
+      };
+    })
+    .sort((left, right) => {
+      if (right.score !== left.score) return right.score - left.score;
+      return right.publishedAt - left.publishedAt;
+    })
+    .slice(0, limit)
+    .map(({ entry }) => entry);
+}
+
+function formatDate(value: string) {
+  return new Date(value).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function PostBody({ slug, content }: { slug: string; content: string }) {
+  if (slug === "how-ai-actually-helps-companies") {
+    return <AiHelpsCompaniesPost />;
+  }
+  return (
+    <div className="prose prose-lg max-w-none font-mono leading-relaxed">
+      <p className="mb-6 tracking-wide leading-relaxed text-foreground">
+        {content}
+      </p>
+    </div>
+  );
 }
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
@@ -25,63 +75,71 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     notFound();
   }
 
+  const relatedPosts = getRelatedPosts(post, 3);
+
   return (
     <>
       <BlogStructuredData post={post} />
-      <div className="min-h-screen bg-background">
-        <main className="h-dvh max-w-full overflow-x-hidden sm:overflow-x-visible relative w-full mx-auto md:max-w-3xl pt-12 px-2 md:px-0">
-        {/* Header Section */}
+      <SiteChrome>
         <div className="relative full-line-bottom">
-          <div className="relative select-none border-x py-16 md:py-24">
+          <div className="relative aspect-2/1 select-none border-x md:aspect-3/1">
             <FlickeringGrid
-              className="absolute inset-0 z-0 [mask-image:radial-gradient(350px_circle_at_center,white,transparent)]"
+              className="absolute inset-0 z-0 [mask-image:radial-gradient(450px_circle_at_center,white,transparent)]"
               squareSize={4}
               gridGap={6}
               color="#999"
-              maxOpacity={0.2}
-              flickerChance={0.1}
-              height={600}
+              maxOpacity={0.35}
+              flickerChance={0.08}
+              height={800}
               width={800}
             />
-            <div className="relative z-10 px-8">
-              <div className="text-center space-y-6 max-w-4xl mx-auto">
-                <div className="flex items-center justify-center gap-2 flex-wrap">
-                  <Badge variant="secondary" className="text-xs">
-                    {post.category}
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 px-6 text-center">
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <Badge
+                  variant="secondary"
+                  className="font-mono text-[10px] uppercase tracking-[0.22em]"
+                >
+                  {post.category}
+                </Badge>
+                {post.featured && (
+                  <Badge className="font-mono text-[10px] uppercase tracking-[0.22em]">
+                    Featured
                   </Badge>
-                  {post.featured && (
-                    <Badge variant="default" className="text-xs">
-                      Featured
-                    </Badge>
-                  )}
-                </div>
-                <h1 className="text-2xl md:text-4xl font-bold font-mono leading-tight">
-                  {post.title}
-                </h1>
-                <p className="text-lg text-muted-foreground max-w-2xl mx-auto font-mono leading-relaxed">
-                  {post.excerpt}
-                </p>
-                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground font-mono">
-                  <Calendar className="size-4" />
+                )}
+              </div>
+              <h1 className="max-w-2xl font-mono text-2xl font-semibold leading-tight tracking-tight md:text-3xl">
+                {post.title}
+              </h1>
+              <div className="flex flex-wrap items-center justify-center gap-4 font-mono text-xs text-muted-foreground">
+                <span className="inline-flex items-center gap-1.5">
+                  <Calendar className="size-3.5" aria-hidden="true" />
                   <time dateTime={post.publishedAt}>
-                    {new Date(post.publishedAt).toLocaleDateString()}
+                    {formatDate(post.publishedAt)}
                   </time>
-                </div>
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <Clock className="size-3.5" aria-hidden="true" />
+                  {post.readTime}
+                </span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Navigation */}
-        <section className="px-4 border-x full-line-bottom relative">
-          <div className="py-4 flex items-center justify-between">
-            <Link href="/blog" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors font-mono">
+        <SectionSeparator className="full-line-bottom" />
+
+        <section className="relative border-x px-4 full-line-bottom">
+          <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <Link
+              href="/blog"
+              className="inline-flex items-center gap-2 font-mono text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
               <ArrowLeft className="size-4" />
-              Back to Blog
+              Back to blog
             </Link>
             <div className="flex flex-wrap gap-1">
-              {post.tags.map((tag, idx) => (
-                <Badge key={idx} variant="outline" className="text-xs">
+              {post.tags.map((tag) => (
+                <Badge key={tag} variant="outline" className="font-mono text-xs">
                   {tag}
                 </Badge>
               ))}
@@ -89,99 +147,128 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           </div>
         </section>
 
-        {/* Featured Image */}
-        <section className="px-4 border-x full-line-bottom relative">
+        <SectionSeparator className="full-line-bottom" />
+
+        <section className="relative border-x px-4 full-line-bottom">
+          <p className="py-4 font-mono text-sm leading-relaxed text-muted-foreground md:text-base">
+            {post.excerpt}
+          </p>
+        </section>
+
+        <SectionSeparator className="full-line-bottom" />
+
+        <section className="relative border-x px-4 full-line-bottom">
           <div className="py-4">
-            <div className="relative aspect-[16/9] select-none overflow-hidden rounded-lg border lining-tilt-background">
+            <div className="relative aspect-[16/9] select-none overflow-hidden border lining-tilt-background">
               <BlogPostArt className="absolute inset-0" />
             </div>
           </div>
         </section>
 
-        {/* Article Content */}
-        <article className="border-x full-line-bottom relative">
-          <div className="px-4 py-8 max-w-4xl mx-auto">
-            {post.slug === 'welcome-to-the-cherry-capital-blog' ? (
-              <WelcomePost />
-            ) : post.slug === 'what-makes-nextjs-special' ? (
-              <NextjsSpecialPost />
-            ) : (
-              <div className="prose prose-lg max-w-none font-mono leading-relaxed">
-                <p className="mb-6 tracking-wide text-foreground leading-relaxed">
-                  {post.content}
-                </p>
-              </div>
-            )}
+        <SectionSeparator className="full-line-bottom" />
+
+        <article className="relative border-x full-line-bottom">
+          <div className="px-4 py-8">
+            <PostBody slug={post.slug} content={post.content} />
           </div>
         </article>
 
-        {/* Author Bio Section */}
-        <section className="border-x full-line-bottom relative px-4">
-          <div className="py-8 max-w-4xl mx-auto">
-            <div className="bg-muted/30 rounded-lg p-6 border">
-              <div className="flex flex-col md:flex-row gap-6 items-start">
-                <div className="flex-1">
-                  <h3 className="text-xl font-semibold mb-2 font-mono">About the Author</h3>
-                  <p className="text-muted-foreground font-mono text-sm leading-relaxed mb-4">
-                    Cherry Capital is a modern web development studio serving local businesses in Northern Michigan. 
-                    With expertise in Next.js, React, and local SEO, the studio helps businesses outperform their 
-                    WordPress-using competitors through faster, more secure custom websites.
-                  </p>
-                  <div className="flex gap-3">
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href="/" className="flex items-center gap-1">
-                        View Portfolio
-                      </Link>
-                    </Button>
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href="/#contact" className="flex items-center gap-1">
-                        Get in Touch
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              </div>
+        <SectionSeparator className="full-line-bottom" />
+
+        <section className="relative border-x px-4 full-line-bottom">
+          <h2 className="relative full-line-bottom text-3xl font-semibold">
+            Who wrote this
+          </h2>
+          <div className="space-y-4 py-6 font-mono text-sm">
+            <p className="leading-relaxed tracking-wide text-muted-foreground">
+              I run Cherry Capital out of Beulah. I build websites for local
+              businesses. If you hire me, you talk to me — not a sales chain.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Button variant="outline" size="sm" asChild className="font-mono">
+                <Link href="/">See the site</Link>
+              </Button>
+              <Button variant="outline" size="sm" asChild className="font-mono">
+                <Link href="/#contact">Email me</Link>
+              </Button>
             </div>
           </div>
         </section>
 
-        {/* Related Posts CTA */}
-        <section className="border-x full-line-bottom relative px-4">
-          <div className="py-8 text-center space-y-4">
-            <h2 className="text-2xl font-semibold font-mono">
-              More Web Development Insights
+        <SectionSeparator className="full-line-bottom" />
+
+        {relatedPosts.length > 0 && (
+          <>
+            <section className="relative border-x px-4 full-line-bottom">
+              <h2 className="relative full-line-bottom text-3xl font-semibold">
+                Related posts
+              </h2>
+              <div className="py-2">
+                {relatedPosts.map((related) => (
+                  <Link
+                    key={related.slug}
+                    href={`/blog/${related.slug}`}
+                    className="group flex flex-col gap-2 border-b py-5 last:border-0"
+                  >
+                    <span className="font-mono text-[10px] uppercase tracking-[0.26em] text-primary">
+                      {related.category}
+                    </span>
+                    <h3 className="font-mono text-lg font-semibold leading-tight transition-colors group-hover:text-primary">
+                      {related.title}
+                    </h3>
+                    <p className="font-mono text-sm leading-relaxed text-muted-foreground">
+                      {related.excerpt}
+                    </p>
+                    <div className="flex items-center gap-3 font-mono text-xs text-muted-foreground">
+                      <time dateTime={related.publishedAt}>
+                        {formatDate(related.publishedAt)}
+                      </time>
+                      <div className="size-1 rounded-full bg-border" />
+                      <span>{related.readTime}</span>
+                      <ChevronRight className="ml-auto size-4 opacity-0 transition-opacity group-hover:opacity-100" />
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+            <SectionSeparator className="full-line-bottom" />
+          </>
+        )}
+
+        <section className="relative border-x px-4 full-line-bottom">
+          <div className="space-y-4 py-8 text-center">
+            <h2 className="font-mono text-2xl font-semibold">
+              Got a project?
             </h2>
-            <p className="text-muted-foreground max-w-md mx-auto font-mono text-sm">
-              Check out more articles about modern web development and growing your local business online.
+            <p className="mx-auto max-w-md font-mono text-sm text-muted-foreground">
+              Site feels slow, outdated, or just wrong for your business? Send
+              a note. I&apos;ll tell you straight if I can help.
             </p>
-            <div className="flex gap-3 justify-center">
-              <Button asChild>
-                <Link href="/blog">
-                  Read More Posts
-                </Link>
+            <div className="flex flex-wrap justify-center gap-3">
+              <Button asChild className="font-mono">
+                <Link href="/#contact">Email me</Link>
               </Button>
-              <Button variant="outline" asChild>
-                <Link href="/#contact">
-                  Let&apos;s Work Together
-                </Link>
+              <Button variant="outline" asChild className="font-mono">
+                <Link href="/blog">Back to blog</Link>
               </Button>
             </div>
           </div>
         </section>
-        </main>
-      </div>
+
+        <SectionSeparator className="full-line-bottom" />
+        <FooterSection />
+        <SectionSeparator className="full-line-bottom" />
+      </SiteChrome>
     </>
   );
 }
 
-// Generate static params for all blog posts
 export async function generateStaticParams() {
   return publishedBlogPosts.map((post) => ({
     slug: post.slug,
   }));
 }
 
-// Generate metadata for each blog post
 export async function generateMetadata({
   params,
 }: {
@@ -196,17 +283,33 @@ export async function generateMetadata({
       robots: {
         index: false,
         follow: false,
+        googleBot: {
+          index: false,
+          follow: false,
+        },
       },
     };
   }
 
   const canonicalPath = `/blog/${post.slug}`;
+  const publishedTime = post.publishedAt;
+  const modifiedTime = post.updatedAt ?? post.publishedAt;
+  const keywords = [
+    ...post.tags,
+    post.category,
+    "Cherry Capital",
+    "web development",
+    "Northern Michigan",
+  ];
 
   return {
     title: post.title,
     description: post.excerpt,
-    keywords: [...post.tags, "Cherry Capital", "web development"],
+    keywords,
     authors: portfolioConfig.seo.authors,
+    creator: siteName,
+    publisher: siteName,
+    category: post.category,
     alternates: {
       canonical: canonicalPath,
     },
@@ -214,19 +317,39 @@ export async function generateMetadata({
       title: post.title,
       description: post.excerpt,
       type: "article",
+      locale: "en_US",
       url: canonicalPath,
-      publishedTime: post.publishedAt,
-      modifiedTime: post.updatedAt ?? post.publishedAt,
+      siteName,
+      publishedTime,
+      modifiedTime,
       authors: [portfolioConfig.name],
       tags: post.tags,
       section: post.category,
-      images: [defaultOgImage],
+      images: [
+        {
+          ...defaultOgImage,
+          alt: post.title,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title: post.title,
       description: post.excerpt,
       images: [defaultOgImage.url],
+      creator: portfolioConfig.seo.twitterHandle,
+      site: portfolioConfig.seo.twitterHandle,
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
     },
   };
 }

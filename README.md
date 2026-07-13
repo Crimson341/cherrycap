@@ -1,84 +1,49 @@
-# Cherry Capital Portfolio ✨
+# Cherry Capital
 
-Welcome to the source code for the Cherry Capital portfolio website. This project demonstrates modern web development skills and business expertise using cutting-edge tech that outperforms WordPress solutions. The site is designed to be fast, responsive, and professional.
+Production website for [Cherry Capital](https://www.cherrycapitalweb.com), a Northern Michigan web studio. The application includes the public marketing site, security-services page, blog, AI-assisted contact chat, analytics ingestion, and a private owner dashboard.
 
-[![Next.js](https://img.shields.io/badge/Next.js-v15-blue?style=flat-square)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-blue?style=flat-square)](https://www.typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-v4-purple?style=flat-square)](https://tailwindcss.com/)
-[![Vercel](https://img.shields.io/badge/Vercel-black?logo=vercel&logoColor=white&style=flat-square)](https://vercel.com/)
+## Stack
 
-**[Live Demo](https://cherrycapitalweb.com/)** <!-- TODO: Update with actual domain -->
+- Next.js 16 App Router and React 19
+- TypeScript with strict checking
+- Tailwind CSS 4
+- Convex for authentication and analytics storage
+- Vercel AI SDK and AI Gateway for chat
+- Web3Forms, with optional Resend delivery, for contact email
 
-## Features 🚀
+## Local development
 
-- **Responsive Design:**  The portfolio adapts seamlessly to various screen sizes, ensuring a consistent user experience across desktops, tablets, and mobile devices.
-- **Dark Mode:**  Users can easily switch between light and dark themes to match their preferences.
-- **Interactive Profile:** A visually appealing profile section includes an image and animated text showcasing Cherry Capital's expertise and services.
-- **Experience & Projects:**  Collapsible accordions provide detailed information about Cherry Capital's experience building websites in the Beulah area and showcase projects that demonstrate superiority over WordPress solutions.
-- **Contact Form:** A user-friendly contact form allows potential clients to easily reach out for modern web development services.
-- **Social Links:**  Quick access to Cherry Capital's professional social media profiles and business pages.
-
-## Tech Stack 🛠️
-
-- **Framework:** Next.js 15
-- **Language:** TypeScript
-- **Styling:** Tailwind CSS
-- **UI Components:** Shadcn UI, Radix UI
-- **Animations:** Framer Motion
-- **Form Handling:** React Hook Form, Zod
-- **Email:** Nodemailer
-- **Deployment:** Vercel
-
-## Installation & Setup 💻
-
-1. **Clone the repository:**
-```bash
-git clone https://github.com/taqui-786/Taqui.git
-```
-cd Taqui
+Requirements: Node.js 20.9 or newer and npm.
 
 ```bash
-2. **Install dependencies:**
-   ```bash
 npm install
-   ```
-
-3. **Set up environment variables:**
-   Create a `.env.local` file in the project root and add your SMTP credentials for the contact form:
-```env
-SMPT_HOST="your-smtp-host"
-SMPT_USER="your-smtp-user"
-SMPT_PASS="your-smtp-password"
+cp .env.example .env.local
+npm run dev
 ```
 
-4. **Run the development server:**
+Open [http://localhost:3000](http://localhost:3000). Public pages work without Convex, but authentication and live dashboard data require a configured Convex deployment:
+
 ```bash
-npm run dev
-   ```
+npx convex dev
+```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Set Convex deployment variables such as `DASHBOARD_OWNER_PASSWORD` with `npx convex env set`. Keep application secrets in the hosting environment or `.env.local`; never commit them.
 
-## Usage Examples 💡
+## Checks
 
-The code utilizes several key libraries:
+```bash
+npm run check
+npm run build
+```
 
-- **React Hook Form:**  Manages form state and validation in the Contact Me section (`src/components/sections/ContactMeSection.tsx`).
-- **Zod:** Provides schema validation for the contact form data.
-- **Next-Themes:** Enables the dark/light theme switching functionality (`src/components/ThemeProvider.tsx`).
-- **Nodemailer:** Handles sending emails from the contact form (`src/components/sections/ContactMeSection.tsx` and `src/lib/mailConfiguration.ts`).
-- **Shadcn UI:** Provides pre-built UI components for a consistent design.
-- **Framer Motion:**  Used for animations (e.g., the profile section's text flipper).
+`check` runs ESLint and TypeScript. This repository does not currently include an automated test suite.
 
-## Contributing 🤝
+## Data flows
 
-Contributions are welcome! Please open an issue or submit a pull request.
+- `/api/contact` validates contact-form submissions and sends them through Web3Forms.
+- `/api/chat` streams AI responses and exposes constrained tools for blog search and lead delivery.
+- `/api/analytics/drain` verifies Vercel Analytics drain signatures and stores normalized page-view events in Convex.
+- `/api/analytics/click` accepts bounded same-origin click events and stores them in Convex.
+- `/dashboard` revalidates authentication on the server before loading private analytics.
 
-1. Fork the repository.
-2. Create a new branch for your feature or bug fix.
-3. Make your changes and commit them with clear messages.
-4. Push your branch to your forked repository.
-5. Submit a pull request to the main repository.
-
-## License 📄
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+See [.env.example](./.env.example) for the complete configuration inventory.

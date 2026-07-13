@@ -36,7 +36,6 @@ export const FlickeringGrid: React.FC<FlickeringGridProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const shouldReduceMotion = useReducedMotion();
   const [isInView, setIsInView] = useState(false);
-  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
 
   const memoizedColor = useMemo(() => {
     const toRGBA = (color: string) => {
@@ -57,7 +56,8 @@ export const FlickeringGrid: React.FC<FlickeringGridProps> = ({
 
   const setupCanvas = useCallback(
     (canvas: HTMLCanvasElement, width: number, height: number) => {
-      const dpr = window.devicePixelRatio || 1;
+      // Cap DPR to limit pixel fill cost on retina displays
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
       canvas.width = width * dpr;
       canvas.height = height * dpr;
       canvas.style.width = `${width}px`;
@@ -128,13 +128,37 @@ export const FlickeringGrid: React.FC<FlickeringGridProps> = ({
     let gridParams: ReturnType<typeof setupCanvas>;
 
     const updateCanvasSize = () => {
-      const newWidth = width || container.clientWidth;
-      const newHeight = height || container.clientHeight;
-      setCanvasSize({ width: newWidth, height: newHeight });
+      const newWidth = container.clientWidth || width || 0;
+      const newHeight = container.clientHeight || height || 0;
       gridParams = setupCanvas(canvas, newWidth, newHeight);
     };
 
     updateCanvasSize();
+
+    const paintStatic = () => {
+      drawGrid(
+        ctx,
+        canvas.width,
+        canvas.height,
+        gridParams.cols,
+        gridParams.rows,
+        gridParams.squares,
+        gridParams.dpr,
+      );
+    };
+
+    // Reduced motion: single paint, no continuous rAF
+    if (shouldReduceMotion) {
+      paintStatic();
+      const resizeObserver = new ResizeObserver(() => {
+        updateCanvasSize();
+        paintStatic();
+      });
+      resizeObserver.observe(container);
+      return () => {
+        resizeObserver.disconnect();
+      };
+    }
 
     let lastTime = 0;
     const animate = (time: number) => {
@@ -143,9 +167,7 @@ export const FlickeringGrid: React.FC<FlickeringGridProps> = ({
       const deltaTime = (time - lastTime) / 1000;
       lastTime = time;
 
-      if (!shouldReduceMotion) {
-        updateSquares(gridParams.squares, deltaTime);
-      }
+      updateSquares(gridParams.squares, deltaTime);
       drawGrid(
         ctx,
         canvas.width,
@@ -165,8 +187,11 @@ export const FlickeringGrid: React.FC<FlickeringGridProps> = ({
     resizeObserver.observe(container);
 
     const intersectionObserver = new IntersectionObserver(
-      ([entry]) => {
-        setIsInView(entry.isIntersecting);
+      (entries) => {
+        const entry = entries[0];
+        if (entry) {
+          setIsInView(entry.isIntersecting);
+        }
       },
       { threshold: 0 },
     );
@@ -175,6 +200,8 @@ export const FlickeringGrid: React.FC<FlickeringGridProps> = ({
 
     if (isInView) {
       animationFrameId = requestAnimationFrame(animate);
+    } else {
+      paintStatic();
     }
 
     return () => {
@@ -192,30 +219,8 @@ export const FlickeringGrid: React.FC<FlickeringGridProps> = ({
     >
       <canvas
         ref={canvasRef}
-        className="pointer-events-none"
-        style={{
-          width: canvasSize.width,
-          height: canvasSize.height,
-        }}
+        className="pointer-events-none block h-full w-full"
       />
     </div>
   );
 };
-
-
-export function FlickeringGridRoundedDemo() {
-  return (
-    <div className="relative size-[600px] w-full overflow-hidden rounded-lg border bg-background">
-      <FlickeringGrid
-        className="relative inset-0 z-0 [mask-image:radial-gradient(450px_circle_at_center,white,transparent)]"
-        squareSize={4}
-        gridGap={6}
-        color="#60A5FA"
-        maxOpacity={0.5}
-        flickerChance={0.1}
-        height={800}
-        width={800}
-      />
-    </div>
-  );
-}

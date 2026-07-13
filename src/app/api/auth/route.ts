@@ -1,4 +1,5 @@
 import { fetchAction } from "convex/nextjs";
+import { makeFunctionReference } from "convex/server";
 import { NextRequest, NextResponse } from "next/server";
 
 type CookieConfig = {
@@ -6,6 +7,28 @@ type CookieConfig = {
 };
 
 type AuthAction = "auth:signIn" | "auth:signOut";
+
+type AuthTokens = {
+  token: string;
+  refreshToken: string;
+};
+
+type SignInResult =
+  | { redirect: string; verifier?: string }
+  | { tokens: AuthTokens | null }
+  | null;
+
+const signInAction = makeFunctionReference<
+  "action",
+  Record<string, unknown>,
+  SignInResult
+>("auth:signIn");
+
+const signOutAction = makeFunctionReference<
+  "action",
+  Record<string, unknown>,
+  null
+>("auth:signOut");
 
 type AuthRequestPayload = {
   action: AuthAction;
@@ -164,10 +187,6 @@ function getPublicErrorMessage(error: unknown) {
     return "Email and password are required";
   }
 
-  if (message.includes("Dashboard owner password is not configured")) {
-    return "Dashboard owner password is not configured";
-  }
-
   return "Could not complete authentication.";
 }
 
@@ -195,8 +214,8 @@ async function fetchSignInAction(
   token: string | undefined,
 ) {
   return fetchAction(
-    "auth:signIn" as unknown as Parameters<typeof fetchAction>[0],
-    args as Parameters<typeof fetchAction>[1],
+    signInAction,
+    args,
     {
       ...getConvexOptions(),
       ...(token ? { token } : {}),
@@ -362,10 +381,8 @@ export async function POST(request: NextRequest) {
                 ),
               )
             : json({
-                tokens:
-                  result.tokens !== null
-                    ? { token: result.tokens.token, refreshToken: "dummy" }
-                    : null,
+                // Cookie-only session — never echo JWT to client JS
+                tokens: result.tokens !== null ? { ok: true } : null,
               });
 
         setAuthCookies(response, result.tokens, cookieConfig, host);
@@ -379,7 +396,7 @@ export async function POST(request: NextRequest) {
           ? redirectToSignIn(request, getPublicErrorMessage(error))
           : json(
               {
-                error: getErrorMessage(error),
+                error: getPublicErrorMessage(error),
               },
               400,
             );
@@ -391,8 +408,8 @@ export async function POST(request: NextRequest) {
 
   try {
     await fetchAction(
-      action as unknown as Parameters<typeof fetchAction>[0],
-      args as Parameters<typeof fetchAction>[1],
+      signOutAction,
+      args,
       {
         ...getConvexOptions(),
         token,
