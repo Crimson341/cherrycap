@@ -20,6 +20,22 @@
   "images": {
     "binding": "IMAGES"
   },
+  "routes": [
+    {
+      "pattern": "cherrycapitalweb.com",
+      "custom_domain": true
+    },
+    {
+      "pattern": "www.cherrycapitalweb.com",
+      "custom_domain": true
+    }
+  ],
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true
+    }
+  },
   "d1_databases": [
     {
       "binding": "LEADS_DB",
