@@ -49,6 +49,22 @@ export const blogPosts: BlogPost[] = [
   },
   {
     id: 2,
+    title: "Why Choose Cherry Capital Web? A Clear-Eyed Local Comparison",
+    slug: "why-choose-cherry-capital-web",
+    excerpt: "Northern Michigan has plenty of website options. Here is an honest look at the field—and the kind of business that gets the most value from working directly with Cherry Capital.",
+    content: "Why Cherry Capital Content",
+    publishedAt: "2026-07-13",
+    updatedAt: "2026-07-13",
+    readTime: "7 min read",
+    category: "Studio Notes",
+    tags: ["Cherry Capital", "Northern Michigan", "Web Design", "Small Business"],
+    heroImage: "/blog/why-cherry-capital-web.jpg",
+    heroAlt: "A local business owner and independent designer reviewing website sketches together beside a Northern Michigan lake",
+    featured: true,
+    published: true,
+  },
+  {
+    id: 3,
     title: "How I Build Modern Web Apps",
     slug: "how-i-build-modern-web-apps",
     excerpt: "A look into the modern web development process.",
@@ -61,7 +77,7 @@ export const blogPosts: BlogPost[] = [
     published: false,
   },
   {
-    id: 3,
+    id: 4,
     title: "WordPress Isn't Cutting It in 2025",
     slug: "wordpress-isnt-cutting-it-2025",
     excerpt: "Why WordPress is no longer the best option for modern websites.",
@@ -74,7 +90,7 @@ export const blogPosts: BlogPost[] = [
     published: false,
   },
   {
-    id: 4,
+    id: 5,
     title: "Building PWAs for Michigan Tourism",
     slug: "building-pwas-michigan-tourism",
     excerpt: "How Progressive Web Apps can help the Michigan tourism industry.",
@@ -87,7 +103,7 @@ export const blogPosts: BlogPost[] = [
     published: false,
   },
   {
-    id: 5,
+    id: 6,
     title: "Local SEO Secrets for 2024",
     slug: "local-seo-secrets-2024",
     excerpt: "Tips and tricks for improving your local SEO.",
@@ -100,7 +116,7 @@ export const blogPosts: BlogPost[] = [
     published: false,
   },
   {
-    id: 6,
+    id: 7,
     title: "The Real Cost of DIY Website Builders",
     slug: "real-cost-diy-website-builders",
     excerpt: "Why DIY website builders might not be as cheap as you think.",

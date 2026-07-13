@@ -77,7 +77,7 @@ export function BlogStructuredData({ post }: BlogStructuredDataProps) {
     },
     "headline": post.title,
     "description": post.excerpt,
-    "image": absoluteUrl("/og-image.png"),
+    "image": absoluteUrl(post.heroImage ?? "/og-image.png"),
     "datePublished": post.publishedAt,
     "dateModified": post.updatedAt ?? post.publishedAt,
     "articleSection": post.category,

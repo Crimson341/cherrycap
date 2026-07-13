@@ -28,3 +28,4 @@ export { ModernWebAppsPost } from './blog-posts/ModernWebAppsPost';
 export { AdvancedExamplePost } from './blog-posts/AdvancedExamplePost';
 export { NextjsSpecialPost } from './blog-posts/NextjsSpecialPost';
 export { WelcomePost } from './blog-posts/WelcomePost';
+export { WhyCherryCapitalPost } from './blog-posts/WhyCherryCapitalPost';

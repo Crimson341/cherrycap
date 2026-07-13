@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, Clock } from "lucide-react";
 import { BlogStructuredData } from "@/components/BlogStructuredData";
 import { BlogBrandFooter, BlogBrandHeader } from "@/components/blog/BlogBrandChrome";
-import { NextjsSpecialPost, WelcomePost } from "@/components";
+import { NextjsSpecialPost, WelcomePost, WhyCherryCapitalPost } from "@/components";
 import { publishedBlogPosts } from "@/lib/blogPosts";
 import { portfolioConfig } from "@/lib/portfolioConfig";
 import { defaultOgImage } from "@/lib/seo";
@@ -83,6 +83,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               <WelcomePost />
             ) : post.slug === "what-makes-nextjs-special" ? (
               <NextjsSpecialPost />
+            ) : post.slug === "why-choose-cherry-capital-web" ? (
+              <WhyCherryCapitalPost />
             ) : (
               <div className="cc-article-prose"><p>{post.content}</p></div>
             )}
