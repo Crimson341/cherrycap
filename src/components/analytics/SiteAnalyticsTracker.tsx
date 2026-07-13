@@ -4,7 +4,13 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 const SESSION_KEY = "ccw.analytics.session";
-const BLOCKED_PREFIXES = ["/dashboard", "/signin"];
+const BLOCKED_PREFIXES = [
+  "/dashboard",
+  "/signin",
+  "/portal",
+  "/sign-in",
+  "/sign-up",
+];
 
 function compactText(value: string | null | undefined, maxLength: number) {
   const normalized = value?.replace(/\s+/g, " ").trim() ?? "";

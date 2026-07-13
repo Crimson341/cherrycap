@@ -11,6 +11,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { StructuredData } from "@/components/StructuredData";
 import { SiteAnalyticsTracker } from "@/components/analytics/SiteAnalyticsTracker";
 import { defaultOgImage, siteDescription, siteName, siteTitle } from "@/lib/seo";
+import { ClientAuthProvider } from "@/components/client-portal/ClientAuthProvider";
 
  const fontSans = FontSans({
   weight: ["400", "500", "600"],
@@ -135,7 +136,7 @@ export default function RootLayout({
         className={`${fontSans.variable} ${fontMono.variable} relative`}
         suppressHydrationWarning
       >
-        {appContent}
+        <ClientAuthProvider>{appContent}</ClientAuthProvider>
         <StructuredData />
         <SiteAnalyticsTracker />
         <Analytics />

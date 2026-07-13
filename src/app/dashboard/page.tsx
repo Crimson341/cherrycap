@@ -19,7 +19,7 @@ export default async function DashboardPage({
 }: {
   searchParams: Promise<{ range?: string | string[] }>;
 }) {
-  if (process.env.NEXT_PUBLIC_CONVEX_URL && !(await isAuthenticatedNextjs())) {
+  if (!process.env.NEXT_PUBLIC_CONVEX_URL || !(await isAuthenticatedNextjs())) {
     redirect("/signin");
   }
 

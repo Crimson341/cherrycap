@@ -403,7 +403,7 @@ export default function CherryCapitalLanding() {
           <div>
             <a href="https://www.facebook.com/profile.php?id=61571003491816" target="_blank" rel="noreferrer">Facebook</a>
             <a href="https://www.linkedin.com/company/cherry-capital/" target="_blank" rel="noreferrer">LinkedIn</a>
-            <Link href="/dashboard">Client portal</Link>
+            <Link href="/portal">Client portal</Link>
           </div>
         </div>
       </footer>

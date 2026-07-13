@@ -37,7 +37,7 @@ export function BlogBrandFooter() {
         <div>
           <Link href="/">Studio</Link>
           <Link href="/blog">Journal</Link>
-          <Link href="/dashboard">Client portal</Link>
+          <Link href="/portal">Client portal</Link>
         </div>
       </div>
     </footer>
