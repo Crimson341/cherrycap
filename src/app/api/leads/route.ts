@@ -1,8 +1,9 @@
 import { createLead, setLeadNotificationStatus } from "@/lib/leads/db";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { z } from "zod";
 
-const WEB3FORMS_ACCESS_KEY =
-  process.env.WEB3FORMS_ACCESS_KEY ?? "c2147bbb-80e5-4247-be9b-59b36f804b59";
+const LEAD_RECIPIENT = "scott@cherrycapitalweb.com";
+const LEAD_SENDER = "leads@cherrycapitalweb.com";
 
 const LeadSchema = z.object({
   name: z.string().trim().min(2).max(100),
@@ -27,24 +28,30 @@ function isSameOrigin(request: Request) {
 }
 
 async function sendLeadNotification(input: z.infer<typeof LeadSchema>) {
-  const formData = new FormData();
-  formData.append("access_key", WEB3FORMS_ACCESS_KEY);
-  formData.append("name", input.name);
-  formData.append("email", input.email);
-  formData.append("phone", input.phone || "Not provided");
-  formData.append("company", input.company || "Not provided");
-  formData.append("message", input.message);
-  formData.append("subject", `New Cherry Capital lead: ${input.name}`);
-  formData.append("from_name", "Cherry Capital Web");
-
-  const response = await fetch("https://api.web3forms.com/submit", {
-    method: "POST",
-    body: formData,
-  });
-
-  if (!response.ok) {
-    throw new Error(`Notification service returned ${response.status}`);
+  const { env } = getCloudflareContext();
+  if (!env.EMAIL) {
+    throw new Error("EMAIL binding is not configured");
   }
+
+  const text = [
+    "New Cherry Capital website lead",
+    "",
+    `Name: ${input.name}`,
+    `Email: ${input.email}`,
+    `Phone: ${input.phone || "Not provided"}`,
+    `Company: ${input.company || "Not provided"}`,
+    "",
+    "Message:",
+    input.message,
+  ].join("\n");
+
+  await env.EMAIL.send({
+    from: { email: LEAD_SENDER, name: "Cherry Capital Web" },
+    to: LEAD_RECIPIENT,
+    replyTo: { email: input.email, name: input.name },
+    subject: `New Cherry Capital lead: ${input.name}`,
+    text,
+  });
 }
 
 export async function POST(request: Request) {
