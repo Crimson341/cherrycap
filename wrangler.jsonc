@@ -20,6 +20,15 @@
   "images": {
     "binding": "IMAGES"
   },
+  "send_email": [
+    {
+      "name": "EMAIL",
+      "destination_address": "scott@cherrycapitalweb.com",
+      "allowed_sender_addresses": [
+        "leads@cherrycapitalweb.com"
+      ]
+    }
+  ],
   "routes": [
     {
       "pattern": "cherrycapitalweb.com",
