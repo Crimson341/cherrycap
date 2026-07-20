@@ -1,9 +1,10 @@
 import { createLead, setLeadNotificationStatus } from "@/lib/leads/db";
+import { sendTitanEmail } from "@/lib/email/titan-smtp";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { z } from "zod";
 
 const LEAD_RECIPIENT = "scott@cherrycapitalweb.com";
-const LEAD_SENDER = "leads@cherrycapitalweb.com";
+const LEAD_SENDER = "scott@cherrycapitalweb.com";
 
 const LeadSchema = z.object({
   name: z.string().trim().min(2).max(100),
@@ -29,8 +30,8 @@ function isSameOrigin(request: Request) {
 
 async function sendLeadNotification(input: z.infer<typeof LeadSchema>) {
   const { env } = getCloudflareContext();
-  if (!env.EMAIL) {
-    throw new Error("EMAIL binding is not configured");
+  if (!env.TITAN_SMTP_PASSWORD) {
+    throw new Error("TITAN_SMTP_PASSWORD is not configured");
   }
 
   const text = [
@@ -45,10 +46,11 @@ async function sendLeadNotification(input: z.infer<typeof LeadSchema>) {
     input.message,
   ].join("\n");
 
-  await env.EMAIL.send({
-    from: { email: LEAD_SENDER, name: "Cherry Capital Web" },
+  await sendTitanEmail({
+    password: env.TITAN_SMTP_PASSWORD,
+    from: LEAD_SENDER,
     to: LEAD_RECIPIENT,
-    replyTo: { email: input.email, name: input.name },
+    replyTo: input.email,
     subject: `New Cherry Capital lead: ${input.name}`,
     text,
   });
