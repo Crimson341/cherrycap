@@ -1,9 +1,7 @@
 import { createLead, setLeadNotificationStatus } from "@/lib/leads/db";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { z } from "zod";
 
-const LEAD_RECIPIENT = "scott@cherrycapitalweb.com";
-const LEAD_SENDER = "leads@cherrycapitalweb.com";
+const WEB3FORMS_ENDPOINT = "https://api.web3forms.com/submit";
 
 const LeadSchema = z.object({
   name: z.string().trim().min(2).max(100),
@@ -28,30 +26,35 @@ function isSameOrigin(request: Request) {
 }
 
 async function sendLeadNotification(input: z.infer<typeof LeadSchema>) {
-  const { env } = getCloudflareContext();
-  if (!env.EMAIL) {
-    throw new Error("EMAIL binding is not configured");
+  const accessKey = process.env.WEB3FORMS_ACCESS_KEY;
+  if (!accessKey) {
+    throw new Error("WEB3FORMS_ACCESS_KEY is not configured");
   }
 
-  const text = [
-    "New Cherry Capital website lead",
-    "",
-    `Name: ${input.name}`,
-    `Email: ${input.email}`,
-    `Phone: ${input.phone || "Not provided"}`,
-    `Company: ${input.company || "Not provided"}`,
-    "",
-    "Message:",
-    input.message,
-  ].join("\n");
-
-  await env.EMAIL.send({
-    from: { email: LEAD_SENDER, name: "Cherry Capital Web" },
-    to: LEAD_RECIPIENT,
-    replyTo: { email: input.email, name: input.name },
-    subject: `New Cherry Capital lead: ${input.name}`,
-    text,
+  const response = await fetch(WEB3FORMS_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      access_key: accessKey,
+      name: input.name,
+      email: input.email,
+      phone: input.phone || "Not provided",
+      company: input.company || "Not provided",
+      message: input.message,
+      subject: `New Cherry Capital lead: ${input.name}`,
+      from_name: "Cherry Capital Web",
+    }),
   });
+
+  const result = (await response.json().catch(() => null)) as
+    | { success?: boolean; message?: string }
+    | null;
+
+  if (!response.ok || result?.success !== true) {
+    throw new Error(
+      result?.message || `Notification service returned ${response.status}`,
+    );
+  }
 }
 
 export async function POST(request: Request) {
