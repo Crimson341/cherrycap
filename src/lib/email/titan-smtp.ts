@@ -1,4 +1,4 @@
-import { connect, type Socket } from "cloudflare:sockets";
+import { connect, type TLSSocket } from "node:tls";
 
 const SMTP_HOST = "smtp.titan.email";
 const SMTP_PORT = 465;
@@ -12,16 +12,36 @@ function dotStuff(value: string) {
 }
 
 async function readResponse(
-  reader: ReadableStreamDefaultReader<Uint8Array>,
-  decoder: TextDecoder,
+  socket: TLSSocket,
 ) {
   let buffer = "";
 
   while (true) {
-    const { value, done } = await reader.read();
-    if (done) throw new Error("Titan SMTP closed the connection unexpectedly");
+    const chunk = await new Promise<Uint8Array>((resolve, reject) => {
+      const onData = (value: Uint8Array) => {
+        cleanup();
+        resolve(value);
+      };
+      const onError = (error: Error) => {
+        cleanup();
+        reject(error);
+      };
+      const onEnd = () => {
+        cleanup();
+        reject(new Error("Titan SMTP closed the connection unexpectedly"));
+      };
+      const cleanup = () => {
+        socket.off("data", onData);
+        socket.off("error", onError);
+        socket.off("end", onEnd);
+      };
 
-    buffer += decoder.decode(value, { stream: true });
+      socket.once("data", onData);
+      socket.once("error", onError);
+      socket.once("end", onEnd);
+    });
+
+    buffer += new TextDecoder().decode(chunk);
     const lines = buffer.split("\r\n");
     buffer = lines.pop() ?? "";
 
@@ -39,11 +59,15 @@ async function readResponse(
 }
 
 async function writeCommand(
-  writer: WritableStreamDefaultWriter<Uint8Array>,
-  encoder: TextEncoder,
+  socket: TLSSocket,
   command: string,
 ) {
-  await writer.write(encoder.encode(`${command}\r\n`));
+  await new Promise<void>((resolve, reject) => {
+    socket.write(`${command}\r\n`, (error?: Error | null) => {
+      if (error) reject(error);
+      else resolve();
+    });
+  });
 }
 
 export async function sendTitanEmail({
@@ -61,34 +85,33 @@ export async function sendTitanEmail({
   subject: string;
   text: string;
 }) {
-  const socket: Socket = connect(
-    { hostname: SMTP_HOST, port: SMTP_PORT },
-    { secureTransport: "on" },
-  );
-  const reader = socket.readable.getReader();
-  const writer = socket.writable.getWriter();
-  const decoder = new TextDecoder();
-  const encoder = new TextEncoder();
+  const socket = await new Promise<TLSSocket>((resolve, reject) => {
+    const connection = connect(
+      { host: SMTP_HOST, port: SMTP_PORT, servername: SMTP_HOST },
+      () => resolve(connection),
+    );
+    connection.once("error", reject);
+  });
 
   try {
-    await readResponse(reader, decoder);
+    await readResponse(socket);
 
-    await writeCommand(writer, encoder, "EHLO cherrycapitalweb.com");
-    await readResponse(reader, decoder);
+    await writeCommand(socket, "EHLO cherrycapitalweb.com");
+    await readResponse(socket);
 
-    await writeCommand(writer, encoder, "AUTH LOGIN");
-    await readResponse(reader, decoder);
-    await writeCommand(writer, encoder, btoa(from));
-    await readResponse(reader, decoder);
-    await writeCommand(writer, encoder, btoa(password));
-    await readResponse(reader, decoder);
+    await writeCommand(socket, "AUTH LOGIN");
+    await readResponse(socket);
+    await writeCommand(socket, Buffer.from(from).toString("base64"));
+    await readResponse(socket);
+    await writeCommand(socket, Buffer.from(password).toString("base64"));
+    await readResponse(socket);
 
-    await writeCommand(writer, encoder, `MAIL FROM:<${from}>`);
-    await readResponse(reader, decoder);
-    await writeCommand(writer, encoder, `RCPT TO:<${to}>`);
-    await readResponse(reader, decoder);
-    await writeCommand(writer, encoder, "DATA");
-    await readResponse(reader, decoder);
+    await writeCommand(socket, `MAIL FROM:<${from}>`);
+    await readResponse(socket);
+    await writeCommand(socket, `RCPT TO:<${to}>`);
+    await readResponse(socket);
+    await writeCommand(socket, "DATA");
+    await readResponse(socket);
 
     const message = [
       `From: Cherry Capital Web <${from}>`,
@@ -103,12 +126,10 @@ export async function sendTitanEmail({
       ".",
     ].join("\r\n");
 
-    await writer.write(encoder.encode(`${message}\r\n`));
-    await readResponse(reader, decoder);
-    await writeCommand(writer, encoder, "QUIT");
+    await writeCommand(socket, message);
+    await readResponse(socket);
+    await writeCommand(socket, "QUIT");
   } finally {
-    reader.releaseLock();
-    writer.releaseLock();
-    socket.close();
+    socket.end();
   }
 }
