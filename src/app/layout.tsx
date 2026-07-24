@@ -10,7 +10,7 @@ import { portfolioConfig } from "@/lib/portfolioConfig";
 import { Analytics } from "@vercel/analytics/react";
 import { StructuredData } from "@/components/StructuredData";
 import { SiteAnalyticsTracker } from "@/components/analytics/SiteAnalyticsTracker";
-import { defaultOgImage, siteDescription, siteName, siteTitle } from "@/lib/seo";
+import { defaultOgImage, homeTitle, siteDescription, siteName, siteTitle } from "@/lib/seo";
 import { ClientAuthProvider } from "@/components/client-portal/ClientAuthProvider";
 
  const fontSans = FontSans({
@@ -30,12 +30,11 @@ import { ClientAuthProvider } from "@/components/client-portal/ClientAuthProvide
 export const metadata: Metadata = {
   metadataBase: new URL(portfolioConfig.seo.url),
   title: {
-    default: siteName,
+    default: homeTitle,
     template: `%s | ${siteTitle}`,
   },
   description: siteDescription,
   applicationName: siteName,
-  keywords: portfolioConfig.seo.keywords,
   authors: portfolioConfig.seo.authors,
   creator: siteName,
   publisher: siteName,
@@ -54,14 +53,14 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "/",
-    title: siteName,
+    title: homeTitle,
     description: siteDescription,
     images: [defaultOgImage],
     siteName,
   },
   twitter: {
     card: "summary_large_image",
-    title: siteName,
+    title: homeTitle,
     description: siteDescription,
     images: [defaultOgImage.url],
     creator: portfolioConfig.seo.twitterHandle,

@@ -128,7 +128,6 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
   return {
     title: post.title,
     description: post.excerpt,
-    keywords: [...post.tags, "Cherry Capital", "web development"],
     authors: portfolioConfig.seo.authors,
     alternates: { canonical: canonicalPath },
     openGraph: {

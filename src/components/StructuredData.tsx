@@ -29,6 +29,13 @@ export function StructuredData() {
     "description": siteDescription,
     "url": portfolioConfig.seo.url,
     "image": absoluteUrl("/og-image.png"),
+    "email": portfolioConfig.email,
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Beulah",
+      "addressRegion": "MI",
+      "addressCountry": "US"
+    },
     "provider": {
       "@id": absoluteUrl("/#organization")
     },
