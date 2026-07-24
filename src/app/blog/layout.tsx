@@ -8,17 +8,6 @@ export const metadata: Metadata = {
     template: `%s | Cherry Capital Blog`,
   },
   description: "Welcome to the Cherry Capital Web Blog. A home for web notes, launch stories, and practical ideas from Cherry Capital.",
-  keywords: [
-    "web development blog",
-    "next.js tutorials",
-    "local business websites",
-    "wordpress alternatives",
-    "michigan web developer",
-    "modern web development",
-    "seo tips",
-    "web performance",
-    "cherry capital blog",
-  ],
   authors: portfolioConfig.seo.authors,
   alternates: {
     canonical: "/blog",

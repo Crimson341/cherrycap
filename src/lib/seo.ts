@@ -4,6 +4,8 @@ export const siteUrl = portfolioConfig.seo.url;
 export const siteName = portfolioConfig.name;
 export const siteTitle = portfolioConfig.title;
 export const siteDescription = portfolioConfig.description;
+export const homeTitle =
+  "Northern Michigan Web Design & Development | Cherry Capital";
 export const defaultOgImage = {
   url: "/og-image.png",
   width: 1200,
